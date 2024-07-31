@@ -24,8 +24,6 @@ public class GlobalAuthenticationFilter implements GlobalFilter, Ordered {
         List<String> authHeaders = exchange.getRequest().getHeaders().get(HttpHeaders.AUTHORIZATION);
         log.info("Token: {}", authHeaders);
         if (CollectionUtils.isEmpty(authHeaders)) return unAuthenticatedError(exchange, "Invalid token!");
-
-
         String token = authHeaders.get(0).replace("Bearer ", "");
         log.info("Token: {}", token);
 

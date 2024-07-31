@@ -1,24 +1,23 @@
-# Spring DATASOURCE (DataSourceAutoConfiguration & DataSourceProperties)
+# Configuration identity service for dev environment
 MYSQL_HOST: localhost
 MYSQL_PORT: 3306
 DATA_BASE_NAME: IDENTITYSERVICE_DB
 MYSQL_USER: root
 MYSQL_PASSWORD: Duyho75#
 
-#Application configuration
-ACTIVE_PROFILE: prod
+
+ACTIVE_PROFILE: dev
 CONTAINER_PORT: 8100
 
 #Email configuration
 EMAIL_HOST: smtp.gmail.com
 EMAIL_PORT: 587
-EMAIL_USERNAME: hoduy8701@gmail.com
+EMAIL_ID: hoduy8701@gmail.com
 EMAIL_PASSWORD: cupaigjgehoemtpd
 VERIFY_EMAIL_HOST: http://localhost:8765
-
 
 #JWT configuration
 JWT_EXPIRATION: 432_000_000
 #JWT_SECRET: ${"SECRET_KEY"}
-JWT_SECRET: c2VjcmV0a2V5Y29sdXg=
+JWT_SECRET: lasflaksjflkjqowierkjashdfkjahsdkfjhaslfiwuqyoqiuwhlaksvbjxcmvnbqpweuqpweiufqywoeiurhjsadgbflajseujnasdfaosifjjnkahskdhfalsf
 

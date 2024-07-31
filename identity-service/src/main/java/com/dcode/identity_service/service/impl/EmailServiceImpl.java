@@ -2,8 +2,10 @@ package com.dcode.identity_service.service.impl;
 
 import com.dcode.identity_service.exception.ApiException;
 import com.dcode.identity_service.service.IEmailService;
+import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;

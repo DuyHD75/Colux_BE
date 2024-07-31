@@ -1,3 +1,4 @@
+# Configuration identity service for dev environment
 MYSQL_HOST: localhost
 MYSQL_PORT: 3306
 DATA_BASE_NAME: IDENTITYSERVICE_DB
