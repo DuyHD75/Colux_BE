@@ -1,0 +1,65 @@
+version: '3.7'
+
+services:
+  mysql-db:
+    image: mysql
+    container_name: ms_mysql_db
+    deploy:
+      resources:
+        limits:
+          memory: 700M
+    ports:
+      - 3037:3306
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: COLUX_DB
+      MYSQL_USER: COLUX_USER_DB_DREAMER
+      MYSQL_PASSWORD: Duyho75#
+    volumes:
+      - mysql-db-data:/var/lib/mysql
+    networks:
+      - microservices-network
+    restart: unless-stopped
+
+  mongodb:
+    container_name: ms_mongo_db
+    image: mongo
+    ports:
+      - 27017:27017
+    volumes:
+      - mongodb-data:/data/db
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=colux
+      - MONGO_INITDB_ROOT_PASSWORD=dreamaker789
+
+  mongo-express:
+    container_name: ms_mongo_express
+    image: mongo-express
+    restart: always
+    ports:
+      - 8081:8081
+    environment:
+      - ME_CONFIG_MONGODB_ADMINUSERNAME=colux
+      - ME_CONFIG_MONGODB_ADMINPASSWORD=dreamaker789
+      - ME_CONFIG_MONGODB_SERVER=mongodb
+    networks:
+      - microservices-network
+    depends_on:
+      - mongodb
+
+  mail-dev:
+    container_name: ms_mail_dev
+    image: maildev/maildev
+    ports:
+      - 1080:1080
+      - 1025:1025
+
+networks:
+  microservices-network:
+    driver: bridge
+
+
+
+volumes:
+  mysql-db-data:
+  mongodb-data:
