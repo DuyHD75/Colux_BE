@@ -1,0 +1,7 @@
+#Configuration for API Gateway service in prod environment
+ACTIVE_PROFILE: prod
+CONTAINER_PORT: 8765
+
+#JWT configuration
+JWT_EXPIRATION: 432_000_000
+JWT_SECRET: ${"SECRET_KEY"}
