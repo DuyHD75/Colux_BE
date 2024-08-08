@@ -32,9 +32,9 @@ public class FilterChainConfiguration {
     private final BCryptPasswordEncoder passwordEncoder;
 
 
-    private static final List<String> ALLOWED_PATHS = List.of("/api/v1/user/login",
-            "/api/v1/user/register",
-            "/api/v1/user/verify/account");
+    private static final List<String> ALLOWED_PATHS = List.of(
+            "/api/v1/users/register",
+            "/api/v1/users/verify/account");
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {

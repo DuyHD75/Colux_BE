@@ -2,6 +2,8 @@ package com.dcode.microservices.api_gateway.configuration;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpHeaders;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.core.Ordered;
@@ -17,15 +19,16 @@ import java.util.List;
 @Slf4j
 public class GlobalAuthenticationFilter implements GlobalFilter, Ordered {
 
+    private Logger logger = LoggerFactory.getLogger(GlobalAuthenticationFilter.class);
+
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
 
-        // get token from header
         List<String> authHeaders = exchange.getRequest().getHeaders().get(HttpHeaders.AUTHORIZATION);
-        log.info("Token: {}", authHeaders);
+        logger.info("Token: {}", authHeaders);
         if (CollectionUtils.isEmpty(authHeaders)) return unAuthenticatedError(exchange, "Invalid token!");
         String token = authHeaders.get(0).replace("Bearer ", "");
-        log.info("Token: {}", token);
+        logger.info("Token: {}", token);
 
         return chain.filter(exchange);
     }

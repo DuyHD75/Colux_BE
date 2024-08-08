@@ -6,7 +6,7 @@ public class Constants {
     public class AuthorityConstant {
         public static final String ROLE = "role";
         public static final String DUY_CODE_LLC = "DUY_CODE_LLC";
-        public static final String LOGIN_PATH = "/api/v1/user/login";
+        public static final String LOGIN_PATH = "/api/v1/users/login";
         public static final int EXPIRATION_DAYS = 90;
         public static final int STRENGTH = 12;
         public static final String EMPTY_VALUE = "empty";

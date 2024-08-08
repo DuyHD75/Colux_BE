@@ -3,7 +3,6 @@ package com.dcode.identity_service.utils;
 
 public class EmailUtils {
 
-
     public static String getNewAccountEmailMessage(String name, String host, String serviceName, String apiPrefix, String key) {
         return "Hello " + name + ",\n\n" +
                 "Welcome to our platform. To activate your account, please click on the link below:\n" +
@@ -23,7 +22,7 @@ public class EmailUtils {
     }
 
     public static String getAccountVerificationUrl(String host, String serviceName, String apiPrefix, String key) {
-        return  host + serviceName + apiPrefix + "/verify/account?key=" + key;
+        return  String.format("%s/%s%s/users/verify/account?key=%s", host, serviceName, apiPrefix, key);
     }
 
     public static String getResetPasswordUrl(String host, String serviceName, String apiPrefix, String key) {

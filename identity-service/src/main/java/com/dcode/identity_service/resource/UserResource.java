@@ -20,7 +20,7 @@ import static org.springframework.http.HttpStatus.OK;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/v1/user")
+@RequestMapping("/api/v1/users")
 public class UserResource {
 
     private final IUserService userService;
@@ -40,6 +40,11 @@ public class UserResource {
     public ResponseEntity<Response> verifyAccount(@RequestParam("key") String key, HttpServletRequest request) {
         userService.verifyAccountKey(key);
         return ResponseEntity.ok().body(getResponse(request, emptyMap(), "Account verified.", OK));
+    }
+
+    @GetMapping("/info")
+    public ResponseEntity<Response> getUserInfo(HttpServletRequest request) {
+        return ResponseEntity.ok().body(getResponse(request, emptyMap(), "User info retrieved.", OK));
     }
 
     private URI getUri() {

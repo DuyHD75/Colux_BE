@@ -37,6 +37,7 @@ public class RequestUtils {
         }
     };
 
+
     private static final BiFunction<Exception, HttpStatus, String> errorReason = (exception, status) -> {
         if (status.isSameCodeAs(FORBIDDEN)) return "You are not authorized to access this resource";
 
@@ -62,7 +63,7 @@ public class RequestUtils {
             var apiResponse = getErrorResponse(request, response, exception, FORBIDDEN);
             writeResponse.accept(response, apiResponse);
         }
-        if(exception instanceof AuthenticationException){
+        if (exception instanceof AuthenticationException) {
             var apiResponse = getErrorResponse(request, response, exception, UNAUTHORIZED);
             writeResponse.accept(response, apiResponse);
         }
@@ -75,8 +76,6 @@ public class RequestUtils {
                 request.getRequestURI(), HttpStatus.valueOf(status.value()),
                 null, errorReason.apply(exception, status), emptyMap());
     }
-
-
 }
 
 
