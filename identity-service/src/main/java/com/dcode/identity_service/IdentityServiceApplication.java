@@ -35,9 +35,9 @@ public class IdentityServiceApplication {
             var adminRole = new RoleEntity();
             adminRole.setName(Authority.ADMIN.name());
             adminRole.setAuthorities(Authority.ADMIN.getAuthorityValue());
-            roleRepository.save(adminRole);
+            roleRepository.save(adminRole);*/
 
-            RequestContext.start();*/
+            RequestContext.start();
 		};
 	}
 }

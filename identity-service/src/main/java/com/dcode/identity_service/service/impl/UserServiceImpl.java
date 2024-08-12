@@ -25,6 +25,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 
+import java.util.List;
 import java.util.Map;
 
 import static com.dcode.identity_service.enumeration.EventType.REGISTRATION;
@@ -135,6 +136,4 @@ public class UserServiceImpl implements IUserService {
         var role = getRoleName(Authority.USER.name());
         return createNewUserEntity(firstName, lastName, email, role);
     }
-
-
 }

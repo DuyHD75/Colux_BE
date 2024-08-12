@@ -13,11 +13,14 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import java.util.List;
+
+import static com.dcode.identity_service.constant.Constants.AuthorityConstant.ALLOWED_PATHS;
 
 
 @Configuration
@@ -32,20 +35,25 @@ public class FilterChainConfiguration {
     private final BCryptPasswordEncoder passwordEncoder;
 
 
-    private static final List<String> ALLOWED_PATHS = List.of(
-            "/api/v1/users/register",
-            "/api/v1/users/verify/account");
-
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
                 .csrf(AbstractHttpConfigurer::disable)
                 .addFilterBefore(new AuthenticationFilter(authenticationManager(), userService, jwtService),
                         UsernamePasswordAuthenticationFilter.class)
+                .addFilterAfter(new JwtAuthenticationFilter(jwtService), AuthenticationFilter.class)
                 .authorizeHttpRequests(req ->
-                        req.requestMatchers(ALLOWED_PATHS.toArray(new String[0]))
+                        req.requestMatchers(ALLOWED_PATHS)
                                 .permitAll()
                                 .anyRequest().authenticated()
+                )
+                .logout(logout -> logout.logoutUrl("/api/v1/users/logout")
+                        .addLogoutHandler(new CustomLogoutHandler(jwtService))
+                        .logoutSuccessHandler(((request, response, authentication) -> {
+                            log.info("User logged out successfully");
+                            SecurityContextHolder.clearContext();
+                            response.setStatus(200);
+                        }))
                 )
                 .build();
     }

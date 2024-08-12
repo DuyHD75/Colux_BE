@@ -61,7 +61,6 @@ public class JwtServiceImpl extends JwtConfiguration implements IJwtService {
 
     private final Function<String, String> subject = token -> getClaimsValue(token, Claims::getSubject);
 
-
     private final BiFunction<HttpServletRequest, String, Optional<String>> extractToken = (request, cookieName) ->
             Optional.of(
                     stream(request.getCookies() == null ? new Cookie[]{new Cookie(EMPTY_VALUE, EMPTY_VALUE)} : request.getCookies())
@@ -69,7 +68,6 @@ public class JwtServiceImpl extends JwtConfiguration implements IJwtService {
                             .map(Cookie::getValue)
                             .findAny()
             ).orElse(empty());
-
 
     private final BiFunction<HttpServletRequest, String, Optional<Cookie>> extractCookie = (request, cookieName) ->
             Optional.of(
@@ -101,7 +99,6 @@ public class JwtServiceImpl extends JwtConfiguration implements IJwtService {
                     .expiration(Date.from(Instant.now().plusSeconds(getExpiration())))
                     .compact();
 
-
     private final TriConsumer<HttpServletResponse, User, TokenType> addCookie = (response, user, tokenType) -> {
         switch (tokenType) {
             case ACCESS_TOKEN -> {
@@ -126,7 +123,6 @@ public class JwtServiceImpl extends JwtConfiguration implements IJwtService {
             }
         }
     };
-
 
     public Function<String, List<GrantedAuthority>> authorities = token ->
             commaSeparatedStringToAuthorityList(
@@ -158,7 +154,8 @@ public class JwtServiceImpl extends JwtConfiguration implements IJwtService {
     public <T> T getTokenData(String token, Function<TokenData, T> tokenFunction) {
         return tokenFunction.apply(
                 TokenData.builder()
-                        .validToken(Objects.equals(userService.getUserByUserId(subject.apply(token)).getUserId(), claimsFunction.apply(token).getSubject()))
+                        .validToken(Objects.equals(userService.getUserByUserId(subject.apply(token)).getUserId(),
+                                claimsFunction.apply(token).getSubject()))
                         .authorities(authorities.apply(token))
                         .claims(claimsFunction.apply(token))
                         .user(userService.getUserByUserId(subject.apply(token)))

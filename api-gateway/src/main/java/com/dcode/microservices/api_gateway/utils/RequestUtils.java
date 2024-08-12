@@ -1,18 +1,17 @@
-package com.dcode.identity_service.utils;
+package com.dcode.microservices.api_gateway.utils;
 
-
-import com.dcode.identity_service.domain.Response;
-import com.dcode.identity_service.exception.ApiException;
+import com.dcode.microservices.api_gateway.domain.Response;
+import com.dcode.microservices.api_gateway.exception.ApiException;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.jsonwebtoken.JwtException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.authentication.CredentialsExpiredException;
-import org.springframework.security.authentication.DisabledException;
-import org.springframework.security.authentication.LockedException;
-import org.springframework.security.core.AuthenticationException;
+import org.springframework.http.MediaType;
+import org.springframework.http.server.reactive.ServerHttpRequest;
+import org.springframework.http.server.reactive.ServerHttpResponse;
+import reactor.core.publisher.Mono;
 
 import java.nio.file.AccessDeniedException;
 import java.util.Map;
@@ -24,7 +23,6 @@ import static java.util.Collections.emptyMap;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.springframework.http.HttpStatus.FORBIDDEN;
 import static org.springframework.http.HttpStatus.UNAUTHORIZED;
-import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 public class RequestUtils {
 
@@ -39,14 +37,11 @@ public class RequestUtils {
     };
 
     private static final BiFunction<Exception, HttpStatus, String> errorReason = (exception, status) -> {
-        if (exception instanceof DisabledException || exception instanceof AccessDeniedException || exception instanceof LockedException ||
-                exception instanceof BadCredentialsException || exception instanceof ApiException || exception instanceof CredentialsExpiredException) {
-            return exception.getMessage();
-        }
-
         if (status.isSameCodeAs(FORBIDDEN)) return "You are not authorized to access this resource";
 
         if (status.isSameCodeAs(UNAUTHORIZED)) return "You are not authenticated to access this resource";
+
+        if (exception instanceof AccessDeniedException) return "You are not authorized to access this resource";
 
         if (status.is5xxServerError()) return "An external error occurred while processing your request";
         else return "An error occurred while processing your request. Please try again later";
@@ -59,21 +54,22 @@ public class RequestUtils {
                 message, EMPTY, data);
     }
 
+    public static Mono<Void> getErrorResponse(ServerHttpRequest request, ServerHttpResponse response, Exception exception, HttpStatus status) throws JsonProcessingException {
+        response.getHeaders().setContentType(MediaType.APPLICATION_JSON);
+        response.setStatusCode(status);
 
-    public static void writeErrorResponse(HttpServletRequest request, HttpServletResponse response, Exception exception, HttpStatus status) {
-        writeResponse.accept(response, getErrorResponse(request, response, exception, status));
-    }
-
-    public static Response getErrorResponse(HttpServletRequest request, HttpServletResponse response, Exception exception, HttpStatus status) {
-        response.setContentType(APPLICATION_JSON_VALUE);
-        response.setStatus(status.value());
-        return new Response(
+        Response errorResponse = new Response(
                 now().toString(),
                 status.value(),
-                request.getRequestURI(),
-                HttpStatus.valueOf(status.value()),
+                request.getURI().getPath().toString(),
+                status,
                 exception.getMessage(),
-                errorReason.apply(exception, status), emptyMap());
+                errorReason.apply(exception, status),
+                emptyMap()
+        );
+
+        DataBuffer dataBuffer = response.bufferFactory().wrap(new ObjectMapper().writeValueAsBytes(errorResponse));
+        return response.writeWith(Mono.just(dataBuffer));
     }
 }
 
