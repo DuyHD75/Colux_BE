@@ -13,6 +13,8 @@ import static java.time.LocalDateTime.now;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 
 public class UserUtils {
+
+
     public static UserEntity createNewUserEntity(String firstName, String lastName, String email, RoleEntity role) {
         return UserEntity.builder()
                 .userId(UUID.randomUUID().toString())

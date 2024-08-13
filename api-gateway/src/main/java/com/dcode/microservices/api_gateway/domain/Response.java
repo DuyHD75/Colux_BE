@@ -1,4 +1,5 @@
-package com.dcode.identity_service.domain;
+package com.dcode.microservices.api_gateway.domain;
+
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import org.springframework.http.HttpStatus;
