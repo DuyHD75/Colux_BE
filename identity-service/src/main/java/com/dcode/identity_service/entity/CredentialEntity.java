@@ -24,8 +24,8 @@ import static jakarta.persistence.FetchType.EAGER;
 @JsonInclude(NON_DEFAULT)
 
 public class CredentialEntity extends Auditable {
-
     private String password;
+
 
     @OneToOne(targetEntity = UserEntity.class, fetch = EAGER)
     @JoinColumn(name = "user_id", referencedColumnName = "id", nullable = false)

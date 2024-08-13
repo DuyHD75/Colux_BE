@@ -15,11 +15,11 @@ spring:
         - id: identity-service
           uri: lb://identity-service
           predicates:
-            - Path=${app.api-prefix}/user/**
+            - Path=${app.api-prefix}/users/**
           filters:
             - name: RewritePath
               args:
-                regexp: /user/(?<segment>.*)
+                regexp: /users/(?<segment>.*)
                 replacement: /$\{segment}
         - id: currency-exchange-service
           uri: lb://currency-exchange
@@ -33,7 +33,7 @@ spring:
 server:
   port: ${CONTAINER_PORT:8080}
   error:
-    path: /user/error
+    path: /users/error
     whitelabel:
       enabled: false
 

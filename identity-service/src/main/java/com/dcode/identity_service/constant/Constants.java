@@ -6,7 +6,7 @@ public class Constants {
     public class AuthorityConstant {
         public static final String ROLE = "role";
         public static final String DUY_CODE_LLC = "DUY_CODE_LLC";
-        public static final String LOGIN_PATH = "/api/v1/user/login";
+        public static final String LOGIN_PATH = "/api/v1/users/login";
         public static final int EXPIRATION_DAYS = 90;
         public static final int STRENGTH = 12;
         public static final String EMPTY_VALUE = "empty";
@@ -16,6 +16,16 @@ public class Constants {
         public static final String USER_AUTHORITIES = "review:create,product:read,review:update,review:delete";
         public static final String ADMIN_AUTHORITIES = "user:create,user:read,user:update,product:create,product:read,product:update,product:delete";
         public static final String MANAGER_AUTHORITIES = "product:create,product:read,product:update,product:delete";
+        public static final String[] ALLOWED_PATHS = {
+                "/api/v1/users/login",
+                "/api/v1/users/register",
+                "/api/v1/users/verify/account",
+                "/api/v1/users/introspect",
+                "/api/v1/users/password/reset",
+                "/api/v1/users/password/reset/verify",
+                "/api/v1/users/refresh_token",
+                "/api/v1/users/logout"
+        };
     }
 
     public class EmailSubjectConstant {

@@ -5,6 +5,8 @@ import com.dcode.identity_service.entity.CredentialEntity;
 import com.dcode.identity_service.entity.RoleEntity;
 import com.dcode.identity_service.enumeration.LoginType;
 
+import java.util.List;
+
 
 public interface IUserService {
     void createUser(String firstName, String lastName, String email, String password);
@@ -20,4 +22,5 @@ public interface IUserService {
     User getUserByEmail(String name);
 
     CredentialEntity getUserCredentialById(Long id);
+
 }
