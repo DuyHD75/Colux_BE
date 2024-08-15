@@ -12,7 +12,6 @@ import lombok.experimental.Accessors;
 @JsonIgnoreProperties(ignoreUnknown = true)
 //@Accessors(fluent = true) getter and setter methods will be named in a fluent style
 public class UserRequest {
-
     @NotEmpty(message = "First name is required")
     private String firstName;
     @NotEmpty(message = "Last name is required")
@@ -25,6 +24,4 @@ public class UserRequest {
 
     private String phone;
     private String bio;
-
-
 }

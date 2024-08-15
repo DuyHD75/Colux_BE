@@ -18,8 +18,8 @@ import static jakarta.persistence.FetchType.EAGER;
 @Entity
 @Table(name = "users")
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
-
 public class UserEntity extends Auditable {
+
     @Column(updatable = false, nullable = false, unique = true)
     private String userId;
     private String firstName;

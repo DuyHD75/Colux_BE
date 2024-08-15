@@ -24,6 +24,7 @@ import static jakarta.persistence.FetchType.EAGER;
 @JsonInclude(NON_DEFAULT)
 
 public class CredentialEntity extends Auditable {
+
     private String password;
 
 

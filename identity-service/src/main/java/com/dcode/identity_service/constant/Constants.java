@@ -23,7 +23,7 @@ public class Constants {
                 "/api/v1/users/introspect",
                 "/api/v1/users/password/reset",
                 "/api/v1/users/password/reset/verify",
-                "/api/v1/users/refresh_token",
+                "/api/v1/users/refresh-token",
                 "/api/v1/users/logout"
         };
     }
