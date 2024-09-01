@@ -7,11 +7,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.authentication.BadCredentialsException;
+/*import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.CredentialsExpiredException;
 import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.LockedException;
-import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.AuthenticationException;*/
 
 import java.nio.file.AccessDeniedException;
 import java.util.Map;
@@ -42,10 +42,10 @@ public class RequestUtils {
 
         if (status.isSameCodeAs(UNAUTHORIZED)) return "You are not authenticated to access this resource";
 
-        if (exception instanceof DisabledException || exception instanceof AccessDeniedException || exception instanceof LockedException ||
-                exception instanceof BadCredentialsException || exception instanceof ApiException || exception instanceof CredentialsExpiredException) {
-            return exception.getMessage();
-        }
+//        if (exception instanceof DisabledException || exception instanceof AccessDeniedException || exception instanceof LockedException ||
+//                exception instanceof BadCredentialsException || exception instanceof ApiException || exception instanceof CredentialsExpiredException) {
+//            return exception.getMessage();
+//        }
         if (status.is5xxServerError()) return "An external error occurred while processing your request";
         else return "An error occurred while processing your request. Please try again later";
     };
@@ -62,10 +62,10 @@ public class RequestUtils {
             var apiResponse = getErrorResponse(request, response, exception, FORBIDDEN);
             writeResponse.accept(response, apiResponse);
         }
-        if(exception instanceof AuthenticationException){
-            var apiResponse = getErrorResponse(request, response, exception, UNAUTHORIZED);
-            writeResponse.accept(response, apiResponse);
-        }
+//        if(exception instanceof AuthenticationException){
+//            var apiResponse = getErrorResponse(request, response, exception, UNAUTHORIZED);
+//            writeResponse.accept(response, apiResponse);
+//        }
     }
 
     private static Response getErrorResponse(HttpServletRequest request, HttpServletResponse response, Exception exception, HttpStatus status) {

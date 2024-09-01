@@ -16,7 +16,6 @@ import java.util.List;
 @Entity
 public class Collection extends Auditable{
     private String name;
-    private String collectionType;
 
     @ManyToMany(mappedBy = "collections")
     private List<Color> colors;
@@ -25,5 +24,16 @@ public class Collection extends Auditable{
     @JoinColumn(name = "color_family", referencedColumnName = "id")
     private ColorFamily colorFamily;
 
+    @ManyToOne
+    @JoinColumn(name = "room_id", referencedColumnName = "id")
+    private Room room;
+
+    @OneToOne
+    @JoinColumn(name = "collection_type_id", referencedColumnName = "id")
+    private CollectionType collectionType;
+
+    @OneToOne
+    @JoinColumn(name = "relative_collection_id", referencedColumnName = "id")
+    private RelativeCollection relativeCollection;
 
 }
