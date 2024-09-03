@@ -1,0 +1,23 @@
+# Configuration identity service for dev environment
+MYSQL_HOST: localhost
+MYSQL_PORT: 3306
+DATA_BASE_NAME: ORDERSERVICE_DB
+MYSQL_USER: root
+MYSQL_PASSWORD: Duyho75#
+
+
+ACTIVE_PROFILE: dev
+CONTAINER_PORT: 8081
+
+#Email configuration
+EMAIL_HOST: smtp.gmail.com
+EMAIL_PORT: 587
+EMAIL_ID: hoduy8701@gmail.com
+EMAIL_PASSWORD: cupaigjgehoemtpd
+VERIFY_EMAIL_HOST: http://localhost:8765
+
+# Host call another service
+IDENTITY_SERVICE_HOST: http://localhost:8765
+PRODUCT_SERVICE_HOST: http://localhost:8765
+PAYMENT_SERVICE_HOST: http://localhost:8765
+

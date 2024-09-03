@@ -47,4 +47,5 @@ public class UserEntity extends Auditable {
             inverseJoinColumns = @JoinColumn(name = "role_id", referencedColumnName = "id")
     )
     private RoleEntity role;
+
 }

@@ -8,7 +8,6 @@ import com.dcode.identity_service.dtorequest.ChangePasswordRequest;
 import com.dcode.identity_service.dtorequest.ResetPasswordRequest;
 import com.dcode.identity_service.dtorequest.UserRequest;
 import com.dcode.identity_service.exception.ApiException;
-import com.dcode.identity_service.function.TriConsumer;
 import com.dcode.identity_service.service.IJwtService;
 import com.dcode.identity_service.service.IUserService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -179,9 +178,6 @@ public class UserResource {
     private URI getUri() {
         return URI.create("");
     }
-
-
-
 }
 
 

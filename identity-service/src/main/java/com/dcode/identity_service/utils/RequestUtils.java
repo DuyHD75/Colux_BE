@@ -53,7 +53,8 @@ public class RequestUtils {
     };
 
 
-    public static Response getResponse(HttpServletRequest request, Map<?, ?> data, String message, HttpStatus status) {
+    public static Response getResponse(HttpServletRequest request, Map<?, ?> data,
+                                       String message, HttpStatus status) {
         return new Response(now().toString(), status.value(),
                 request.getRequestURI(), HttpStatus.valueOf(status.value()),
                 message, EMPTY, data);
