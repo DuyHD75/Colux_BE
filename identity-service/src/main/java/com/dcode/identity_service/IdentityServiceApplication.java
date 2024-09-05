@@ -1,8 +1,6 @@
 package com.dcode.identity_service;
 
 import com.dcode.identity_service.domain.RequestContext;
-import com.dcode.identity_service.entity.RoleEntity;
-import com.dcode.identity_service.enumeration.Authority;
 import com.dcode.identity_service.repository.RoleRepository;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
