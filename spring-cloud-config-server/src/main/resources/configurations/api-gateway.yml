@@ -30,6 +30,15 @@ spring:
               args:
                 regexp: /currency-exchange/(?<segment>.*)
                 replacement: /$\{segment}
+        - id: product-service
+          uri: lb://product-service
+          predicates:
+            - Path=${app.api-prefix}/product/**
+          filters:
+            - name: RewritePath
+              args:
+                regexp: /product/(?<segment>.*)
+                replacement: /$\{segment}
 server:
   port: ${CONTAINER_PORT:8080}
   error:
