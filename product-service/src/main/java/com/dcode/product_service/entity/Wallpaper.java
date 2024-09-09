@@ -1,10 +1,14 @@
 package com.dcode.product_service.entity;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.util.List;
 import java.util.Set;
+
+import static jakarta.persistence.CascadeType.MERGE;
+import static jakarta.persistence.CascadeType.PERSIST;
 
 @Getter
 @Setter
@@ -27,7 +31,9 @@ public class Wallpaper extends Auditable{
 //    private String fireResistant;
     private double area;
 
-    @ManyToMany(mappedBy = "wallpapers", cascade = CascadeType.ALL)
-    private Set<Variant> variants;
+//    @JsonManagedReference
+    @OneToMany(cascade = {PERSIST,MERGE}, mappedBy = "wallpaper")
+    private Set<WallpaperVariant> wallpaperVariants;
+
 
 }

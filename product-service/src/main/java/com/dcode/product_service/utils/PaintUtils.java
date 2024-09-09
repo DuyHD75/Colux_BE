@@ -1,132 +1,124 @@
 package com.dcode.product_service.utils;
 
-import com.dcode.product_service.dtoRequest.PaintRequest;
 import com.dcode.product_service.dtoRequest.VariantRequest;
 import com.dcode.product_service.dtoResponse.PaintResponse;
 import com.dcode.product_service.dtoResponse.VariantResponse;
-import com.dcode.product_service.entity.Paint;
-import com.dcode.product_service.entity.Product;
-import com.dcode.product_service.entity.Variant;
-import com.dcode.product_service.repository.VariantRepository;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.dcode.product_service.entity.*;
+import com.dcode.product_service.exception.ApiException;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 
-import java.beans.PropertyDescriptor;
-import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
 @AllArgsConstructor
 public class PaintUtils {
-    private static final ObjectMapper objectMapper = new ObjectMapper();
 
-    //    public static Set<VariantRequest> convertToVariantRequests(Set<String> variantRequestJsonSet)  {
-//        Set<VariantRequest> variantRequests = new HashSet<>();
-//    try {
-//        for (String json : variantRequestJsonSet) {
-//            VariantRequest variantRequest = objectMapper.readValue(json, VariantRequest.class);
-//            variantRequests.add(variantRequest);
-//        }
-//    }catch (Exception e){
-//        log.error("Error while convert variant request!");
-//        throw new RuntimeException(e);
-//    }
-//
-//        return variantRequests;
-//    }
     public static PaintResponse fromPaintEntity(Paint paint) {
-        Set<VariantResponse> variantResponse = new HashSet<>();
-        if (paint.getVariants() != null) {
-            paint.getVariants().forEach(variant -> {
-                VariantResponse response = new VariantResponse();
-                BeanUtils.copyProperties(variant, response);
-                variantResponse.add(response);
-            });
-        }
         return PaintResponse.builder()
-                .quantity("20")
                 .color("red")
-                .variants(variantResponse)
+                .variants(convertVariantToVResponse(paint.getPaintVariants()))
                 .build();
+
     }
 
-    public static Paint createNewPaintEntity(Product product, String quantity, String color, Set<Variant> variantRequestSet) {
+    public static List<VariantResponse> convertVariantToVResponse(Set<? extends IVariant> variants) {
+        return variants.stream()
+                .map(variant -> VariantResponse.builder()
+                        .variantId(variant.getVariantId())
+                        .sizeName(variant.getSizeName())
+                        .categoryName(variant.getCategoryName())
+                        .packageType(variant.getPackageType())
+                        .build())
+                .collect(Collectors.toList());
+    }
 
+    public static Map<Variant, Double> checkVariantRequestSet(Set<VariantRequest> variantRequestSet, Set<Variant> variantSetInDb) {
+        Set<String> foundVariantIds = variantSetInDb.stream().map(Variant::getVariantId).collect(Collectors.toSet());
+
+        Set<String> notFoundVariantIds = variantRequestSet.stream()
+                .map(VariantRequest::getVariantId)
+                .filter(variantId -> !foundVariantIds.contains(variantId))
+                .collect(Collectors.toSet());
+
+        if (!notFoundVariantIds.isEmpty()) {
+            throw new ApiException("The following Variant IDs were not found: " + notFoundVariantIds);
+        }
+        return variantSetInDb.stream()
+                .collect(Collectors.toMap(
+                        variant -> variant, // Key là Variant
+                        variant -> variantRequestSet.stream()
+                                .filter(request -> request.getVariantId().equals(variant.getVariantId()))
+                                .findFirst()
+                                .map(VariantRequest::getQuantity)
+                                .orElseThrow(() -> new ApiException("Quantity not found for Variant ID: " + variant.getVariantId()))
+                ));
+    }
+
+    public static Paint createNewPaintEntity(Product product, Color color, Map<Variant, Double> variantRequestSet) {
+        Set<PaintVariant> paintVariant = new HashSet<>();
         Paint paint = Paint.builder()
                 .paintId(UUID.randomUUID().toString())
                 .product(product)
-                .quantity(Integer.parseInt(quantity))
-//                .color(color) // colorId
-                .variants(variantRequestSet)
+                .color(color) // colorId
+                .paintVariants(paintVariant)
                 .build();
-        variantRequestSet.forEach(variant -> {
-            variant.getPaints().add(paint);
-        });
+
+        for (Map.Entry<Variant, Double> entry : variantRequestSet.entrySet()) {
+            Variant variant = entry.getKey();
+            Integer quantity = entry.getValue().intValue();
+
+            PaintVariant temp = PaintVariant.builder()
+                    .paint(paint)
+                    .variant(variant)
+                    .quantity(quantity)
+                    .build();
+            paint.getPaintVariants().add(temp);
+        }
         return paint;
     }
 
-    public static Paint fromPaintEntityAndIgnoreField(PaintRequest paintRequest, Paint paint) {
-        String[] ignoreFields = Arrays.stream(BeanUtils.getPropertyDescriptors(paintRequest.getClass()))
-                .map(PropertyDescriptor::getName)
-                .filter(name -> {
-                    try {
-                        return BeanUtils.getPropertyDescriptor(paintRequest.getClass(), name).getReadMethod().invoke(paintRequest) == null;
-                    } catch (Exception e) {
-                        return false;
-                    }
-                })
-                .toArray(String[]::new);
-        BeanUtils.copyProperties(paintRequest, paint, ignoreFields);
+    public static Paint fromPaintEntity(String color, Map<Variant, Double> variantRequestSet, Paint paint) {
+//        paint.setColor(color);
+        Set<PaintVariant> existingPaintVariants = paint.getPaintVariants();
 
+        //convert Double value
+        Map<Variant, Integer> variantQuantityMap = variantRequestSet.entrySet().stream()
+                .collect(Collectors.toMap(Map.Entry::getKey, entry -> entry.getValue().intValue()));
+
+        Set<PaintVariant> updatedPaintVariants = new HashSet<>();
+        // check variant bw request and db, exist -> check quantity, db dont have -> add, request dont have -> remove
+        for (Map.Entry<Variant, Integer> entry : variantQuantityMap.entrySet()) {
+            Variant variant = entry.getKey();
+            Integer quantity = entry.getValue();
+
+            PaintVariant paintVariant = existingPaintVariants.stream()
+                    .filter(pv -> pv.getVariant().equals(variant))
+                    .findFirst()
+                    .orElse(null);
+
+            if (paintVariant == null) {
+                paintVariant = PaintVariant.builder()
+                        .paint(paint)
+                        .variant(variant)
+                        .quantity(quantity)
+                        .build();
+                updatedPaintVariants.add(paintVariant);
+            } else {
+                paintVariant.setQuantity(quantity);
+                updatedPaintVariants.add(paintVariant);
+            }
+        }
+        existingPaintVariants.removeIf(pv -> !variantQuantityMap.containsKey(pv.getVariant()));
+        paint.setPaintVariants(updatedPaintVariants);
         return paint;
     }
 
-    public static Map<String, Set<Variant>> updateVariants(Paint paint, Set<VariantRequest> variantRequestSet) {
-        Set<Variant> currentVariants = paint.getVariants();
-        Set<Variant> variantsToAdd = new HashSet<>();
-
-        for (VariantRequest variantRequest : variantRequestSet) {
-            boolean exists = currentVariants.stream()
-                    .anyMatch(v -> v.getSizeName().equals(variantRequest.getSizeName()) &&
-                            v.getCategoryName().equals(variantRequest.getCategoryName()) &&
-                            v.getPackageType().equals(variantRequest.getPackageType()));
-            if (!exists) {
-                Variant newVariant = CreateVariant(variantRequest, paint);
-                variantsToAdd.add(newVariant);
-            }
-        }
-        currentVariants.addAll(variantsToAdd);
-        Set<Variant> needToDelete = new HashSet<>();
-        //delete variants not exist in new Set of variants
-        for (Variant currentVariant : new HashSet<>(currentVariants)) {
-            boolean stillExist = variantRequestSet.stream()
-                    .anyMatch(v -> v.getSizeName().equals(currentVariant.getSizeName()) &&
-                            v.getCategoryName().equals(currentVariant.getCategoryName()) &&
-                            v.getPackageType().equals(currentVariant.getPackageType()));
-            if (!stillExist) {
-//                currentVariant.setPaint(null);
-                needToDelete.add(currentVariant);
-                currentVariants.remove(currentVariant);
-            }
-        }
-        Map<String, Set<Variant>> result = new HashMap<>();
-        result.put("needToDelete", needToDelete);
-        result.put("newVariants", currentVariants);
-        return result;
-    }
-
-    private static Variant CreateVariant(VariantRequest variantRequest, Paint paint) {
-        Variant variant = Variant.builder()
-                .variantId(UUID.randomUUID().toString())
-                .sizeName(variantRequest.getSizeName())
-                .categoryName(variantRequest.getCategoryName())
-                .packageType(variantRequest.getPackageType())
-//                .paint(paint)
-                .build();
-        return variant;
+    public static Set<String> extractVariantIds(Set<VariantRequest> variantRequestSet) {
+        return variantRequestSet.stream().map(
+                        VariantRequest::getVariantId)
+                .collect(Collectors.toSet());
     }
 }

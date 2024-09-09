@@ -1,6 +1,7 @@
 package com.dcode.product_service.controller;
 
 import com.dcode.product_service.domain.Response;
+import com.dcode.product_service.dtoRequest.VariantAttributeRequest;
 import com.dcode.product_service.dtoRequest.VariantRequest;
 import com.dcode.product_service.dtoResponse.VariantResponse;
 import com.dcode.product_service.service.impl.VariantServiceImpl;
@@ -35,7 +36,7 @@ public class VariantController {
 //        return ResponseEntity.ok().body(getResponse(request, Map.of("variants", variantResponseSet),"Retrieve Paint Variant successfully!", OK));
 //    }
     @PostMapping
-    public ResponseEntity<Response> createAVariant(@RequestBody @Valid VariantRequest variantRequest, HttpServletRequest request){
+    public ResponseEntity<Response> createAVariant(@RequestBody @Valid VariantAttributeRequest variantRequest, HttpServletRequest request){
         variantService.createAVariant(variantRequest.getSizeName(), variantRequest.getCategoryName(), variantRequest.getPackageType());
         return ResponseEntity.created(getUri()).body(
                 getResponse(request, emptyMap(), "Variant created successfully!", CREATED));

@@ -1,24 +1,17 @@
 package com.dcode.product_service.service.impl;
 
-import com.dcode.product_service.dtoRequest.PaintRequest;
 import com.dcode.product_service.dtoRequest.VariantRequest;
 import com.dcode.product_service.dtoResponse.PaintResponse;
 import com.dcode.product_service.entity.Paint;
-import com.dcode.product_service.entity.Variant;
 import com.dcode.product_service.exception.ApiException;
-import com.dcode.product_service.repository.PaintRepository;
-import com.dcode.product_service.repository.ProductRepository;
-import com.dcode.product_service.repository.VariantRepository;
+import com.dcode.product_service.repository.*;
 import com.dcode.product_service.service.IPaintService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import static com.dcode.product_service.utils.PaintUtils.*;
 
@@ -31,52 +24,42 @@ public class PaintServiceImpl implements IPaintService {
     private final PaintRepository paintRepository;
     private final VariantRepository variantRepository;
     private final ProductRepository productRepository;
+    private final PaintVariantRepository paintVariantRepository;
+    private final ColorRepository colorRepository;
 
 
-//    @Override
-//    public void updateAPaint(String paintId, PaintRequest paintRequest) {
-//        var paint = paintRepository.findByPaintId(paintId).orElseThrow(() -> new ApiException("Paint not found!"));
-//
-//        Map<String, Set<Variant>> result = getDeleteAndNewVariant(paint, paintRequest.getVariants());
-//        Set<Variant> needToDelete = result.get("needToDelete");
-//        Set<Variant> newVariants = result.get("newVariants");
-//       Paint paintUpdate = fromPaintEntityAndIgnoreField(paintRequest, paint);
-//       paintUpdate.setVariants(newVariants);
-//        paintRepository.save(paintUpdate);
-////        thảo luận lại cách 1 variant bị xóa
-////        variantRepository.deleteAll(needToDelete);
-//    }
+    @Override
+    public void updateAPaint(String paintId, String color, Set<VariantRequest> variantRequestSet) {
+        var paint = paintRepository.findByPaintId(paintId).orElseThrow(() -> new ApiException("Paint not found!"));
+        Set<String> variantIds = extractVariantIds(variantRequestSet);
+        Paint paintUpdate = fromPaintEntity(color, checkVariantRequestSet(variantRequestSet, variantRepository.findAllByVariantIdIn(variantIds)), paint);
+        paintRepository.save(paintUpdate);
+    }
 
-    public void createAPaint(String productId, String quantity, String color, Set<String> variantRequestSet) {
 
-        paintRepository.save(createAPaintEntity(productId, quantity, color, variantRequestSet));
+    public void createAPaint(String productId, String color, Set<VariantRequest> variantRequestSet) {
+        paintRepository.save(createAPaintEntity(productId, color, variantRequestSet));
     }
 
     public PaintResponse getAPaint(String paintId) {
-         var paintEntity = paintRepository.findByPaintId(paintId).orElseThrow(()-> new ApiException("Paint not found!"));
-         return fromPaintEntity(paintEntity);
+        var paintEntity = paintRepository.findByPaintId(paintId).orElseThrow(() -> new ApiException("Paint not found!"));
+        return fromPaintEntity(paintEntity);
+    }
+
+    @Override
+    public void deleteAPaint(String paintId) {
+        var paint = paintRepository.findByPaintId(paintId).orElseThrow(() -> new ApiException("Paint not found!"));
+        paintVariantRepository.deleteByPaint(paint);
+        paintRepository.delete(paint);
     }
 
 
-    private Paint createAPaintEntity(String productId, String quantity, String color, Set<String> variantRequestSet) {
-        var product = productRepository.findByProductId(productId).orElseThrow(()-> new ApiException("Product not found!"));
-        Set<Variant> variant = variantRepository.findAllByVariantIdIn(variantRequestSet);
-
-        Set<String> foundIds = variant.stream()
-                .map(Variant::getVariantId)
-                .collect(Collectors.toSet());
-        Set<String> notFoundIds = variantRequestSet.stream()
-                .filter(id -> !foundIds.contains(id))
-                .collect(Collectors.toSet());
-        if (!notFoundIds.isEmpty()) {
-            throw new ApiException("The following Variant IDs were not found: " + notFoundIds);
-        }
-
-        return createNewPaintEntity(product, quantity, color, variant);
+    private Paint createAPaintEntity(String productId, String color, Set<VariantRequest> variantRequestSet) {
+        var product = productRepository.findByProductId(productId).orElseThrow(() -> new ApiException("Product not found!"));
+        Set<String> variantIds = extractVariantIds(variantRequestSet);
+        var colorEntity = colorRepository.findByColorId(color).orElseThrow(()-> new ApiException("ColorId not found!"));
+        return createNewPaintEntity(product, colorEntity, checkVariantRequestSet(variantRequestSet, variantRepository.findAllByVariantIdIn(variantIds)));
     }
 
-    private Map<String, Set<Variant>> getDeleteAndNewVariant(Paint paint, Set<VariantRequest> variants) {
-        return updateVariants(paint, variants);
-    }
 
 }

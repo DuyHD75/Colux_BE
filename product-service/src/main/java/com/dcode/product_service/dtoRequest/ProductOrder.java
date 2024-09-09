@@ -5,7 +5,8 @@ import lombok.Data;
 @Data
 public class ProductOrder {
     private String productId;
-    private String productType;
-    private int quantity;
+    private String variantId;
+    private String colorId;
+    private Double quantity;
     private boolean success;
 }

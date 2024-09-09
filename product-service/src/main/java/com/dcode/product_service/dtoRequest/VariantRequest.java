@@ -4,7 +4,6 @@ import lombok.Data;
 
 @Data
 public class VariantRequest {
-    private String sizeName;
-    private String categoryName;
-    private String packageType;
+    private String variantId;
+    private Double quantity;
 }

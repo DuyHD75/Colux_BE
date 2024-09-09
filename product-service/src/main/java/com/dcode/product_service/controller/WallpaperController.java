@@ -26,16 +26,26 @@ public class WallpaperController {
 
     private final WallpaperServiceImpl wallpaperService;
 
-//    @PostMapping("/{productId}")
-//    public ResponseEntity<Response> createAWallpaper(@PathVariable("productId")String productId, @RequestBody @Valid WallpaperRequest wallpaperRequest, HttpServletRequest request){
-//        wallpaperService.createAWallpaper(productId, wallpaperRequest.getArea(), wallpaperRequest.getVariants());
-//        return ResponseEntity.created(getUri()).body(getResponse(request, emptyMap(),"Wallpaper created successfully!", CREATED));
-//    }
-//    @GetMapping("{wallpaperId}")
-//    public ResponseEntity<Response> getAWallpaper(@PathVariable("wallpaperId")String wallpaperId, HttpServletRequest request){
-//        var wallpaper = wallpaperService.getAWallpaper(wallpaperId);
-//        return ResponseEntity.ok().body(getResponse(request,Map.of("wallpaper", wallpaper),"Retrieve wallpaper successfully!", OK));
-//    }
+    @PostMapping("/{productId}")
+    public ResponseEntity<Response> createAWallpaper(@PathVariable("productId")String productId, @RequestBody @Valid WallpaperRequest wallpaperRequest, HttpServletRequest request){
+        wallpaperService.createAWallpaper(productId, wallpaperRequest.getArea(), wallpaperRequest.getVariants());
+        return ResponseEntity.created(getUri()).body(getResponse(request, emptyMap(),"Wallpaper created successfully!", CREATED));
+    }
+    @GetMapping("{wallpaperId}")
+    public ResponseEntity<Response> getAWallpaper(@PathVariable("wallpaperId")String wallpaperId, HttpServletRequest request){
+        var wallpaper = wallpaperService.getAWallpaper(wallpaperId);
+        return ResponseEntity.ok().body(getResponse(request,Map.of("wallpaper", wallpaper),"Retrieve wallpaper successfully!", OK));
+    }
+    @PutMapping("{wallpaperId}")
+    public ResponseEntity<Response> updateAWallpaper(@PathVariable("wallpaperId")String wallpaperId,@RequestBody WallpaperRequest wallpaperRequest, HttpServletRequest request){
+        wallpaperService.updateAWallpaper(wallpaperId, wallpaperRequest.getArea(), wallpaperRequest.getVariants());
+        return ResponseEntity.ok().body(getResponse(request, emptyMap(), "Update Wallpaper successfully!", OK));
+    }
+    @DeleteMapping("{wallpaperId}")
+    public ResponseEntity<Response> deleteAWallpaper(@PathVariable("wallpaperId")String wallpaperId, HttpServletRequest request){
+        wallpaperService.deleteAWallpaper(wallpaperId);
+        return ResponseEntity.ok().body(getResponse(request, emptyMap(), "Wallpaper deleted successfully!", OK));
+    }
     private URI getUri(){
         return URI.create("");
     }

@@ -8,6 +8,9 @@ import lombok.*;
 import java.util.List;
 import java.util.Set;
 
+import static jakarta.persistence.CascadeType.MERGE;
+import static jakarta.persistence.CascadeType.PERSIST;
+
 @Getter
 @Setter
 @ToString
@@ -26,14 +29,13 @@ public class Paint extends Auditable{
     @JsonIgnore 
     private Product product;
 
-    private Integer quantity;
-
     @OneToOne
     @JoinColumn(name = "color_id", referencedColumnName = "id")
     private Color color;
 
-    @ManyToMany(mappedBy = "paints", cascade = CascadeType.ALL)
-    @JsonManagedReference
-    private Set<Variant> variants;
+    @OneToMany(cascade = {PERSIST, MERGE}, mappedBy = "paint")
+    private Set<PaintVariant> paintVariants;
+
+
 
 }

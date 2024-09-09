@@ -1,20 +1,20 @@
 package com.dcode.product_service.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.util.List;
 
 @Getter
 @Setter
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
 @Table(name = "colors")
 public class Color extends Auditable{
+    @Column(nullable = false, updatable = false, unique = true)
+    private String colorId;
     private String name;
     private String code;
     private String description;
