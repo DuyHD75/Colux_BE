@@ -2,6 +2,7 @@ package com.dcode.product_service.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.NaturalId;
 
 import java.util.List;
 
@@ -14,6 +15,7 @@ import java.util.List;
 @Table(name = "colors")
 public class Color extends Auditable{
     @Column(nullable = false, updatable = false, unique = true)
+    @NaturalId
     private String colorId;
     private String name;
     private String code;

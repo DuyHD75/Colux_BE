@@ -108,6 +108,7 @@
 				<artifactId>spring-boot-maven-plugin</artifactId>
 				<configuration>
 					<excludes>
+<!--						<imageName>build-by-spring-boot-plugin-image:0.0.1-SNAPSHOT</imageName>-->
 						<exclude>
 							<groupId>org.projectlombok</groupId>
 							<artifactId>lombok</artifactId>

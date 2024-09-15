@@ -3,6 +3,7 @@ package com.dcode.product_service.utils;
 import com.dcode.product_service.dtoRequest.VariantRequest;
 import com.dcode.product_service.dtoResponse.FloorResponse;
 import com.dcode.product_service.entity.*;
+import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.HashSet;
 import java.util.Map;
@@ -12,7 +13,7 @@ import java.util.UUID;
 import static com.dcode.product_service.utils.PaintUtils.convertVariantToVResponse;
 
 public class FloorUtils {
-    public static Floor createNewFloorEntity(Product product, Double foamThickness, String accessoryType, String packagingMaterial, Integer numberOfPiecesPerBox, Map<Variant, Double> variantRequestSet){
+    public static Floor createNewFloorEntity(Product product, Double foamThickness, String accessoryType, String packagingMaterial, Integer numberOfPiecesPerBox, Map<Variant, Pair<Double, Double>> variantRequestSet){
         Set<FloorVariant> floorVariants = new HashSet<>();
         Floor floor = Floor.builder()
                 .floorID(UUID.randomUUID().toString())
@@ -24,14 +25,16 @@ public class FloorUtils {
                 .floorVariants(floorVariants)
                 .build();
 
-        for (Map.Entry<Variant, Double> entry: variantRequestSet.entrySet()){
+        for (Map.Entry<Variant, Pair<Double, Double>> entry: variantRequestSet.entrySet()){
             Variant variant = entry.getKey();
-            Double quantity = entry.getValue();
+            Double quantity = entry.getValue().getLeft();
+            Double price = entry.getValue().getRight();
 
            FloorVariant temp = FloorVariant.builder()
                    .floor(floor)
                    .variant(variant)
                    .quantity(quantity)
+                   .price(price)
                    .build();
            floor.getFloorVariants().add(temp);
         }
@@ -47,7 +50,7 @@ public class FloorUtils {
                 .variants(convertVariantToVResponse(floor.getFloorVariants()))
                 .build();
     }
-    public static Floor fromFloorEntity(Double foamThickness, String accessoryType, String packagingMaterial, Integer numberOfPiecesPerBox, Map<Variant, Double> variantRequestSet, Floor floor){
+    public static Floor fromFloorEntity(Double foamThickness, String accessoryType, String packagingMaterial, Integer numberOfPiecesPerBox, Map<Variant, Pair<Double, Double>> variantRequestSet, Floor floor){
         floor.setFoamThickness(foamThickness);
         floor.setAccessoryType(accessoryType);
         floor.setPackagingMaterial(packagingMaterial);
@@ -56,9 +59,10 @@ public class FloorUtils {
         Set<FloorVariant> existingFloorVariants = floor.getFloorVariants();
 
         Set<FloorVariant> updatedFloorVariants = new HashSet<>();
-        for (Map.Entry<Variant, Double> entry: variantRequestSet.entrySet()){
+        for (Map.Entry<Variant, Pair<Double, Double>> entry: variantRequestSet.entrySet()){
             Variant variant = entry.getKey();
-            Double quantity = entry.getValue();
+            Double quantity = entry.getValue().getLeft();
+            Double price = entry.getValue().getRight();
 
             FloorVariant floorVariant = existingFloorVariants.stream()
                     .filter(fv -> fv.getVariant().equals(variant))
@@ -70,10 +74,12 @@ public class FloorUtils {
                         .floor(floor)
                         .variant(variant)
                         .quantity(quantity)
+                        .price(price)
                         .build();
                 updatedFloorVariants.add(floorVariant);
             } else {
                 floorVariant.setQuantity(quantity);
+                floorVariant.setPrice(price);
                 updatedFloorVariants.add(floorVariant);
             }
         }

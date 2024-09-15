@@ -7,6 +7,7 @@ import com.dcode.product_service.entity.*;
 import com.dcode.product_service.exception.ApiException;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.BeanUtils;
 
 import java.util.*;
@@ -18,7 +19,7 @@ public class PaintUtils {
 
     public static PaintResponse fromPaintEntity(Paint paint) {
         return PaintResponse.builder()
-                .color("red")
+                .color(paint.getColor().getName())
                 .variants(convertVariantToVResponse(paint.getPaintVariants()))
                 .build();
 
@@ -35,7 +36,7 @@ public class PaintUtils {
                 .collect(Collectors.toList());
     }
 
-    public static Map<Variant, Double> checkVariantRequestSet(Set<VariantRequest> variantRequestSet, Set<Variant> variantSetInDb) {
+    public static Map<Variant, Pair<Double, Double>> checkVariantRequestSet(Set<VariantRequest> variantRequestSet, Set<Variant> variantSetInDb) {
         Set<String> foundVariantIds = variantSetInDb.stream().map(Variant::getVariantId).collect(Collectors.toSet());
 
         Set<String> notFoundVariantIds = variantRequestSet.stream()
@@ -52,12 +53,12 @@ public class PaintUtils {
                         variant -> variantRequestSet.stream()
                                 .filter(request -> request.getVariantId().equals(variant.getVariantId()))
                                 .findFirst()
-                                .map(VariantRequest::getQuantity)
+                                .map(request -> Pair.of(request.getQuantity(), request.getPrice()))
                                 .orElseThrow(() -> new ApiException("Quantity not found for Variant ID: " + variant.getVariantId()))
                 ));
     }
 
-    public static Paint createNewPaintEntity(Product product, Color color, Map<Variant, Double> variantRequestSet) {
+    public static Paint createNewPaintEntity(Product product, Color color, Map<Variant, Pair<Double, Double>> variantRequestSet) {
         Set<PaintVariant> paintVariant = new HashSet<>();
         Paint paint = Paint.builder()
                 .paintId(UUID.randomUUID().toString())
@@ -66,33 +67,38 @@ public class PaintUtils {
                 .paintVariants(paintVariant)
                 .build();
 
-        for (Map.Entry<Variant, Double> entry : variantRequestSet.entrySet()) {
+        for (Map.Entry<Variant, Pair<Double, Double>> entry : variantRequestSet.entrySet()) {
             Variant variant = entry.getKey();
-            Integer quantity = entry.getValue().intValue();
+            Integer quantity = entry.getValue().getLeft().intValue();
+            Double price = entry.getValue().getRight();
 
             PaintVariant temp = PaintVariant.builder()
                     .paint(paint)
                     .variant(variant)
                     .quantity(quantity)
+                    .price(price)
                     .build();
             paint.getPaintVariants().add(temp);
         }
         return paint;
     }
 
-    public static Paint fromPaintEntity(String color, Map<Variant, Double> variantRequestSet, Paint paint) {
+    public static Paint fromPaintEntity(String color, Map<Variant, Pair<Double, Double>> variantRequestSet, Paint paint) {
 //        paint.setColor(color);
         Set<PaintVariant> existingPaintVariants = paint.getPaintVariants();
 
         //convert Double value
-        Map<Variant, Integer> variantQuantityMap = variantRequestSet.entrySet().stream()
-                .collect(Collectors.toMap(Map.Entry::getKey, entry -> entry.getValue().intValue()));
-
+        Map<Variant, Pair<Integer, Double>> variantQuantityPriceMap = variantRequestSet.entrySet().stream()
+                .collect(Collectors.toMap(
+                        Map.Entry::getKey,
+                        entry -> Pair.of(entry.getValue().getLeft().intValue(), entry.getValue().getRight())
+                ));
         Set<PaintVariant> updatedPaintVariants = new HashSet<>();
         // check variant bw request and db, exist -> check quantity, db dont have -> add, request dont have -> remove
-        for (Map.Entry<Variant, Integer> entry : variantQuantityMap.entrySet()) {
+        for (Map.Entry<Variant, Pair<Integer, Double>> entry : variantQuantityPriceMap.entrySet()) {
             Variant variant = entry.getKey();
-            Integer quantity = entry.getValue();
+            Integer quantity = entry.getValue().getLeft();
+            Double price = entry.getValue().getRight();
 
             PaintVariant paintVariant = existingPaintVariants.stream()
                     .filter(pv -> pv.getVariant().equals(variant))
@@ -104,14 +110,16 @@ public class PaintUtils {
                         .paint(paint)
                         .variant(variant)
                         .quantity(quantity)
+                        .price(price)
                         .build();
                 updatedPaintVariants.add(paintVariant);
             } else {
                 paintVariant.setQuantity(quantity);
+                paintVariant.setPrice(price);
                 updatedPaintVariants.add(paintVariant);
             }
         }
-        existingPaintVariants.removeIf(pv -> !variantQuantityMap.containsKey(pv.getVariant()));
+        existingPaintVariants.removeIf(pv -> !variantQuantityPriceMap.containsKey(pv.getVariant()));
         paint.setPaintVariants(updatedPaintVariants);
         return paint;
     }

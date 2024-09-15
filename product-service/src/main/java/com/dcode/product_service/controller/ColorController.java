@@ -36,7 +36,16 @@ public class ColorController {
         var color = colorService.getAColor(colorId);
         return ResponseEntity.ok().body(getResponse(request, Map.of("color", color), "Color retrieve successfully!", OK));
     }
-
+    @PutMapping("{colorId}")
+    public ResponseEntity<Response> updateAColor(@PathVariable("colorId")String colorId, @RequestBody ColorRequest colorRequest, HttpServletRequest request){
+        colorService.updateAColor(colorId,colorRequest);
+        return ResponseEntity.ok().body(getResponse(request, emptyMap(), "Color update successfully!", OK));
+    }
+    @DeleteMapping("{colorId}")
+    public ResponseEntity<Response> deleteAColor(@PathVariable("colorId")String colorId, HttpServletRequest request){
+        colorService.deleteAColor(colorId);
+        return ResponseEntity.ok().body(getResponse(request, emptyMap(), "Color deleted successfully!", OK));
+    }
     private URI getUri(){
         return URI.create("");
     }

@@ -1,24 +1,22 @@
 package com.dcode.product_service.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.OneToOne;
-import jakarta.persistence.Table;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import jakarta.persistence.*;
+import lombok.*;
+import org.hibernate.annotations.NaturalId;
 
 @Getter
 @Setter
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "relative_collections")
 @Entity
 public class RelativeCollection extends Auditable {
+    @Column(unique = true, updatable = false, nullable = false)
+    @NaturalId
+    private String relativeCollectionId;
     private String name;
 
-    @OneToOne
-    @JoinColumn(name = "collection_id", referencedColumnName = "id")
+    @OneToOne(mappedBy = "relativeCollection")
     private Collection collection;
 }

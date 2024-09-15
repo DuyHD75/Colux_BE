@@ -24,6 +24,7 @@ public class FloorVariant extends Auditable implements IVariant{
     private Variant variant;
 
     private Double quantity;
+    private Double price;
 
     @Override
     public String getVariantId() {
