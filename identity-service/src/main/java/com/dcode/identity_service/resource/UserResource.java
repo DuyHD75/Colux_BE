@@ -16,6 +16,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -38,8 +39,16 @@ public class UserResource {
 
     private static final Logger log = LoggerFactory.getLogger(UserResource.class);
     private final IUserService userService;
+    private final Environment env;
 
     private final IJwtService jwtService;
+
+    @GetMapping("/test")
+    public String test() {
+        String [] activeProfiles = env.getActiveProfiles();
+        System.out.println("Active profiles: " + String.join(", ", activeProfiles));
+        return "Hello World!";
+    }
 
     @PostMapping("/register")
     public ResponseEntity<Response> registerUser(@RequestBody @Valid UserRequest user, HttpServletRequest request) {
@@ -90,7 +99,7 @@ public class UserResource {
                         .body(getErrorResponse(request, response, new ApiException("Passwords do not match."), BAD_REQUEST));
             }
 
-            if(data.getOldPassword().equals(data.getNewPassword())) {
+            if (data.getOldPassword().equals(data.getNewPassword())) {
                 return ResponseEntity.status(BAD_REQUEST)
                         .body(getErrorResponse(request, response, new ApiException("New password cannot be the same as the old password."), BAD_REQUEST));
             }
@@ -154,7 +163,6 @@ public class UserResource {
 
     @PostMapping("/introspect")
     public ResponseEntity<Response> introspect(HttpServletRequest request, HttpServletResponse response, @RequestBody String token) {
-
         if (token == null) {
             return ResponseEntity.status(UNAUTHORIZED)
                     .body(getErrorResponse(request, response, new ApiException("Token not found."), UNAUTHORIZED));
@@ -170,9 +178,10 @@ public class UserResource {
         return ResponseEntity.ok().body(getResponse(request, Map.of("tokenData", tokenData), "Token introspected.", OK));
     }
 
-    @GetMapping("/info")
-    public ResponseEntity<Response> getUserInfo(HttpServletRequest request) {
-        return ResponseEntity.ok().body(getResponse(request, emptyMap(), "User info retrieved.", OK));
+    @GetMapping("/{customer-id}")
+    public ResponseEntity<Response> getUserInfoById(@PathVariable("customer-id") String userId, HttpServletRequest request) {
+        var user = userService.getUserByUserId(userId);
+        return ResponseEntity.ok().body(getResponse(request, Map.of("user", user), "User info retrieved.", OK));
     }
 
     private URI getUri() {

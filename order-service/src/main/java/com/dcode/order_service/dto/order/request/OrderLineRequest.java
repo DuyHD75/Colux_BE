@@ -1,9 +1,10 @@
 package com.dcode.order_service.dto.order.request;
 
 public record OrderLineRequest(
-        Long id,
         String orderId,
         String productId,
+        String variantId,
+        String colorId,
         double quantity
 ) {
 }

@@ -3,10 +3,10 @@ package com.dcode.order_service.dto.product;
 import java.math.BigDecimal;
 
 public record PurchaseResponse(
-        Integer productId,
+        String productId,
         String name,
-        String description,
-        BigDecimal price,
+        BigDecimal listPrice,
+        BigDecimal payPrice,
         double quantity
 ) {
 }

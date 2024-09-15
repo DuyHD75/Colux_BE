@@ -1,21 +1,38 @@
 package com.dcode.order_service.service.impl;
 
+import com.dcode.order_service.domain.kafka.OrderConfirmation;
+//import com.dcode.order_service.domain.kafka.OrderProducer;
+import com.dcode.order_service.dto.order.Order;
 import com.dcode.order_service.dto.order.request.OrderLineRequest;
 import com.dcode.order_service.dto.order.request.OrderRequest;
+import com.dcode.order_service.dto.order.response.OrderResponse;
+import com.dcode.order_service.dto.payment.PaypalRequest;
 import com.dcode.order_service.dto.product.PurchaseRequest;
+import com.dcode.order_service.enumuration.PaymentMethod;
+import com.dcode.order_service.event.listener.OrderEvent;
 import com.dcode.order_service.exception.BusinessException;
-import com.dcode.order_service.proxy.CustomerClientProxy;
+
+import com.dcode.order_service.proxy.ICustomerClientProxy;
 import com.dcode.order_service.proxy.ProductClientProxy;
-import com.dcode.order_service.repository.IOrderLineRepository;
 import com.dcode.order_service.repository.IOrderRepository;
+import com.dcode.order_service.service.IOrderLineService;
 import com.dcode.order_service.service.IOrderService;
+import com.dcode.order_service.utils.OrderUtils;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
+import java.util.List;
+import java.util.Map;
+
+import static com.dcode.order_service.constant.Constants.AppConstants.HOST_URL;
+import static com.dcode.order_service.enumuration.EventType.ORDER_CREATED;
+import static com.dcode.order_service.enumuration.TransactionIntent.CAPTURE;
+import static com.dcode.order_service.enumuration.PaymentPage.BILLING;
 import static com.dcode.order_service.utils.OrderUtils.createNewOrderEntity;
-import static com.dcode.order_service.utils.OrderUtils.createNewOrderLineEntity;
 
 @Service
 @RequiredArgsConstructor
@@ -23,43 +40,88 @@ import static com.dcode.order_service.utils.OrderUtils.createNewOrderLineEntity;
 @Transactional
 public class OrderServiceImpl implements IOrderService {
 
-    private final CustomerClientProxy clientProxy;
+    private final ICustomerClientProxy clientProxy;
     private final ProductClientProxy productClientProxy;
 
     private final IOrderRepository orderRepository;
-    private final IOrderLineRepository orderLineRepository;
 
+    private final IOrderLineService orderLineService;
+    private final ApplicationEventPublisher publisher;
 
+    private static final int VND_TO_USD = 23_000;
+
+//    private final OrderProducer orderProducer;
 
     @Override
     public void cancelOrder(String code) {
-    //
+//     This method is not implemented yet
     }
 
     @Override
     public void createClientOrder(OrderRequest request) {
-        var customer = this.clientProxy.findCustomerById(request.getUserId())
+        var customer = this.clientProxy.findUserByUserId(request.getCustomerId())
                 .orElseThrow(() -> new BusinessException("Cannot create order :: No customer found with ID: " + request.getToWardName()));
 
+        log.info("Customer found: {}", customer);
 
-        this.productClientProxy.purchaseProducts(request.getPurchaseProducts());
+/*
+        var purchasedProducts = this.productClientProxy.purchaseProducts(request.getPurchaseProducts());
 
         var order = this.orderRepository.save(createNewOrderEntity(request));
 
         for (PurchaseRequest purchaseRequest : request.getPurchaseProducts()) {
-            orderLineRepository.saveOrderLine(
+            orderLineService.saveOrderLine(
                     new OrderLineRequest(
-                            null,
                             order.getOrderId(),
                             purchaseRequest.productId(),
+                            purchaseRequest.variantId(),
+                            purchaseRequest.colorId(),
                             purchaseRequest.quantity()
                     )
             );
         }
 
+        if (request.getPaymentMethod() == PaymentMethod.CASH) {
+            orderRepository.save(order);
+        } else if (request.getPaymentMethod() == PaymentMethod.PAYPAL) {
+            try {
 
+                BigDecimal convertTotalPayUSD = request.getTotalPay()
+                        .divide(BigDecimal.valueOf(VND_TO_USD), 0, BigDecimal.ROUND_HALF_UP);
 
+                PaypalRequest paypalRequest = new PaypalRequest();
 
+                paypalRequest.setIntent(CAPTURE);
+                paypalRequest.setPurchaseUnits(
+                        List.of(
+                                new PaypalRequest.PurchaseUnit(
+                                        new PaypalRequest.PurchaseUnit.Money("USD", convertTotalPayUSD.toString())
+                                )
+                        )
+                );
+                paypalRequest.setApplicationContext(
+                        new PaypalRequest.PayPalAppContext()
+                                .setBrandName("Colux")
+                                .setLandingPage(BILLING)
+                                .setReturnUrl(HOST_URL + "/api/v1/orders/paypal/capture")
+                                .setCancelUrl(HOST_URL + "/api/v1/orders/paypal/cancel")
+                );
+
+            } catch (Exception e) {
+                log.error("Error while processing payment", e);
+                throw new BusinessException("Error while processing payment");
+            }
+        }*/
+
+       /* orderProducer.sendOrderConfirmation(
+                new OrderConfirmation(
+                        request.getReference(),
+                        request.getTotalPay(),
+                        request.getPaymentMethod(),
+                        customer,
+                        purchasedProducts
+                )
+        );*/
 
     }
 
@@ -69,8 +131,12 @@ public class OrderServiceImpl implements IOrderService {
     }
 
     @Override
-    public Integer createNewOrder(OrderRequest request) {
-        return 0;
+    public List<Order> getAllOrders() {
+        return orderRepository.findAll()
+                .stream()
+                .map(OrderUtils::fromOrderEntity)
+                .toList();
+
     }
 
 

@@ -1,6 +1,8 @@
 package com.dcode.identity_service;
 
 import com.dcode.identity_service.domain.RequestContext;
+import com.dcode.identity_service.entity.RoleEntity;
+import com.dcode.identity_service.enumeration.Authority;
 import com.dcode.identity_service.repository.RoleRepository;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
@@ -25,7 +27,7 @@ public class IdentityServiceApplication {
 	CommandLineRunner commandLineRunner(RoleRepository roleRepository) {
 		return args -> {
 			RequestContext.setUserId(0L);
-           /* var userRole = new RoleEntity();
+            /*var userRole = new RoleEntity();
             userRole.setName(Authority.USER.name());
             userRole.setAuthorities(Authority.USER.getAuthorityValue());
             roleRepository.save(userRole);

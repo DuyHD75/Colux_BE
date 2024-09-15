@@ -1,0 +1,7 @@
+spring:
+  cloud:
+    config:
+      uri: ${SPRING_CLOUD_CONFIG_URI}  # this points to the config server URL
+
+  config:
+    import: optional:configserver:http://localhost:8888

@@ -2,16 +2,15 @@ package com.dcode.order_service.entity.order;
 
 
 import com.dcode.order_service.entity.Auditable;
-import com.dcode.order_service.enumuration.PaymentMethodType;
+import com.dcode.order_service.enumuration.PaymentMethod;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.Accessors;
 import org.springframework.lang.Nullable;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 
 @AllArgsConstructor
@@ -29,12 +28,8 @@ public class OrderEntity extends Auditable {
     @Column(name = "order_id", nullable = false, unique = true)
     private String orderId;
 
-    private Long createdBy;
-    private Long updatedBy;
-    private String createdAt;
-    private String updatedAt;
-
-    private String userId;
+    @Column(name = "customer_id", nullable = false)
+    private String customerId;
 
     @Column(name = "code", nullable = false, unique = true)
     private String code;
@@ -63,10 +58,27 @@ public class OrderEntity extends Auditable {
     @Nullable
     private String note;
 
+    @OneToMany(mappedBy = "orderEntity")
+    private List<OrderLineEntity> orderLines;
+
+    @Column(name = "total_amount", nullable = false, columnDefinition = "DECIMAL(15,5)")
     private BigDecimal totalAmount;
+    @Column(name = "tax", nullable = false, columnDefinition = "DECIMAL(15,5)")
+
     private BigDecimal tax;
+    @Column(name = "shipping_cost", nullable = false, columnDefinition = "DECIMAL(15,5)")
     private BigDecimal shippingCost;
+
+    @Column(name ="total_pay", nullable = false, columnDefinition = "DECIMAL(15,5)")
     private BigDecimal totalPay;
-    private PaymentMethodType paymentMethodType;
+
+    @Column(name = "payment_method_type", nullable = false)
+    @Enumerated(EnumType.STRING)
+    private PaymentMethod paymentMethod;
+
+    @Column(name = "paypal_order_id")
+    private String paypalOrderId;
+
+    @Column(name= "payment_status") /* (1) Chưa thanh toán, (2) Đã thanh toán */
     private Integer paymentStatus;
 }

@@ -10,7 +10,7 @@ import lombok.*;
 @Setter
 @Entity
 @NoArgsConstructor
-@Table(name = "customer_line")
+@Table(name = "order_line")
 public class OrderLineEntity extends Auditable {
 
     @Column(updatable = false, nullable = false, unique = true)
@@ -19,6 +19,12 @@ public class OrderLineEntity extends Auditable {
     @ManyToOne
     @JoinColumn(name = "order_id", referencedColumnName = "order_id")
     private OrderEntity orderEntity;
+
     private String productId;
+
+    private String variantId;
+
+    private String colorId;
+
     private double quantity;
 }
