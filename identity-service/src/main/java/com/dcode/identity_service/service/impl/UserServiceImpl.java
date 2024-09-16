@@ -4,6 +4,7 @@ package com.dcode.identity_service.service.impl;
 import com.dcode.identity_service.cache.CacheStore;
 import com.dcode.identity_service.domain.RequestContext;
 import com.dcode.identity_service.dto.User;
+import com.dcode.identity_service.dtorequest.ResetPasswordRequest;
 import com.dcode.identity_service.entity.ConfirmationEntity;
 import com.dcode.identity_service.entity.CredentialEntity;
 import com.dcode.identity_service.entity.RoleEntity;
@@ -25,10 +26,10 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 
-import java.util.List;
 import java.util.Map;
 
 import static com.dcode.identity_service.enumeration.EventType.REGISTRATION;
+import static com.dcode.identity_service.enumeration.EventType.RESET_PASSWORD;
 import static com.dcode.identity_service.utils.UserUtils.createNewUserEntity;
 import static com.dcode.identity_service.utils.UserUtils.fromUserEntity;
 import static java.time.LocalDateTime.now;
@@ -45,6 +46,8 @@ public class UserServiceImpl implements IUserService {
     private final BCryptPasswordEncoder passwordEncoder;
     private final ApplicationEventPublisher publisher;
     private final CacheStore<String, Integer> userLoginCache;
+
+    private final CacheStore<String, String> resetPasswordCache;
 
     @Override
     public void createUser(String firstName, String lastName, String email, String password) {
@@ -122,6 +125,50 @@ public class UserServiceImpl implements IUserService {
         return userCredential;
     }
 
+    @Override
+    public void changePassword(String email, String oldPassword, String newPassword) {
+        var userEntity = getUserEntityByEmail(email);
+        if (userEntity == null) throw new ApiException("User is not found.");
+        var credentialEntity = credentialRepository.getCredentialByUserEntityId(userEntity.getId())
+                .orElseThrow(() -> new ApiException("Credential is not found."));
+
+        if (passwordEncoder.matches(oldPassword, credentialEntity.getPassword())) {
+            credentialEntity.setPassword(passwordEncoder.encode(newPassword));
+            credentialRepository.save(credentialEntity);
+        } else throw new ApiException("Old password is incorrect.");
+    }
+
+    @Override
+    public void sendResetPasswordUri(String email) {
+
+        var userEntity = getUserEntityByEmail(email);
+        if (userEntity == null) throw new ApiException("User is not found.");
+        var confirmationEntity = new ConfirmationEntity(userEntity);
+        confirmationRepository.save(confirmationEntity);
+        resetPasswordCache.put("email-reset", email);
+        publisher.publishEvent(new UserEvent(userEntity, RESET_PASSWORD, Map.of("key", confirmationEntity.getConfirmKey())));
+    }
+
+    @Override
+    public void verifyResetPasswordKey(String key) {
+        ConfirmationEntity confirmationEntity = getConfirmationEntity(key);
+        if (confirmationEntity == null) throw new ApiException("Confirmation key is not found.");
+        confirmationRepository.delete(confirmationEntity);
+    }
+
+    @Override
+    public void resetPassword(ResetPasswordRequest data) {
+        var email = resetPasswordCache.get("email-reset");
+        if (email == null) throw new ApiException("Email is not found.");
+        var userEntity = getUserEntityByEmail(email);
+        if (userEntity == null) throw new ApiException("User is not found.");
+        var credentialEntity = credentialRepository.getCredentialByUserEntityId(userEntity.getId())
+                .orElseThrow(() -> new ApiException("Credential is not found."));
+        credentialEntity.setPassword(passwordEncoder.encode(data.getNewPassword()));
+        resetPasswordCache.evict("email-reset");
+        credentialRepository.save(credentialEntity);
+    }
+
     private UserEntity getUserEntityByEmail(String email) {
         return userRepository.findByEmailIgnoreCase(email).orElseThrow(() -> new ApiException("Error: User is not found."));
     }
@@ -131,7 +178,7 @@ public class UserServiceImpl implements IUserService {
     }
 
     private UserEntity createNewUser(String firstName, String lastName, String email) {
-        log.info(String.format( "Creating new user: %s, %s", Authority.USER.name(), Authority.USER.getAuthorityValue()) );
+        log.info(String.format("Creating new user: %s, %s", Authority.USER.name(), Authority.USER.getAuthorityValue()));
 
         var role = getRoleName(Authority.USER.name());
         return createNewUserEntity(firstName, lastName, email, role);

@@ -54,7 +54,6 @@ public class JwtServiceImpl extends JwtConfiguration implements IJwtService {
                     .parseSignedClaims(token)
                     .getPayload();
 
-
     private <T> T getClaimsValue(String token, Function<Claims, T> claims) {
         return claimsFunction.andThen(claims).apply(token); // getSubject
     }

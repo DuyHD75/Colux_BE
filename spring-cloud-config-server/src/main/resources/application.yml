@@ -1,12 +1,14 @@
 spring:
   application:
     name: spring-cloud-config-server
-  profiles:
-    active: native
   cloud:
     config:
       server:
-        native:
-          search-locations: classpath:/configurations
+        git:
+          default-label: main
+          uri: https://github.com/DuyHD75/Colux_BE_Config_Server.git
+          username: DuyHD75
+          password: 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
+
 server:
   port: 8888

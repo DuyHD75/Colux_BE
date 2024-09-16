@@ -1,11 +1,10 @@
 package com.dcode.identity_service.service;
 
 import com.dcode.identity_service.dto.User;
+import com.dcode.identity_service.dtorequest.ResetPasswordRequest;
 import com.dcode.identity_service.entity.CredentialEntity;
 import com.dcode.identity_service.entity.RoleEntity;
 import com.dcode.identity_service.enumeration.LoginType;
-
-import java.util.List;
 
 
 public interface IUserService {
@@ -23,4 +22,11 @@ public interface IUserService {
 
     CredentialEntity getUserCredentialById(Long id);
 
+    void changePassword(String email, String oldPassword, String newPassword);
+
+    void sendResetPasswordUri(String email);
+
+    void verifyResetPasswordKey(String key);
+
+    void resetPassword(ResetPasswordRequest data);
 }

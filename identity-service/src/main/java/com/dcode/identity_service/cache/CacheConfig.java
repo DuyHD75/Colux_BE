@@ -12,6 +12,11 @@ public class CacheConfig {
         return new CacheStore<>(900, TimeUnit.SECONDS);
     }
 
+    @Bean(name = "userResetPasswordCache")
+    public CacheStore<String, String> userResetPasswordCache() {
+        return new CacheStore<>(900, TimeUnit.SECONDS);
+    }
+
     /*@Bean(name ="registrationCache")
     public CacheStore<Long, String> registrationCache() {
         return new CacheStore<>(900, TimeUnit.SECONDS);

@@ -6,7 +6,6 @@ public enum TokenType {
 
     private final String value;
 
-
     TokenType(String value) {
         this.value = value;
     }
