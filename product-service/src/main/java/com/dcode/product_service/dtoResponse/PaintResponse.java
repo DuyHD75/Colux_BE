@@ -18,4 +18,5 @@ import java.util.Set;
 public class PaintResponse {
     private String color;
     private List<VariantResponse> variants;
+    private ProductResponse product;
 }

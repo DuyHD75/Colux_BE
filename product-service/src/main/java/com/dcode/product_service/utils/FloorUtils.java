@@ -1,5 +1,6 @@
 package com.dcode.product_service.utils;
 
+import com.dcode.product_service.dtoRequest.FloorRequest;
 import com.dcode.product_service.dtoRequest.VariantRequest;
 import com.dcode.product_service.dtoResponse.FloorResponse;
 import com.dcode.product_service.entity.*;
@@ -13,15 +14,15 @@ import java.util.UUID;
 import static com.dcode.product_service.utils.PaintUtils.convertVariantToVResponse;
 
 public class FloorUtils {
-    public static Floor createNewFloorEntity(Product product, Double foamThickness, String accessoryType, String packagingMaterial, Integer numberOfPiecesPerBox, Map<Variant, Pair<Double, Double>> variantRequestSet){
+    public static Floor createNewFloorEntity(Product product, FloorRequest floorRequest, Map<Variant, Pair<Double, Double>> variantRequestSet){
         Set<FloorVariant> floorVariants = new HashSet<>();
         Floor floor = Floor.builder()
                 .floorID(UUID.randomUUID().toString())
                 .product(product)
-                .foamThickness(foamThickness)
-                .accessoryType(accessoryType)
-                .packagingMaterial(packagingMaterial)
-                .numberOfPiecesPerBox(numberOfPiecesPerBox)
+                .foamThickness(floorRequest.getFoamThickness())
+                .accessoryType(floorRequest.getAccessoryType())
+                .packagingMaterial(floorRequest.getPackagingMaterial())
+                .numberOfPiecesPerBox(floorRequest.getNumberOfPiecesPerBox())
                 .floorVariants(floorVariants)
                 .build();
 
@@ -48,6 +49,7 @@ public class FloorUtils {
                 .numberOfPiecesPerBox(floor.getNumberOfPiecesPerBox().toString())
                 .packagingMaterial(floor.getPackagingMaterial())
                 .variants(convertVariantToVResponse(floor.getFloorVariants()))
+
                 .build();
     }
     public static Floor fromFloorEntity(Double foamThickness, String accessoryType, String packagingMaterial, Integer numberOfPiecesPerBox, Map<Variant, Pair<Double, Double>> variantRequestSet, Floor floor){

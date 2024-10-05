@@ -17,14 +17,18 @@ public class Collection extends Auditable{
 
     @Column(nullable = false, updatable = false, unique = true)
     private String collectionId;
-
     private String name;
+    private String title;
+    private String description;
+    private String image;
+    private String hex;
+
 
     @ManyToMany(mappedBy = "collections")
     private Set<Color> colors;
 
-    @ManyToOne
-    @JoinColumn(name = "color_family", referencedColumnName = "id")
+    @ManyToOne(optional = true)
+    @JoinColumn(name = "color_family_id", referencedColumnName = "id")
     private ColorFamily colorFamily;
 
     @ManyToOne

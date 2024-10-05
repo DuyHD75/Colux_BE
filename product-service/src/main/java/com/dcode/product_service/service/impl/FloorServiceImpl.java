@@ -1,17 +1,23 @@
 package com.dcode.product_service.service.impl;
 
+import com.dcode.product_service.dtoRequest.FloorRequest;
 import com.dcode.product_service.dtoRequest.VariantRequest;
 import com.dcode.product_service.dtoResponse.FloorResponse;
 import com.dcode.product_service.entity.Floor;
+import com.dcode.product_service.entity.PageResponse;
+import com.dcode.product_service.entity.PageResponseBuilder;
 import com.dcode.product_service.exception.ApiException;
 import com.dcode.product_service.repository.FloorRepository;
 import com.dcode.product_service.repository.FloorVariantRepository;
 import com.dcode.product_service.repository.ProductRepository;
 import com.dcode.product_service.repository.VariantRepository;
 import com.dcode.product_service.service.IFloorService;
+import com.dcode.product_service.utils.FloorUtils;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.Set;
@@ -32,8 +38,8 @@ public class FloorServiceImpl implements IFloorService {
     private final FloorVariantRepository floorVariantRepository;
 
     @Override
-    public void createAFloor(String productId, Double foamThickness, String accessoryType, String packagingMaterial, Integer numberOfPiecesPerBox, Set<VariantRequest> variantRequestSet) {
-        floorRepository.save(createAFloorEntity(productId, foamThickness, accessoryType, packagingMaterial, numberOfPiecesPerBox, variantRequestSet));
+    public void createAFloor(String productId, FloorRequest floorRequest) {
+        floorRepository.save(createAFloorEntity(productId, floorRequest));
     }
 
     @Override
@@ -57,10 +63,18 @@ public class FloorServiceImpl implements IFloorService {
         floorRepository.delete(floor);
     }
 
-    private Floor createAFloorEntity(String productId, Double foamThickness, String accessoryType, String packagingMaterial, Integer numberOfPiecesPerBox, Set<VariantRequest> variantRequestSet) {
+    @Override
+    public PageResponse<FloorResponse> getAllFloorPageable(Pageable pageable) {
+        var floors = floorRepository.findAll(pageable);
+        if (floors.isEmpty()) throw new ApiException("Floor empty!");
+        Page<FloorResponse> floorResponsePage = floors.map(FloorUtils::fromFloorEntity);
+        return PageResponseBuilder.buildPageResponse(floorResponsePage);
+    }
+
+    private Floor createAFloorEntity(String productId, FloorRequest floorRequest) {
         var product = productRepository.findByProductId(productId).orElseThrow(() -> new ApiException("Product not found while create a Floor!"));
-        Set<String> variantIds = extractVariantIds(variantRequestSet);
-        return createNewFloorEntity(product, foamThickness, accessoryType, packagingMaterial, numberOfPiecesPerBox, checkVariantRequestSet(variantRequestSet, variantRepository.findAllByVariantIdIn(variantIds)));
+        Set<String> variantIds = extractVariantIds(floorRequest.getVariants());
+        return createNewFloorEntity(product, floorRequest, checkVariantRequestSet(floorRequest.getVariants(), variantRepository.findAllByVariantIdIn(variantIds)));
     }
 
 }

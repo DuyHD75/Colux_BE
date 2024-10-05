@@ -5,6 +5,8 @@ import com.dcode.product_service.dtoRequest.FloorRequest;
 import com.dcode.product_service.service.impl.FloorServiceImpl;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.AllArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,35 +19,46 @@ import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
 
 @RestController
-@RequestMapping("/api/v1/floors")
+@RequestMapping("/api/v1/products/floors")
 @AllArgsConstructor
 public class FloorController {
     private final FloorServiceImpl floorService;
 
     @PostMapping("{productId}")
-    public ResponseEntity<Response> createAFloor(@PathVariable("productId")String productId, @RequestBody FloorRequest fRequest, HttpServletRequest request){
-        floorService.createAFloor(productId, fRequest.getFoamThickness(), fRequest.getAccessoryType(), fRequest.getPackagingMaterial(), fRequest.getNumberOfPiecesPerBox(), fRequest.getVariants());
+    public ResponseEntity<Response> createAFloor(@PathVariable("productId") String productId, @RequestBody FloorRequest fRequest, HttpServletRequest request) {
+        floorService.createAFloor(productId, fRequest);
         return ResponseEntity.created(getUri()).body(getResponse(request, emptyMap(), "Floor created successfully!", CREATED));
     }
+
     @GetMapping("{floorId}")
-    public ResponseEntity<Response> getAFloor(@PathVariable("floorId")String floorId, HttpServletRequest request){
+    public ResponseEntity<Response> getAFloor(@PathVariable("floorId") String floorId, HttpServletRequest request) {
         var floor = floorService.getAFloor(floorId);
         return ResponseEntity.ok().body(getResponse(request, Map.of("floor", floor), "Floor retrieve successfully!", OK));
 
     }
+
     @PutMapping("{floorId}")
-    public ResponseEntity<Response> updateAFloor(@PathVariable("floorId")String floorId, @RequestBody FloorRequest fRequest, HttpServletRequest request){
+    public ResponseEntity<Response> updateAFloor(@PathVariable("floorId") String floorId, @RequestBody FloorRequest fRequest, HttpServletRequest request) {
         floorService.updateAFloor(floorId, fRequest.getFoamThickness(), fRequest.getAccessoryType(), fRequest.getPackagingMaterial(), fRequest.getNumberOfPiecesPerBox(), fRequest.getVariants());
         return ResponseEntity.ok().body(getResponse(request, emptyMap(), "Floor update successfully!", OK));
     }
 
     @DeleteMapping("{floorId}")
-    public ResponseEntity<Response> deleteAFloor(@PathVariable("floorId")String floorId, HttpServletRequest request){
+    public ResponseEntity<Response> deleteAFloor(@PathVariable("floorId") String floorId, HttpServletRequest request) {
         floorService.deleteAFloor(floorId);
         return ResponseEntity.ok().body(getResponse(request, emptyMap(), "Floor deleted successfully!", OK));
     }
 
-    public URI getUri(){
+    @GetMapping
+    public ResponseEntity<Response> getAllFloorPageable(@RequestParam(defaultValue = "0") int page,
+                                                        @RequestParam(defaultValue = "10") int size,
+                                                        HttpServletRequest request) {
+        Pageable pageable = PageRequest.of(page, size);
+        var floors = floorService.getAllFloorPageable(pageable);
+        return ResponseEntity.ok().body(getResponse(request, Map.of("floors", floors), "Floor retrieve successfully!", OK));
+    }
+
+    public URI getUri() {
         return URI.create("");
     }
 }

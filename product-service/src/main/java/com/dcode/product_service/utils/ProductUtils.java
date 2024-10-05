@@ -2,37 +2,78 @@ package com.dcode.product_service.utils;
 
 import com.dcode.product_service.dto.ProductBrandDTO;
 import com.dcode.product_service.dto.ProductCategoryDTO;
+import com.dcode.product_service.dtoRequest.ProductRequest;
 import com.dcode.product_service.dtoResponse.ProductResponse;
-import com.dcode.product_service.entity.Brand;
-import com.dcode.product_service.entity.Category;
-import com.dcode.product_service.entity.Product;
-import org.springframework.beans.BeanUtils;
+import com.dcode.product_service.entity.*;
 
+import java.util.Set;
 import java.util.UUID;
+
+import static com.dcode.product_service.utils.FeatureValueUtils.fromFeatureValueEntity;
+import static com.dcode.product_service.utils.PaintUtils.fromPaintEntity;
+import static com.dcode.product_service.utils.PropertyValueUtils.fromPropertyValueEntity;
+
 public class ProductUtils {
 
-    public static Product createNewProductEntity(String description, String placeOfOrigin, String price, String productName, String ratingAverage, String warranty, Brand brand, Category category){
+    public static Product createNewProductEntity(ProductRequest productRequest,
+                                                 Brand brand, Category category, Set<FeatureValue> features, Set<PropertyValue> properties) {
         return Product.builder()
                 .productId(UUID.randomUUID().toString())
-                .description(description)
-                .placeOfOrigin(placeOfOrigin)
-                .price(price)
-                .productName(productName)
-                .ratingAverage(ratingAverage)
-                .warranty(warranty)
+                .productName(productRequest.getProductName())
+                .description(productRequest.getDescription())
+                .price(productRequest.getPrice())
+                .ratingAverage(productRequest.getRatingAverage())
+                .code(productRequest.getCode())
+                .placeOfOrigin(productRequest.getPlaceOfOrigin())
+                .warranty(productRequest.getWarranty())
+                .applicableSurface(productRequest.getApplicableSurface())
                 .brand(brand)
                 .category(category)
+                .featureValues(features)
+                .propertyValues(properties)
                 .build();
     }
-    public static ProductResponse fromProductEntity(Product product){
-        ProductResponse productResponse = new ProductResponse();
-        BeanUtils.copyProperties(product, productResponse);
-        productResponse.setBrand(mapToProductBrandDTO(product.getBrand()));
-        productResponse.setCategory(mapToProductCategoryDTO(product.getCategory()));
-        return productResponse;
+
+    public static ProductResponse fromProductEntity(Product product) {
+        return ProductResponse.builder()
+                .productId(product.getProductId())
+                .productName(product.getProductName())
+                .description(product.getDescription())
+                .price(product.getPrice())
+                .ratingAverage(product.getRatingAverage())
+                .code(product.getCode())
+                .placeOfOrigin(product.getPlaceOfOrigin())
+                .warranty(product.getWarranty())
+                .applicableSurface(product.getApplicableSurface())
+                .images(product.getImages().stream().map(ImageUtils::fromImageEntity).toList())
+                .category(mapToProductCategoryDTO(product.getCategory()))
+                .features(fromFeatureValueEntity(product.getFeatureValues()))
+                .properties(fromPropertyValueEntity(product.getPropertyValues()))
+                .paints(product.getPaints().stream().map(PaintUtils::fromPaintEntity).toList())
+                .wallpapers(product.getWallpapers().stream().map(WallpaperUtils::fromWallpaperEntity).toList())
+                .floors(product.getFloors().stream().map(FloorUtils::fromFloorEntity).toList())
+                .build();
     }
-    private static ProductCategoryDTO mapToProductCategoryDTO(Category category){
-        if (category == null){
+    public static ProductResponse fromProductEntitySimple(Product product){
+        return ProductResponse.builder()
+                .productId(product.getProductId())
+                .productName(product.getProductName())
+                .description(product.getDescription())
+                .price(product.getPrice())
+                .ratingAverage(product.getRatingAverage())
+                .code(product.getCode())
+                .placeOfOrigin(product.getPlaceOfOrigin())
+                .warranty(product.getWarranty())
+                .applicableSurface(product.getApplicableSurface())
+                .images(product.getImages().stream().map(ImageUtils::fromImageEntity).toList())
+                .category(mapToProductCategoryDTO(product.getCategory()))
+                .features(fromFeatureValueEntity(product.getFeatureValues()))
+                .properties(fromPropertyValueEntity(product.getPropertyValues()))
+                .build();
+    }
+
+    private static ProductCategoryDTO mapToProductCategoryDTO(Category category) {
+        if (category == null) {
             return null;
         }
         return ProductCategoryDTO.builder()
@@ -41,8 +82,9 @@ public class ProductUtils {
                 .thumbnail(category.getThumbnail())
                 .build();
     }
-    private static ProductBrandDTO mapToProductBrandDTO(Brand brand){
-        if (brand == null){
+
+    private static ProductBrandDTO mapToProductBrandDTO(Brand brand) {
+        if (brand == null) {
             return null;
         }
         return ProductBrandDTO.builder()
@@ -50,6 +92,6 @@ public class ProductUtils {
                 .name(brand.getName())
                 .code(brand.getCode())
                 .status(brand.getStatus())
-        .build();
+                .build();
     }
 }

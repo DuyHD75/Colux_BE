@@ -17,7 +17,7 @@ import static com.dcode.product_service.utils.RequestUtils.getResponse;
 import static java.util.Collections.emptyMap;
 
 @RestController
-@RequestMapping("/api/v1/properties")
+@RequestMapping("/api/v1/products/properties")
 @AllArgsConstructor
 public class PropertyController {
     private final PropertyServiceImpl propertyService;

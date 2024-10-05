@@ -1,7 +1,10 @@
 package com.dcode.product_service.service.impl;
 
 import com.dcode.product_service.dtoRequest.VariantRequest;
+import com.dcode.product_service.dtoRequest.WallpaperRequest;
 import com.dcode.product_service.dtoResponse.WallpaperResponse;
+import com.dcode.product_service.entity.PageResponse;
+import com.dcode.product_service.entity.PageResponseBuilder;
 import com.dcode.product_service.entity.Wallpaper;
 import com.dcode.product_service.exception.ApiException;
 import com.dcode.product_service.repository.ProductRepository;
@@ -9,9 +12,12 @@ import com.dcode.product_service.repository.VariantRepository;
 import com.dcode.product_service.repository.WallpaperRepository;
 import com.dcode.product_service.repository.WallpaperVariantRepository;
 import com.dcode.product_service.service.IWallpaperService;
+import com.dcode.product_service.utils.WallpaperUtils;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.Set;
@@ -32,14 +38,14 @@ public class WallpaperServiceImpl implements IWallpaperService {
     private final VariantRepository variantRepository;
     private final WallpaperVariantRepository wallpaperVariantRepository;
 
-    public void createAWallpaper(String productId, String area, Set<VariantRequest> variantRequestSet) {
-        wallpaperRepository.save(createAWallpaperEntity(productId, area, variantRequestSet));
+    public void createAWallpaper(String productId, WallpaperRequest wallpaperRequest) {
+        wallpaperRepository.save(createAWallpaperEntity(productId, wallpaperRequest));
     }
 
-    private Wallpaper createAWallpaperEntity(String productId, String area, Set<VariantRequest> variantRequestSet) {
+    private Wallpaper createAWallpaperEntity(String productId, WallpaperRequest wRequest) {
         var product = productRepository.findByProductId(productId).orElseThrow(()->new ApiException("Product not found while create new wallpaper!"));
-        Set<String> variantIds = extractVariantIds(variantRequestSet);
-        return createNewWallpaperEntity(product, area, checkVariantRequestSet(variantRequestSet, variantRepository.findAllByVariantIdIn(variantIds)));
+        Set<String> variantIds = extractVariantIds(wRequest.getVariants());
+        return createNewWallpaperEntity(product, wRequest.getArea(), checkVariantRequestSet(wRequest.getVariants(), variantRepository.findAllByVariantIdIn(variantIds)));
     }
 
     @Override
@@ -62,5 +68,13 @@ public class WallpaperServiceImpl implements IWallpaperService {
         wallpaperVariantRepository.deleteByWallpaper(wallpaper);
         wallpaperRepository.delete(wallpaper);
 
+    }
+
+    @Override
+    public PageResponse<WallpaperResponse> getAllWallpaperPageable(Pageable pageable) {
+        var wallpapers = wallpaperRepository.findAll(pageable);
+        if (wallpapers.isEmpty()) throw new ApiException("Wallpaper empty!");
+        Page<WallpaperResponse> wallpaperResponsePage = wallpapers.map(WallpaperUtils::fromWallpaperEntity);
+        return PageResponseBuilder.buildPageResponse(wallpaperResponsePage);
     }
 }

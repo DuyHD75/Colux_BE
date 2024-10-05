@@ -18,7 +18,12 @@ public class Color extends Auditable{
     @NaturalId
     private String colorId;
     private String name;
+    private String image;
     private String code;
+    private String hex;
+    private String LVR;
+    private boolean interior;
+    private boolean exterior;
     private String description;
     private long colorTypeId;
 

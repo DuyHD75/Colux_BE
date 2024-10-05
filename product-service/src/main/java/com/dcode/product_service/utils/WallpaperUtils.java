@@ -17,6 +17,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static com.dcode.product_service.utils.PaintUtils.convertVariantToVResponse;
+import static com.dcode.product_service.utils.ProductUtils.fromProductEntitySimple;
 
 public class WallpaperUtils {
     public static Wallpaper createNewWallpaperEntity(Product product, String area, Map<Variant, Pair<Double, Double>> variantRequestSet){
@@ -49,6 +50,7 @@ public class WallpaperUtils {
         return WallpaperResponse.builder()
                 .area(String.valueOf(wallpaper.getArea()))
                 .variants(convertVariantToVResponse(wallpaper.getWallpaperVariants()))
+                .product(fromProductEntitySimple(wallpaper.getProduct()))
                 .build();
     }
     public static Wallpaper fromWallpaperEntity(String area, Map<Variant, Pair<Double, Double>> variantRequestSet, Wallpaper wallpaper){

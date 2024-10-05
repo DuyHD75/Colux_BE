@@ -13,6 +13,9 @@ import org.springframework.beans.BeanUtils;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static com.dcode.product_service.utils.ProductUtils.fromProductEntity;
+import static com.dcode.product_service.utils.ProductUtils.fromProductEntitySimple;
+
 @Slf4j
 @AllArgsConstructor
 public class PaintUtils {
@@ -21,6 +24,7 @@ public class PaintUtils {
         return PaintResponse.builder()
                 .color(paint.getColor().getName())
                 .variants(convertVariantToVResponse(paint.getPaintVariants()))
+                .product(fromProductEntitySimple(paint.getProduct()))
                 .build();
 
     }

@@ -18,7 +18,7 @@ import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
 
 @RestController
-@RequestMapping("/api/v1/features")
+@RequestMapping("/api/v1/products/features")
 @AllArgsConstructor
 public class FeatureController {
 

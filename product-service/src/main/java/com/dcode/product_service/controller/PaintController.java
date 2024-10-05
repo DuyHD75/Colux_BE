@@ -6,6 +6,9 @@ import com.dcode.product_service.service.impl.PaintServiceImpl;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -18,7 +21,7 @@ import static java.util.Collections.emptyMap;
 import static org.springframework.http.HttpStatus.*;
 
 @RestController
-@RequestMapping("/api/v1/paints")
+@RequestMapping("/api/v1/products/paints")
 @AllArgsConstructor
 public class PaintController {
 
@@ -44,8 +47,18 @@ public class PaintController {
     public ResponseEntity<Response> deleteAPaint(@PathVariable("paintId")String paintId, HttpServletRequest request){
         paintService.deleteAPaint(paintId);
         return ResponseEntity.ok().body(getResponse(request, emptyMap(), "Delete Paint successfully!", OK));
-
     }
+
+    @GetMapping
+    public ResponseEntity<Response> getAllPaintPageable(@RequestParam(defaultValue = "0") int page,
+                                                        @RequestParam(defaultValue = "10") int size,
+                                                        HttpServletRequest request
+                                                        ){
+        Pageable pageable = PageRequest.of(page,size);
+        var paints = paintService.getAllPaintPageable(pageable);
+        return ResponseEntity.ok().body(getResponse(request, Map.of("paints", paints), "Paint retrieve successfully!", OK));
+    }
+
     private URI getUri(){
         return URI.create("");
     }

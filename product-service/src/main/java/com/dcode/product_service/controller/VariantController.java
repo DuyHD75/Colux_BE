@@ -24,7 +24,7 @@ import static java.util.Collections.emptyMap;
 import static org.springframework.http.HttpStatus.*;
 
 @RestController
-@RequestMapping("/api/v1/variants")
+@RequestMapping("/api/v1/products/variants")
 @AllArgsConstructor
 public class VariantController {
 

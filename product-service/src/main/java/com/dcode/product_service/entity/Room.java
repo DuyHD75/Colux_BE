@@ -22,6 +22,9 @@ public class Room extends Auditable{
     @NaturalId
     private String roomId;
     private String roomType;
+    private String hex;
+    private String title;
+    private String description;
     private String image;
     private String textUrl3D;
 

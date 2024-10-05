@@ -1,88 +1,120 @@
-version: '3.7'
-
+version: '3'
 services:
-  spring-config-server:
+  colux-db:
+    image: mysql:8.0
+    container_name: colux-db
+    hostname: colux-db
+    restart: on-failure
+    environment:
+      MYSQL_DATABASE: 'COLUX_DB_CENTER'
+      MYSQL_USER: 'colux'
+      MYSQL_PASSWORD: 'coluxalpha2002'
+      MYSQL_ROOT_PASSWORD: 'coluxalpha2002'
+    ports:
+      - "3306:3306"
+    expose:
+      - "3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+    networks:
+      - colux-network
+  config-service:
     image: coluxalpha/mmv3-spring-cloud-config-server:0.0.1-SNAPSHOT
+    container_name: config-service
+    hostname: config-server
     restart: on-failure
     ports:
-      - 8888:8888
+      - "8888:8888"
+    expose:
+      - "8888"
     networks:
-      - microservices-network
+      - colux-network
+
+  apigateway:
+    image: coluxalpha/mmv3-api-gateway:0.0.21-SNAPSHOT
+    container_name: apigateway
+    hostname: apigateway
+    restart: on-failure
+    depends_on:
+      - identity-service
+      - config-service
     environment:
-      SPRING_DATASOURCE_URL: jdbc:mysql://localhost:3306/IDENTITYSERVICE_DB?useSSL=false&allowPublicKeyRetrieval=true
-      SPRING_DATASOURCE_USERNAME: root
-      SPRING_DATASOURCE_PASSWORD: Duyho75#
-      EUREKA.CLIENT.SERVICEURL.DEFAULTZONE: http://naming-server:8761/eureka
+      - CONFIG_SERVER_URL=http://config-service:8888
+      - IDENTITY_SERVICE_URL=http://identity-service:8100
+      - SPRING_MAIN_WEB-APPLICATION-TYPE=reactive
+      - ROUTER_IDENTITY_SERVICE_URL=http://identity-service:8100
+      - ROUTER_PRODUCT_SERVICE_URL=http://product-service:8081
+      - ROUTER_ORDER_SERVICE_URL=http://order-service:8082
+#      - API_GATEWAY_HOST=http://config-service:8888
+#      - SPRING_CONFIG_URI=http://spring-cloud-config-service:8888
+#      - IDENTITY_SERVICE_URL=http://identity-service:8081
+    ports:
+      - "8765:8765"
+    expose:
+      - "8765"
+    networks:
+      - colux-network
+    command: sh -c "sleep 20 && java -jar your-app.jar"
+#  registry-services:
+#    image: coluxalpha/mmv3-registry-services:0.0.1-SNAPSHOT
+#    container_name: registry-services
+#    hostname: registry-services
+#    restart: on-failure
+#    environment:
+#      - EUREKA_INSTANCE_HOSTNAME=registry-services
+#    ports:
+#      - "8761:8761"
+#    expose:
+#      - "8761"
+#    networks:
+#      - colux-network
+
+# ============= Services ==================
 
   identity-service:
-    image: coluxalpha/mmv3-identity-service:0.0.1-SNAPSHOT
+    image: coluxalpha/mmv3-identity-service:0.0.6-SNAPSHOT
+    container_name: identity-service
+    hostname: identity-service
+    restart: on-failure
+    depends_on:
+      - colux-db
+      - config-service
     ports:
-      - 8100:8100
-    networks:
-      - microservices-network
+      - "8100:8100"
+    expose:
+      - "8100"
     environment:
-      EUREKA.CLIENT.SERVICEURL.DEFAULTZONE: http://naming-server:8761/eureka
-      SPRING_CONFIG_IMPORT: optional:configserver:http://localhost:8888
+      - API_GATEWAY_HOST=apigateway
+      - CONFIG_SERVER_URL=http://config-service:8888
+      - SPRING_PROFILES_ACTIVE=dev
+      - MYSQL_HOST=colux-db
+    networks:
+      - colux-network
+    command: sh -c "sleep 20 && java -jar your-app.jar"
+
+  product-service:
+    image: coluxalpha/mmv3-product-service:0.0.3-SNAPSHOT
+    container_name: product-service
+    hostname: product-service
+    restart: on-failure
+    depends_on:
+      - colux-db
+      - config-service
+    ports:
+      - "8081:8081"
+    environment:
+      - CONFIG_SERVER_URL=http://config-service:8888
+      - MYSQL_HOST=colux-db
+      - SPRING_PROFILES_ACTIVE=dev
+    networks:
+      - colux-network
+    command: sh -c "sleep 20 && java -jar your-app.jar"
+
 
 networks:
-  microservices-network:
+  colux-network:
     driver: bridge
 
-#  mysql-db:
-#    image: mysql
-#    container_name: ms_mysql_db
-#    deploy:
-#      resources:
-#        limits:
-#          memory: 700M
-#    ports:
-#      - 3036:3306
-#    environment:
-#      MYSQL_ROOT_PASSWORD: root
-#      MYSQL_DATABASE: COLUX_DB
-#      MYSQL_USER: COLUX_USER_DB_DREAMER
-#      MYSQL_PASSWORD: Duyho75#
-#    volumes:
-#      - mysql-db-data:/var/lib/mysql
-#    networks:
-#      - microservices-network
-#    restart: unless-stopped
-#
-#  mongodb:
-#    container_name: mongodb
-#    image: bitnami/mongodb:7.0.14
-#    ports:
-#      - 27017:27017
-#    volumes:
-#      - /path/to/mongodb-persistence:/bitnami/mongodb
-#    environment:
-#      - MONGODB_ROOT_USER=root
-#      - MONGODB_ROOT_PASSWORD=coluxalpha2002
-
-
-#  kafka:
-#    image: confluentinc/cp-kafka:lastest
-#    container_name: ms_kafka
-#    depends_on:
-#      - zookeeper
-#    environment:
-#      KAFKA_BROKER_ID: 1
-#      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-#      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
-#      KAFKA_TRANSACTION_STATE_LG_MIN_ISR: 1
-#      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-#      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
-#      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
-#    ports:
-#      - 9092:9092
-#    networks:
-#      - microservices-network
-
-#  mail-dev:
-#    container_name: ms_mail_dev
-#    image: maildev/maildev
-#    ports:
-#      - 1080:1080
-#      - 1025:1025
-
-
+volumes:
+  mysql_data:

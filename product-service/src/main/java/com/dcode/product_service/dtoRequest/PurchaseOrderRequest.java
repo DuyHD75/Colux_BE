@@ -7,5 +7,5 @@ import java.util.List;
 @Data
 public class PurchaseOrderRequest {
 //    private String orderId;
-    private List<ProductOrder> products;
+    private List<ProductOrderRequest> products;
 }

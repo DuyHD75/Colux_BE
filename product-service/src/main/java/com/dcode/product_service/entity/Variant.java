@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.NaturalId;
 
 import java.util.List;
 import java.util.Set;
@@ -19,6 +20,7 @@ import static jakarta.persistence.CascadeType.*;
 @Table(name = "variants")
 public class Variant extends Auditable {
     @Column(nullable = false, updatable = false, unique = true)
+    @NaturalId
     private String variantId;
     private String sizeName;
     private String categoryName;

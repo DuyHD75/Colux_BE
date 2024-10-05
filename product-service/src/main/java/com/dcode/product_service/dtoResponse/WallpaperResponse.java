@@ -11,4 +11,5 @@ import java.util.List;
 public class WallpaperResponse {
     private String area;
     private List<VariantResponse> variants;
+    private ProductResponse product;
 }

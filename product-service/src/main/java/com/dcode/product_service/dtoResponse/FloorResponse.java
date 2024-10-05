@@ -15,4 +15,5 @@ public class FloorResponse {
     private String numberOfPiecesPerBox;
     private String areaPerBox;
     private List<VariantResponse> variants;
+    private ProductResponse product;
 }

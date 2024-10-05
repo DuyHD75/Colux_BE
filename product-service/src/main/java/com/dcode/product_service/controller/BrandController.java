@@ -19,7 +19,7 @@ import static java.util.Collections.emptyMap;
 import static org.springframework.http.HttpStatus.CREATED;
 
 @RestController
-@RequestMapping("/api/v1/brands")
+@RequestMapping("/api/v1/products/brands")
 @AllArgsConstructor
 public class BrandController {
 
