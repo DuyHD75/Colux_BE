@@ -34,8 +34,6 @@ public class PaypalHttpClient {
         return "Basic " + Base64.getEncoder().encodeToString(credentials.getBytes());
     }
 
-
-
     private AccessTokenResponse getPaypalAccessToken () {
         try {
             var request = HttpRequest.newBuilder()

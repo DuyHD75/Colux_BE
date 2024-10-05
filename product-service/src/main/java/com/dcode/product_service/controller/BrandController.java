@@ -7,10 +7,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
 
@@ -19,11 +16,20 @@ import static java.util.Collections.emptyMap;
 import static org.springframework.http.HttpStatus.CREATED;
 
 @RestController
-@RequestMapping("/api/v1/brands")
+@RequestMapping("/api/v1/products/brands")
 @AllArgsConstructor
 public class BrandController {
 
     private final BrandServiceImpl brandService;
+
+    @GetMapping("/test")
+    public ResponseEntity<Response> TestBrand(HttpServletRequest request){
+        return ResponseEntity.created(getUri()).body(
+                getResponse(request, emptyMap(),
+                        "Brand created successfully!", CREATED)
+        );
+    }
+
 
     @PostMapping
     public ResponseEntity<Response> createBrand(@RequestBody @Valid BrandRequest brandRequest, HttpServletRequest request){

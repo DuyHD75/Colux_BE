@@ -17,7 +17,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-
 import java.util.List;
 
 import static com.dcode.identity_service.constant.Constants.AuthorityConstant.ALLOWED_PATHS;
@@ -34,10 +33,10 @@ public class FilterChainConfiguration {
     private final IJwtService jwtService;
     private final BCryptPasswordEncoder passwordEncoder;
 
-
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
+//                .cors(cors -> cors.disable())
                 .csrf(AbstractHttpConfigurer::disable)
                 .addFilterBefore(new AuthenticationFilter(authenticationManager(), userService, jwtService),
                         UsernamePasswordAuthenticationFilter.class)

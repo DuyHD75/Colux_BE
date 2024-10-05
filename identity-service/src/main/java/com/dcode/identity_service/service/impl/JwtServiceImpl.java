@@ -99,29 +99,32 @@ public class JwtServiceImpl extends JwtConfiguration implements IJwtService {
                     .compact();
 
     private final TriConsumer<HttpServletResponse, User, TokenType> addCookie = (response, user, tokenType) -> {
+        Cookie cookie;
+        String token;
+
         switch (tokenType) {
             case ACCESS_TOKEN -> {
-                var accessToken = createToken(user, Token::getAccessToken);
-                var cookie = new Cookie(tokenType.getValue(), accessToken);
-                cookie.setHttpOnly(true);
-                /* cookie.setSecure(true);*/
-                cookie.setMaxAge(2 * 60);
-                cookie.setPath("/");
-                cookie.setAttribute("SameSite", NONE.name());
-                response.addCookie(cookie);
+                token = createToken(user, Token::getAccessToken);
+                cookie = new Cookie(tokenType.getValue(), token);
+                cookie.setMaxAge(60 * 60); // 1 hour
             }
             case REFRESH_TOKEN -> {
-                var refreshToken = createToken(user, Token::getRefreshToken);
-                var cookie = new Cookie(tokenType.getValue(), refreshToken);
-                cookie.setHttpOnly(true);
-                /*cookie.setSecure(true);*/
-                cookie.setMaxAge(2 * 60 * 60);
-                cookie.setPath("/");
-                cookie.setAttribute("SameSite", NONE.name());
-                response.addCookie(cookie);
+                token = createToken(user, Token::getRefreshToken);
+                cookie = new Cookie(tokenType.getValue(), token);
+                cookie.setMaxAge(2 * 60 * 60); // 2 hours
             }
+            default -> throw new IllegalArgumentException("Unsupported token type: " + tokenType);
         }
+
+        cookie.setHttpOnly(true);
+        cookie.setPath("/");
+        cookie.setDomain("localhost");
+        cookie.setAttribute("SameSite", "Lax");
+        cookie.setSecure(false);
+
+        response.addCookie(cookie);
     };
+
 
     public Function<String, List<GrantedAuthority>> authorities = token ->
             commaSeparatedStringToAuthorityList(
