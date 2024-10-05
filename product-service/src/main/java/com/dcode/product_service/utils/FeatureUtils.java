@@ -1,12 +1,17 @@
 package com.dcode.product_service.utils;
 
 import com.dcode.product_service.dtoResponse.FeatureResponse;
+import com.dcode.product_service.dtoResponse.FeatureValueResponse;
+import com.dcode.product_service.dtoResponse.PropertyValueResponse;
 import com.dcode.product_service.entity.Feature;
 import com.dcode.product_service.entity.FeatureValue;
+import com.dcode.product_service.entity.PropertyValue;
 import org.springframework.beans.BeanUtils;
 
 import java.util.*;
 import java.util.stream.Collectors;
+
+import static com.dcode.product_service.utils.PropertyUtils.fromPropertyEntity;
 
 public class FeatureUtils {
     public static Feature createNewFeatureEntity(String name, String description, Set<String> featureValue){
@@ -36,15 +41,18 @@ public class FeatureUtils {
         if (features == null) return null;
         return features.stream()
                 .map(featureValue -> {
-                    FeatureValue fv = FeatureValue.builder().value(featureValue).build();
+                    FeatureValue fv = FeatureValue.builder().featureValueId(UUID.randomUUID().toString()).value(featureValue).build();
                     fv.setFeature(feature);
                     return fv;
                 })
                     .collect(Collectors.toSet());
     }
     public static FeatureResponse fromFeatureEntity(Feature feature){
-        FeatureResponse featureResponse = new FeatureResponse();
-        BeanUtils.copyProperties(feature, featureResponse);
-        return featureResponse;
+        return FeatureResponse.builder()
+                .featureId(feature.getFeatureId())
+                .name(feature.getName())
+                .description(feature.getDescription())
+                .build();
     }
+
 }

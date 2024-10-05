@@ -6,56 +6,85 @@ import com.dcode.product_service.dtoResponse.WallpaperResponse;
 import com.dcode.product_service.entity.Product;
 import com.dcode.product_service.entity.Variant;
 import com.dcode.product_service.entity.Wallpaper;
+import com.dcode.product_service.entity.WallpaperVariant;
+import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.BeanUtils;
 
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import static com.dcode.product_service.utils.PaintUtils.convertVariantToVResponse;
+import static com.dcode.product_service.utils.ProductUtils.fromProductEntitySimple;
+
 public class WallpaperUtils {
-    public static Wallpaper createNewWallpaperEntity(Product product, String area, Set<VariantRequest> variantRequestSet, Set<Variant> currentVariants){
+    public static Wallpaper createNewWallpaperEntity(Product product, String area, Map<Variant, Pair<Double, Double>> variantRequestSet){
+        Set< WallpaperVariant> wallpaperVariants = new HashSet<>();
         Wallpaper wallpaper = Wallpaper.builder()
                 .wallpaperId(UUID.randomUUID().toString())
-                .area(Double.parseDouble(area))
                 .product(product)
+                .area(Double.parseDouble(area))
+                .wallpaperVariants(wallpaperVariants)
                 .build();
-        Set<Variant> variants = variantRequestSet.stream().map(
-                variantRequest -> {
-                    // check Variant exists
-                    return currentVariants.stream()
-                            .filter(v -> v.getSizeName().equals(variantRequest.getSizeName())
-//                                    && v.getCategoryName().equals(product.getCategory().toString())
-                                    && v.getPackageType().equals(variantRequest.getPackageType()))
-                            .findFirst()
-                            .orElseGet(() -> {
-                                // if not exist, create new one. new variant saved to bc because we're using cascade type = all
-                                Variant newVariant = Variant.builder()
-                                        .variantId(UUID.randomUUID().toString())
-                                        .sizeName(variantRequest.getSizeName())
-                                        .categoryName(product.getCategory().toString())
-                                        .packageType(variantRequest.getPackageType())
-                                        .build();
-//                                newVariant.setWallpaper(wallpaper);
-                                return newVariant;
-                            });
-                }).collect(Collectors.toSet());
-        wallpaper.setVariants(variants);
+
+        //lap qua Map de set quantity
+        for (Map.Entry<Variant, Pair<Double, Double>> entry: variantRequestSet.entrySet()){
+            Variant variant = entry.getKey();
+            Double quantity = entry.getValue().getLeft();
+            Double price = entry.getValue().getRight();
+
+            WallpaperVariant temp = WallpaperVariant.builder()
+                    .wallpaper(wallpaper)
+                    .variant(variant)
+                    .quantity(quantity)
+                    .price(price)
+                    .build();
+            wallpaper.getWallpaperVariants().add(temp);
+        }
         return wallpaper;
     }
     public static WallpaperResponse fromWallpaperEntity(Wallpaper wallpaper){
-        Set<VariantResponse> variantResponses = new HashSet<>();
-        if (wallpaper.getVariants() != null){
-            wallpaper.getVariants().forEach(variant -> {
-                VariantResponse response = new VariantResponse();
-                BeanUtils.copyProperties(variant, response);
-                variantResponses.add(response);
-            });
-        }
+
         return WallpaperResponse.builder()
                 .area(String.valueOf(wallpaper.getArea()))
-                .variants(variantResponses)
+                .variants(convertVariantToVResponse(wallpaper.getWallpaperVariants()))
+                .product(fromProductEntitySimple(wallpaper.getProduct()))
                 .build();
+    }
+    public static Wallpaper fromWallpaperEntity(String area, Map<Variant, Pair<Double, Double>> variantRequestSet, Wallpaper wallpaper){
+        wallpaper.setArea(Double.parseDouble(area));
+        Set<WallpaperVariant> existingWallpaperVariants = wallpaper.getWallpaperVariants();
+
+        Set<WallpaperVariant> updatedWallpaperVariants = new HashSet<>();
+        for (Map.Entry<Variant, Pair<Double, Double>> entry: variantRequestSet.entrySet()){
+            Variant variant = entry.getKey();
+            Double quantity = entry.getValue().getLeft();
+            Double price = entry.getValue().getRight();
+
+            WallpaperVariant wallpaperVariant = existingWallpaperVariants.stream()
+                    .filter(wv -> wv.getVariant().equals(variant))
+                    .findFirst()
+                    .orElse(null);
+
+            if (wallpaperVariant == null){
+                wallpaperVariant = WallpaperVariant.builder()
+                        .wallpaper(wallpaper)
+                        .variant(variant)
+                        .quantity(quantity)
+                        .price(price)
+                        .build();
+                updatedWallpaperVariants.add(wallpaperVariant);
+            }else {
+                wallpaperVariant.setQuantity(quantity);
+                wallpaperVariant.setPrice(price);
+                updatedWallpaperVariants.add(wallpaperVariant);
+            }
+        }
+        existingWallpaperVariants.removeIf(wv -> !variantRequestSet.containsKey(wv.getVariant()));
+        wallpaper.setWallpaperVariants(updatedWallpaperVariants);
+        return wallpaper;
     }
 
 }

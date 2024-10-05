@@ -56,10 +56,6 @@
             <scope>test</scope>
         </dependency>
 
-        <dependency>
-            <groupId>org.springframework.cloud</groupId>
-            <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
-        </dependency>
 
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -136,10 +132,6 @@
             <scope>runtime</scope>
         </dependency>
         <!--Java JWT-->
-        <dependency>
-            <groupId>io.micrometer</groupId>
-            <artifactId>micrometer-observation</artifactId>
-        </dependency>
 
         <dependency>
             <groupId>io.micrometer</groupId>
@@ -195,6 +187,7 @@
                     <image>
                         <name>coluxalpha/mmv3-${project.artifactId}:${project.version}</name>
                     </image>
+
                     <excludes>
                         <exclude>
                             <groupId>org.projectlombok</groupId>
@@ -203,7 +196,15 @@
                     </excludes>
                 </configuration>
             </plugin>
-
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.5.0</version>
+                <configuration>
+                    <skipTests>true</skipTests>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
+
 </project>

@@ -2,8 +2,10 @@ package com.dcode.product_service.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.NaturalId;
 
 import java.util.List;
+import java.util.Set;
 
 @Getter
 @Setter
@@ -17,13 +19,16 @@ import java.util.List;
 public class Product extends Auditable{
 
     @Column(updatable = false, nullable = false, unique = true)
+    @NaturalId
     private String productId;
     private String productName;
     private String description;
     private String price;
     private String ratingAverage;
+    private String code;
     private String placeOfOrigin;
     private String warranty;
+    private String applicableSurface;
 
     @OneToMany(mappedBy = "product")
     private List<ProductPriceTracking> productPriceTrackings;
@@ -34,7 +39,7 @@ public class Product extends Auditable{
             joinColumns = @JoinColumn(name = "product_id", referencedColumnName = "id"),
             inverseJoinColumns = @JoinColumn(name = "property_value_id", referencedColumnName = "id")
     )
-    private List<PropertyValue> propertyValues;
+    private Set<PropertyValue> propertyValues;
 
     @ManyToMany
     @JoinTable(
@@ -42,7 +47,7 @@ public class Product extends Auditable{
             joinColumns = @JoinColumn(name = "product_id", referencedColumnName = "id"),
             inverseJoinColumns = @JoinColumn(name = "feature_value_id", referencedColumnName = "id")
     )
-    private List<FeatureValue> featureValues;
+    private Set<FeatureValue> featureValues;
 
     @ManyToOne
     @JoinColumn(name = "category_id", referencedColumnName = "id")
@@ -65,4 +70,7 @@ public class Product extends Auditable{
 
     @OneToMany(mappedBy = "product")
     private List<Floor> floors;
+
+    @OneToMany(mappedBy = "product")
+    private List<Image> images;
 }

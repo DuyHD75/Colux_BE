@@ -16,7 +16,7 @@ import java.util.Set;
 @AllArgsConstructor
 @Builder
 public class PaintResponse {
-    private String quantity;
     private String color;
-    private Set<VariantResponse> variants;
+    private List<VariantResponse> variants;
+    private ProductResponse product;
 }

@@ -25,7 +25,7 @@ public class PropertyUtils {
         if (propertyValueSet == null) return null;
         return propertyValueSet.stream()
                 .map(propertyValue -> {
-                    PropertyValue pv = PropertyValue.builder().value(propertyValue).build();
+                    PropertyValue pv = PropertyValue.builder().propertyValueId(UUID.randomUUID().toString()).value(propertyValue).build();
                     pv.setProperty(property);
                     return pv;
                 }).collect(Collectors.toSet());

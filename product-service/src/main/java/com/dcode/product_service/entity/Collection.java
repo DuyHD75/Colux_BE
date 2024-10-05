@@ -1,27 +1,34 @@
 package com.dcode.product_service.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.util.List;
+import java.util.Set;
 
 @Getter
 @Setter
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "collections")
 @Entity
 public class Collection extends Auditable{
+
+    @Column(nullable = false, updatable = false, unique = true)
+    private String collectionId;
     private String name;
+    private String title;
+    private String description;
+    private String image;
+    private String hex;
+
 
     @ManyToMany(mappedBy = "collections")
-    private List<Color> colors;
+    private Set<Color> colors;
 
-    @ManyToOne
-    @JoinColumn(name = "color_family", referencedColumnName = "id")
+    @ManyToOne(optional = true)
+    @JoinColumn(name = "color_family_id", referencedColumnName = "id")
     private ColorFamily colorFamily;
 
     @ManyToOne

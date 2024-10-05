@@ -4,8 +4,12 @@ import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.NaturalId;
 
 import java.util.List;
+import java.util.Set;
+
+import static jakarta.persistence.CascadeType.*;
 
 @Getter
 @Setter
@@ -14,8 +18,9 @@ import java.util.List;
 @AllArgsConstructor
 @Entity
 @Table(name = "variants")
-public class Variant extends Auditable{
+public class Variant extends Auditable {
     @Column(nullable = false, updatable = false, unique = true)
+    @NaturalId
     private String variantId;
     private String sizeName;
     private String categoryName;
@@ -25,30 +30,15 @@ public class Variant extends Auditable{
     @JsonIgnore
     private Category category;
 
-    @ManyToMany
-    @JsonBackReference
-    @JoinTable(
-            name = "paint_variant",
-            joinColumns = @JoinColumn(name = "variant_id", referencedColumnName = "id"),
-            inverseJoinColumns = @JoinColumn(name = "paint_id", referencedColumnName = "id")
-    )
-    private List<Paint> paints;
+    //    @JsonBackReference
+    @OneToMany(cascade = {PERSIST, MERGE}, mappedBy = "variant")
+    private Set<PaintVariant> paintVariants;
 
-    @ManyToMany
-    @JsonBackReference
-    @JoinTable(
-            name = "wallpaper_variant",
-            joinColumns = @JoinColumn(name = "variant_id", referencedColumnName = "id"),
-            inverseJoinColumns = @JoinColumn(name = "wallpaper_id", referencedColumnName = "id")
-    )
-    private List<Wallpaper> wallpapers;
+    //    @JsonBackReference
+    @OneToMany(cascade = {PERSIST, MERGE}, mappedBy = "variant")
+    private Set<WallpaperVariant> wallpaperVariants;
 
-    @ManyToMany
-    @JsonBackReference
-    @JoinTable(
-            name = "floor_variant",
-            joinColumns = @JoinColumn(name = "variant_id", referencedColumnName = "id"),
-            inverseJoinColumns = @JoinColumn(name = "floor_id", referencedColumnName = "id")
-    )
-    private List<Floor> floors;
+//    @JsonBackReference
+    @OneToMany(cascade = {PERSIST, MERGE}, mappedBy = "variant")
+    private Set<FloorVariant> floorVariants;
 }

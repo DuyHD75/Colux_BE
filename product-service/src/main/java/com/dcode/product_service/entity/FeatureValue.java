@@ -14,6 +14,10 @@ import java.util.List;
 @AllArgsConstructor
 @Table(name = "feature_values")
 public class FeatureValue extends Auditable{
+
+    @Column(updatable = false, unique = true, nullable = false)
+    private String featureValueId;
+
     private String value;
 
     @ManyToOne

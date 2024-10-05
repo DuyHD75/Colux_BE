@@ -1,22 +1,29 @@
 package com.dcode.product_service.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
+import org.hibernate.annotations.NaturalId;
 
 import java.util.List;
 
 @Getter
 @Setter
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
 @Table(name = "colors")
 public class Color extends Auditable{
+    @Column(nullable = false, updatable = false, unique = true)
+    @NaturalId
+    private String colorId;
     private String name;
+    private String image;
     private String code;
+    private String hex;
+    private String LVR;
+    private boolean interior;
+    private boolean exterior;
     private String description;
     private long colorTypeId;
 

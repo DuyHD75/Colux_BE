@@ -10,11 +10,11 @@ import java.util.stream.Collectors;
 public class VariantUtils {
     public static Set<VariantResponse> fromVariantEntity(Set<Variant> variant){
         return variant.stream().map(
-                v -> { VariantResponse variantResponse = new VariantResponse();
-                    variantResponse.setCategoryName(v.getCategoryName());
-                    variantResponse.setSizeName(v.getSizeName());
-                    variantResponse.setPackageType(v.getPackageType());
-                    return variantResponse;
+                v -> {return VariantResponse.builder()
+                        .categoryName(v.getCategoryName())
+                        .sizeName(v.getSizeName())
+                        .packageType(v.getPackageType())
+                        .build();
                 }).collect(Collectors.toSet());
     }
     public static Variant fromAVariantEntity(String sizeName, String categoryName, String packageType){
@@ -25,5 +25,6 @@ public class VariantUtils {
                 .packageType(packageType)
                 .build();
     }
+
 
 }

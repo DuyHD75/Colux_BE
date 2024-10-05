@@ -1,9 +1,6 @@
 package com.dcode.product_service.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.ManyToMany;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.*;
 
 import java.util.List;
@@ -16,6 +13,10 @@ import java.util.List;
 @AllArgsConstructor
 @Table(name = "property_values")
 public class PropertyValue extends Auditable{
+
+    @Column(nullable = false, unique = true, updatable = false)
+    private String propertyValueId;
+
     private String value;
 
     @ManyToMany(mappedBy = "propertyValues")

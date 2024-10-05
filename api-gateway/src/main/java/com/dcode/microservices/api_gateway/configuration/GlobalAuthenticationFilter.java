@@ -38,6 +38,7 @@ public class GlobalAuthenticationFilter implements GlobalFilter, Ordered {
         }
 
         var accessToken = exchange.getRequest().getCookies().getFirst("access-token");
+        log.info(accessToken.toString());
 
         if (accessToken == null) {
             try {

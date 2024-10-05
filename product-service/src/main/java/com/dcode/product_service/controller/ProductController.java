@@ -1,14 +1,13 @@
 package com.dcode.product_service.controller;
 
 import com.dcode.product_service.domain.Response;
-import com.dcode.product_service.dtoRequest.PaintRequest;
-import com.dcode.product_service.dtoRequest.ProductOrder;
-import com.dcode.product_service.dtoRequest.ProductRequest;
-import com.dcode.product_service.dtoRequest.PurchaseOrderRequest;
+import com.dcode.product_service.dtoRequest.*;
 import com.dcode.product_service.service.impl.ProductServiceImpl;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -31,37 +30,43 @@ public class ProductController {
 
     @PostMapping("/purchase-order")
     public ResponseEntity<Response> purchaseOrder(@RequestBody @Valid PurchaseOrderRequest purchaseOrderRequest, HttpServletRequest request){
-        List<ProductOrder> productOrderList = productService.purchaseOrder(purchaseOrderRequest.getProducts());
+        List<ProductOrderRequest> productOrderRequestList = productService.purchaseOrder(purchaseOrderRequest.getProducts());
 //        return ResponseEntity.ok().body(getResponse(request, Map.of("purchaseOrder", productOrderList),"Purchase Order handle successfully!", OK));
 
-        boolean allSuccess = productOrderList.stream().allMatch(ProductOrder::isSuccess);
+        boolean allSuccess = productOrderRequestList.stream().allMatch(ProductOrderRequest::isSuccess);
 
         if (allSuccess) {
-            return ResponseEntity.ok().body(getResponse(request, Map.of("products", productOrderList), "Purchase Order handled successfully!", HttpStatus.OK));
+            return ResponseEntity.ok().body(getResponse(request, Map.of("products", productOrderRequestList), "Purchase Order handled successfully!", HttpStatus.OK));
         } else {
-            return ResponseEntity.status(HttpStatus.PARTIAL_CONTENT).body(getResponse(request, Map.of("products", productOrderList), "Some products could not be processed!", HttpStatus.PARTIAL_CONTENT));
+            return ResponseEntity.status(HttpStatus.PARTIAL_CONTENT).body(getResponse(request, Map.of("products", productOrderRequestList), "Some products could not be processed!", HttpStatus.PARTIAL_CONTENT));
         }
     }
 
-    @PostMapping
+    @PostMapping("/product")
     public ResponseEntity<Response> createProduct(@RequestBody @Valid ProductRequest productRequest, HttpServletRequest request) {
-        productService.createProduct(
-                productRequest.getDescription(), productRequest.getPlaceOfOrigin(),
-                productRequest.getPrice(), productRequest.getProductName(),
-                productRequest.getRatingAverage(), productRequest.getWarranty(),
-                productRequest.getBrandId(), productRequest.getCategoryId()
-        );
+        productService.createProduct(productRequest);
         return ResponseEntity.created(getUri()).body(
                 getResponse(request, emptyMap(),
                         "Product created successfully!", CREATED)
         );
     }
 
-    @GetMapping
+    @GetMapping("/product")
     public ResponseEntity<Response> getAllProduct(HttpServletRequest request) {
         var products = productService.getAllProduct();
         return ResponseEntity.ok().body(getResponse(request, Map.of("products", products), "Product info retrieved", OK));
     }
+
+    @GetMapping("/product/pageable")
+    public ResponseEntity<Response> getAllProductWithPagination(@RequestParam(defaultValue = "0") int page,
+                                                                @RequestParam(defaultValue = "10") int size,
+                                                                HttpServletRequest request){
+        Pageable pageable = PageRequest.of(page,size);
+        var products = productService.getAllProduct(pageable);
+
+        return ResponseEntity.ok().body(getResponse(request,Map.of("products", products), "Product retrieve successfully!", OK));
+    }
+
 
 
     private URI getUri() {
