@@ -107,13 +107,10 @@
             <artifactId>micrometer-observation</artifactId>
         </dependency>
 
-
         <dependency>
             <groupId>io.micrometer</groupId>
             <artifactId>micrometer-tracing-bridge-otel</artifactId>
         </dependency>
-
-<!--        -->
 
     </dependencies>
     <dependencyManagement>

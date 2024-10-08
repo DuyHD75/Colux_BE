@@ -20,9 +20,6 @@ public class WebProxyRegistration {
     @Value("${identity.service.url}")
     private String IDENTITY_SERVICE_URL;
 
-    @Value("${identity.service.url}")
-    private String IDENTITY_SERVICE_URL;
-
     @Bean
     public WebClient webClient() {
         return WebClient.builder()

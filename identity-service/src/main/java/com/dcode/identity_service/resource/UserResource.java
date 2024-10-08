@@ -132,7 +132,7 @@ public class UserResource {
     }
 
     @GetMapping("/password/reset/verify")
-    public ResponseEntity<Response> verifyResetPasswordKey(@RequestParam("key") String key, HttpServletRequest request, HttpServletResponse response) {
+    public ResponseEntity<Response> verifyResetPasswordKey(@RequestParam("key") String key, HttpServletRequest request, HttpServletResponse response)  {
         try {
             userService.verifyResetPasswordKey(key);
             return ResponseEntity.ok().body(getResponse(request, emptyMap(), "Verify reset password key successfully.", OK));
@@ -184,7 +184,6 @@ public class UserResource {
         var user = userService.getUserByUserId(userId);
         return ResponseEntity.ok().body(getResponse(request, Map.of("user", user), "User info retrieved.", OK));
     }
-
 
     @GetMapping("/info")
     public ResponseEntity<Response> getUserInfo(HttpServletRequest request, HttpServletResponse response) {
