@@ -10,7 +10,9 @@
     </parent>
     <groupId>com.dcode.microservices</groupId>
     <artifactId>api-gateway</artifactId>
+
     <version>0.0.3-SNAPSHOT</version>
+
     <name>api-gateway</name>
     <description>Implement Api-Gateway For Colux Application</description>
     <properties>
@@ -107,13 +109,10 @@
             <artifactId>micrometer-observation</artifactId>
         </dependency>
 
-
         <dependency>
             <groupId>io.micrometer</groupId>
             <artifactId>micrometer-tracing-bridge-otel</artifactId>
         </dependency>
-
-<!--        -->
 
     </dependencies>
     <dependencyManagement>

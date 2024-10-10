@@ -27,6 +27,7 @@ public class OrderRequest {
     private String reference;
     @Nullable
     private Long orderCancellationReasonId;
+
     @Nullable
     private String note;
 

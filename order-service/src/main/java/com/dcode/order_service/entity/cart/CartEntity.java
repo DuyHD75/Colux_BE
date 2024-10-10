@@ -24,10 +24,8 @@ public class CartEntity extends Auditable {
     @Column(name = "card_id", nullable = false, unique = true)
     private String cartId;
 
-
-    @Column(name = "user_id", nullable = false)
+    @Column(name = "customer_id", nullable = false)
     private String userId;
-
 
     @Column(name = "status", nullable = false, columnDefinition = "TINYINT")
     private String status;

@@ -23,6 +23,10 @@ public class ExchangeController {
 
     private Logger logger = LoggerFactory.getLogger(CurrencyExchange.class);
 
+    @GetMapping
+    public String test() {
+        return "Hello";
+    }
 
     @GetMapping("/currency-exchange/from/{from}/to/{to}")
     public CurrencyExchange retrieveExchangeValue(@PathVariable String from,

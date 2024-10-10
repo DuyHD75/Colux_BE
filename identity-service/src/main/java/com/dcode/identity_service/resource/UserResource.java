@@ -32,6 +32,7 @@ import static com.dcode.identity_service.utils.RequestUtils.getResponse;
 import static java.util.Collections.emptyMap;
 import static org.springframework.http.HttpStatus.*;
 
+//@CrossOrigin(origins = "", allowCredentials = "true")
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/users")
@@ -45,7 +46,7 @@ public class UserResource {
 
     @GetMapping("/test")
     public String test() {
-        String [] activeProfiles = env.getActiveProfiles();
+        String[] activeProfiles = env.getActiveProfiles();
         System.out.println("Active profiles: " + String.join(", ", activeProfiles));
         return "Hello World!";
     }
@@ -120,7 +121,7 @@ public class UserResource {
     public ResponseEntity<Response> resetPassword(HttpServletRequest request, HttpServletResponse response, @RequestParam("email") String email) {
         try {
             userService.sendResetPasswordUri(email);
-            return ResponseEntity.ok().body(getResponse(request, emptyMap(), "Reset password successfully. Please check your email.", OK));
+            return ResponseEntity.ok().body(getResponse(request, emptyMap(), "Send reset password url successfully. Please check your email.", OK));
         } catch (ApiException ex) {
             return ResponseEntity.status(BAD_REQUEST)
                     .body(getErrorResponse(request, response, ex, BAD_REQUEST));
@@ -131,7 +132,7 @@ public class UserResource {
     }
 
     @GetMapping("/password/reset/verify")
-    public ResponseEntity<Response> verifyResetPasswordKey(@RequestParam("key") String key, HttpServletRequest request, HttpServletResponse response) {
+    public ResponseEntity<Response> verifyResetPasswordKey(@RequestParam("key") String key, HttpServletRequest request, HttpServletResponse response)  {
         try {
             userService.verifyResetPasswordKey(key);
             return ResponseEntity.ok().body(getResponse(request, emptyMap(), "Verify reset password key successfully.", OK));
@@ -181,6 +182,17 @@ public class UserResource {
     @GetMapping("/{customer-id}")
     public ResponseEntity<Response> getUserInfoById(@PathVariable("customer-id") String userId, HttpServletRequest request) {
         var user = userService.getUserByUserId(userId);
+        return ResponseEntity.ok().body(getResponse(request, Map.of("user", user), "User info retrieved.", OK));
+    }
+
+    @GetMapping("/info")
+    public ResponseEntity<Response> getUserInfo(HttpServletRequest request, HttpServletResponse response) {
+        var authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return ResponseEntity.status(UNAUTHORIZED)
+                    .body(getErrorResponse(request, response, new ApiException("User not authenticated."), UNAUTHORIZED));
+        }
+        var user = (User) authentication.getPrincipal();
         return ResponseEntity.ok().body(getResponse(request, Map.of("user", user), "User info retrieved.", OK));
     }
 
