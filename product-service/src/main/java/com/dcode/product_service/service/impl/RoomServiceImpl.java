@@ -1,5 +1,6 @@
 package com.dcode.product_service.service.impl;
 
+import com.dcode.product_service.dtoRequest.RoomRequest;
 import com.dcode.product_service.dtoResponse.ColorResponse;
 import com.dcode.product_service.dtoResponse.RoomResponse;
 import com.dcode.product_service.entity.Color;
@@ -31,8 +32,11 @@ public class RoomServiceImpl implements IRoomService {
     private final ColorRepository colorRepository;
 
     @Override
-    public void createARoom(String roomType, String hex, String title, String description, String image, String textUrl3D) {
-        roomRepository.save(createARoomEntity(roomType, hex, title, description, image, textUrl3D));
+    public void createRooms(List<RoomRequest> roomRequests) {
+        roomRequests.forEach(roomRequest -> {
+            Room room = createARoomEntity(roomRequest);
+            roomRepository.save(room);
+        });
     }
 
     @Override
@@ -57,7 +61,7 @@ public class RoomServiceImpl implements IRoomService {
         return PageResponseBuilder.buildPageResponse(colorResponsePage);
     }
 
-    private Room createARoomEntity(String roomType, String hex, String title, String description, String image, String textUrl3D) {
-        return createNewRoomEntity(roomType, hex, title, description, image, textUrl3D);
+    private Room createARoomEntity(RoomRequest roomRequest) {
+        return createNewRoomEntity(roomRequest);
     }
 }

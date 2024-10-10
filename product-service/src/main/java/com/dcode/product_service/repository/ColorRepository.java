@@ -13,8 +13,12 @@ public interface ColorRepository extends JpaRepository<Color, Long> {
     Optional<Color> findByColorId(String colorId);
     Optional<Color> deleteColorByColorId(String colorId);
     Set<Color>  findByColorIdIn(Set<String> colorIds);
-    List<Color> findByCollections_CollectionId(String collectionId);
+    Page<Color> findByCollections_ColorFamily_ColorFamilyId(String collectionId, Pageable pageable);
     Page<Color> findByCollections_CollectionIdAndCollections_ColorFamily_ColorFamilyId(String collectionId, String colorId, Pageable pageable);
+    Page<Color> findByCollections_CollectionIdAndCollections_Room_RoomId(String collectionId, String roomId, Pageable pageable);
     Page<Color> findByCollections_Room_RoomId(String roomId, Pageable pageable);
     Page<Color> findByCollections_CollectionId(String collectionId, Pageable pageable);
+    Page<Color> findByInteriorIsTrue(Pageable pageable);
+    Page<Color> findByInteriorIsTrueAndExteriorIsTrue(Pageable pageable);
+    Page<Color> findByExteriorIsTrue(Pageable pageable);
 }

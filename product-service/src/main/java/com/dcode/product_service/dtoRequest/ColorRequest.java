@@ -10,7 +10,7 @@ public class ColorRequest {
     private String image;
     private String code;
     private String hex;
-    private String LVR;
+    private String LRV;
     private boolean interior;
     private boolean exterior;
     private String description;

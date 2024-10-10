@@ -38,8 +38,11 @@ public class CollectionServiceImpl implements ICollectionService {
     private final ColorRepository colorRepository;
 
     @Override
-    public void createACollection(CollectionRequest collectionRequest) {
-        collectionRepository.save(createACollectionEntity(collectionRequest));
+    public void createCollections(List<CollectionRequest> collectionRequests) {
+        collectionRequests.forEach(collectionRequest -> {
+            Collection collection = createACollectionEntity(collectionRequest);
+            collectionRepository.save(collection);
+        });
     }
 
     @Override

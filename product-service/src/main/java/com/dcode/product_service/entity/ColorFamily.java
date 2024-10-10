@@ -21,6 +21,7 @@ public class ColorFamily extends Auditable {
     private String colorFamilyId;
     private String name;
     private String title;
+    @Column(columnDefinition = "TEXT")
     private String description;
     private String hex;
     private String image;

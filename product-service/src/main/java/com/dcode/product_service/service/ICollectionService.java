@@ -7,10 +7,9 @@ import com.dcode.product_service.entity.PageResponse;
 import org.springframework.data.domain.Pageable;
 
 import java.util.List;
-import java.util.Set;
 
 public interface ICollectionService {
-    void createACollection(CollectionRequest collectionRequest);
+    void createCollections(List<CollectionRequest> collectionRequest);
 
     CollectionResponse getACollection(String collectionId);
 

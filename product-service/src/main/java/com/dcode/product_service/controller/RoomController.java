@@ -8,11 +8,11 @@ import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
+import java.util.List;
 import java.util.Map;
 
 import static com.dcode.product_service.utils.RequestUtils.getResponse;
@@ -28,9 +28,8 @@ public class RoomController {
     private final RoomServiceImpl roomService;
 
     @PostMapping
-    public ResponseEntity<Response> createARoom(@RequestBody @Valid RoomRequest roomRequest, HttpServletRequest request){
-        roomService.createARoom(roomRequest.getRoomType(),roomRequest.getHex(), roomRequest.getTitle()
-                , roomRequest.getDescription(), roomRequest.getImage(), roomRequest.getTextUrl3D());
+    public ResponseEntity<Response> createRooms(@RequestBody @Valid List<RoomRequest> roomRequest, HttpServletRequest request){
+        roomService.createRooms(roomRequest);
         return ResponseEntity.created(getUri()).body(getResponse(request, emptyMap(), "Room created successfully!", CREATED));
     }
     @GetMapping("{roomId}")

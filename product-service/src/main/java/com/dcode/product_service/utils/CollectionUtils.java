@@ -81,6 +81,7 @@ public class CollectionUtils {
                         .colorId(color.getColorId())
                         .name(color.getName())
                         .code(color.getCode())
+                        .hex(color.getHex())
                         .description(color.getDescription())
                         .build())
                 .collect(Collectors.toSet());

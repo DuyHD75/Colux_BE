@@ -22,6 +22,7 @@ public class Product extends Auditable{
     @NaturalId
     private String productId;
     private String productName;
+    @Column(columnDefinition = "TEXT")
     private String description;
     private String price;
     private String ratingAverage;
