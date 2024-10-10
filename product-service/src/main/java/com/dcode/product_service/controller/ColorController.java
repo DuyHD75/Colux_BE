@@ -3,23 +3,26 @@ package com.dcode.product_service.controller;
 
 import com.dcode.product_service.domain.Response;
 import com.dcode.product_service.dtoRequest.ColorRequest;
+import com.dcode.product_service.exception.ApiException;
 import com.dcode.product_service.service.impl.ColorServiceImpl;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
+import java.util.List;
 import java.util.Map;
 
+import static com.dcode.product_service.utils.RequestUtils.getErrorResponse;
 import static com.dcode.product_service.utils.RequestUtils.getResponse;
 import static java.util.Collections.emptyMap;
-import static org.springframework.http.HttpStatus.CREATED;
-import static org.springframework.http.HttpStatus.OK;
+import static org.springframework.http.HttpStatus.*;
+import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 
 @RestController
 @RequestMapping("/api/v1/products/colors")
@@ -29,8 +32,8 @@ public class ColorController {
     private final ColorServiceImpl colorService;
 
     @PostMapping()
-    public ResponseEntity<Response> createAColor(@RequestBody @Valid ColorRequest colorRequest, HttpServletRequest request) {
-        colorService.createAColor(colorRequest);
+    public ResponseEntity<Response> createAColor(@RequestBody @Valid List<ColorRequest> colorRequest, HttpServletRequest request) {
+        colorService.createColors(colorRequest);
         return ResponseEntity.created(getUri()).body(getResponse(request, emptyMap(), "Color created successfully!", CREATED));
     }
 
@@ -53,8 +56,11 @@ public class ColorController {
     }
 
     @GetMapping
-    public ResponseEntity<Response> getAllColor(HttpServletRequest request) {
-        var colors = colorService.getAllColor();
+    public ResponseEntity<Response> getAllColor(@RequestParam(defaultValue = "0") int page,
+                                                @RequestParam(defaultValue = "10") int size,
+                                                HttpServletRequest request) {
+        Pageable pageable = PageRequest.of(page, size);
+        var colors = colorService.getAllColor(pageable);
         return ResponseEntity.ok().body(getResponse(request, Map.of("colors", colors), "Retrieve all color successfully", OK));
     }
 
@@ -67,6 +73,37 @@ public class ColorController {
         Pageable pageable = PageRequest.of(page, size);
         var colors = colorService.getColorByColorFamilyAndCollection(collectionId, colorFamilyId, pageable);
         return ResponseEntity.ok().body(getResponse(request, Map.of("colors", colors), "Retrieve colors by color family and collection successfully!", OK));
+    }
+    @GetMapping("/collection/{collectionId}/room/{roomId}")
+    public ResponseEntity<Response> getColorByCollectionAndRoomId(@PathVariable("collectionId") String collectionId,
+                                                                  @PathVariable("roomId")String roomId,
+                                                                  @RequestParam(defaultValue = "0") int page,
+                                                                  @RequestParam(defaultValue = "10") int size,
+                                                                  HttpServletRequest request,
+                                                                  HttpServletResponse response){
+        try {
+            Pageable pageable = PageRequest.of(page, size);
+            var colors = colorService.getColorByCollectionAndRoom(collectionId, roomId, pageable);
+            return ResponseEntity.ok().body(getResponse(request, Map.of("colors", colors), "Retrieve colors by collection and room successfully!", OK));
+        }catch (ApiException ex) {
+        return ResponseEntity.status(BAD_REQUEST)
+                .body(getErrorResponse(request, response, ex, BAD_REQUEST));
+    } catch (Exception exception) {
+        return ResponseEntity.status(INTERNAL_SERVER_ERROR)
+                .body(getErrorResponse(request, response, new ApiException("An unexpected error occurred."), INTERNAL_SERVER_ERROR));
+    }
+    }
+
+    @GetMapping("/getColor")
+    public ResponseEntity<Response> getColor(
+            @RequestParam(value = "interior", required = false) Boolean interior,
+            @RequestParam(value = "exterior", required = false) Boolean exterior,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            HttpServletRequest request) {
+        Pageable pageable = PageRequest.of(page, size);
+        var colors = colorService.getColor(interior, exterior, pageable);
+        return ResponseEntity.ok().body(getResponse(request, Map.of("colors", colors), "Color retrieve successfully!", OK));
     }
 
     private URI getUri() {

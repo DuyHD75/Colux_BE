@@ -1,5 +1,6 @@
 package com.dcode.product_service.utils;
 
+import com.dcode.product_service.dtoRequest.RoomRequest;
 import com.dcode.product_service.dtoResponse.CollectionResponse;
 import com.dcode.product_service.dtoResponse.RoomResponse;
 import com.dcode.product_service.entity.Room;
@@ -11,15 +12,15 @@ import java.util.stream.Collectors;
 import static com.dcode.product_service.utils.CollectionUtils.fromCollectionEntity;
 
 public class RoomUtils {
-    public static Room createNewRoomEntity(String roomType, String hex, String title, String description, String image, String textUrl3D){
+    public static Room createNewRoomEntity(RoomRequest roomRequest){
         return Room.builder()
                 .roomId(UUID.randomUUID().toString())
-                .roomType(roomType)
-                .hex(hex)
-                .title(title)
-                .description(description)
-                .image(image)
-                .textUrl3D(textUrl3D)
+                .roomType(roomRequest.getRoomType())
+                .hex(roomRequest.getHex())
+                .title(roomRequest.getTitle())
+                .description(roomRequest.getDescription())
+                .image(roomRequest.getImage())
+                .textUrl3D(roomRequest.getTextUrl3D())
                 .build();
     }
 

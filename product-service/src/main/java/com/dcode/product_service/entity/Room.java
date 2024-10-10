@@ -24,6 +24,7 @@ public class Room extends Auditable{
     private String roomType;
     private String hex;
     private String title;
+    @Column(columnDefinition = "TEXT")
     private String description;
     private String image;
     private String textUrl3D;

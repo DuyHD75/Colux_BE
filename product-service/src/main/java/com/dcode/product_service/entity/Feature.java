@@ -18,6 +18,7 @@ public class Feature extends Auditable {
     @Column(updatable = false, nullable = false, unique = true)
     private String featureId;
     private String name;
+    @Column(columnDefinition = "TEXT")
     private String description;
 
     @OneToMany(mappedBy = "feature", cascade = CascadeType.ALL, orphanRemoval = true)

@@ -2,7 +2,10 @@ package com.dcode.product_service.service;
 
 import com.dcode.product_service.dtoResponse.CollectionResponse;
 import com.dcode.product_service.dtoResponse.ColorFamilyResponse;
+import com.dcode.product_service.dtoResponse.ColorResponse;
 import com.dcode.product_service.entity.Color;
+import com.dcode.product_service.entity.PageResponse;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 import java.util.Set;
@@ -14,5 +17,5 @@ public interface IColorFamilyService {
 
     List<ColorFamilyResponse> getAllColorFamily();
 
-    List<CollectionResponse> getColorByColorFamily(String colorFamilyId);
+    PageResponse<ColorResponse> getColorByColorFamily(String colorFamilyId, Pageable pageable);
 }

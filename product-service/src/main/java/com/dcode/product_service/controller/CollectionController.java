@@ -13,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
+import java.util.List;
 import java.util.Map;
 
 import static com.dcode.product_service.utils.RequestUtils.getResponse;
@@ -27,8 +28,8 @@ public class CollectionController {
     private final CollectionServiceImpl collectionService;
 
     @PostMapping
-    public ResponseEntity<Response> createACollection(@RequestBody CollectionRequest coRe, HttpServletRequest request) {
-        collectionService.createACollection(coRe);
+    public ResponseEntity<Response> createCollections(@RequestBody List<CollectionRequest> coRe, HttpServletRequest request) {
+        collectionService.createCollections(coRe);
         return ResponseEntity.created(getUri()).body(getResponse(request, emptyMap(), "Collection created successfully!", HttpStatus.CREATED));
     }
 
