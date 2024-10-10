@@ -1,0 +1,32 @@
+package com.dcode.order_service.dto.payment;
+
+import com.dcode.order_service.enumuration.OrderStatus;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Data;
+
+import java.util.List;
+
+@Data
+public class PaypalResponse {
+
+    @JsonProperty("id")
+    private String id;
+
+    @JsonProperty("status")
+    private OrderStatus status;
+
+    @JsonProperty("links")
+    private List<Link> links;
+
+    @Data
+    public static class Link {
+        @JsonProperty("href")
+        private String href;
+        @JsonProperty("rel")
+        private String rel;
+        @JsonProperty("method")
+        private String method;
+    }
+
+
+}

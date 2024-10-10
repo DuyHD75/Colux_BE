@@ -1,65 +1,120 @@
-version: '3.7'
-
+version: '3'
 services:
-  mysql-db:
-    image: mysql
-    container_name: ms_mysql_db
-    deploy:
-      resources:
-        limits:
-          memory: 700M
-    ports:
-      - 3037:3306
+  colux-db:
+    image: mysql:8.0
+    container_name: colux-db
+    hostname: colux-db
+    restart: on-failure
     environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: COLUX_DB
-      MYSQL_USER: COLUX_USER_DB_DREAMER
-      MYSQL_PASSWORD: Duyho75#
+      MYSQL_DATABASE: 'COLUX_DB_CENTER'
+      MYSQL_USER: 'colux'
+      MYSQL_PASSWORD: 'coluxalpha2002'
+      MYSQL_ROOT_PASSWORD: 'coluxalpha2002'
+    ports:
+      - "3306:3306"
+    expose:
+      - "3306"
     volumes:
-      - mysql-db-data:/var/lib/mysql
+      - mysql_data:/var/lib/mysql
+      - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
     networks:
-      - microservices-network
-    restart: unless-stopped
-
-  mongodb:
-    container_name: ms_mongo_db
-    image: mongo
+      - colux-network
+  config-service:
+    image: coluxalpha/mmv3-spring-cloud-config-server:0.0.1-SNAPSHOT
+    container_name: config-service
+    hostname: config-server
+    restart: on-failure
     ports:
-      - 27017:27017
-    volumes:
-      - mongodb-data:/data/db
-    environment:
-      - MONGO_INITDB_ROOT_USERNAME=colux
-      - MONGO_INITDB_ROOT_PASSWORD=dreamaker789
-
-  mongo-express:
-    container_name: ms_mongo_express
-    image: mongo-express
-    restart: always
-    ports:
-      - 8081:8081
-    environment:
-      - ME_CONFIG_MONGODB_ADMINUSERNAME=colux
-      - ME_CONFIG_MONGODB_ADMINPASSWORD=dreamaker789
-      - ME_CONFIG_MONGODB_SERVER=mongodb
+      - "8888:8888"
+    expose:
+      - "8888"
     networks:
-      - microservices-network
+      - colux-network
+
+  apigateway:
+    image: coluxalpha/mmv3-api-gateway:0.0.21-SNAPSHOT
+    container_name: apigateway
+    hostname: apigateway
+    restart: on-failure
     depends_on:
-      - mongodb
-
-  mail-dev:
-    container_name: ms_mail_dev
-    image: maildev/maildev
+      - identity-service
+      - config-service
+    environment:
+      - CONFIG_SERVER_URL=http://config-service:8888
+      - IDENTITY_SERVICE_URL=http://identity-service:8100
+      - SPRING_MAIN_WEB-APPLICATION-TYPE=reactive
+      - ROUTER_IDENTITY_SERVICE_URL=http://identity-service:8100
+      - ROUTER_PRODUCT_SERVICE_URL=http://product-service:8081
+      - ROUTER_ORDER_SERVICE_URL=http://order-service:8082
+#      - API_GATEWAY_HOST=http://config-service:8888
+#      - SPRING_CONFIG_URI=http://spring-cloud-config-service:8888
+#      - IDENTITY_SERVICE_URL=http://identity-service:8081
     ports:
-      - 1080:1080
-      - 1025:1025
+      - "8765:8765"
+    expose:
+      - "8765"
+    networks:
+      - colux-network
+    command: sh -c "sleep 20 && java -jar your-app.jar"
+#  registry-services:
+#    image: coluxalpha/mmv3-registry-services:0.0.1-SNAPSHOT
+#    container_name: registry-services
+#    hostname: registry-services
+#    restart: on-failure
+#    environment:
+#      - EUREKA_INSTANCE_HOSTNAME=registry-services
+#    ports:
+#      - "8761:8761"
+#    expose:
+#      - "8761"
+#    networks:
+#      - colux-network
+
+# ============= Services ==================
+
+  identity-service:
+    image: coluxalpha/mmv3-identity-service:0.0.6-SNAPSHOT
+    container_name: identity-service
+    hostname: identity-service
+    restart: on-failure
+    depends_on:
+      - colux-db
+      - config-service
+    ports:
+      - "8100:8100"
+    expose:
+      - "8100"
+    environment:
+      - API_GATEWAY_HOST=apigateway
+      - CONFIG_SERVER_URL=http://config-service:8888
+      - SPRING_PROFILES_ACTIVE=dev
+      - MYSQL_HOST=colux-db
+    networks:
+      - colux-network
+    command: sh -c "sleep 20 && java -jar your-app.jar"
+
+  product-service:
+    image: coluxalpha/mmv3-product-service:0.0.3-SNAPSHOT
+    container_name: product-service
+    hostname: product-service
+    restart: on-failure
+    depends_on:
+      - colux-db
+      - config-service
+    ports:
+      - "8081:8081"
+    environment:
+      - CONFIG_SERVER_URL=http://config-service:8888
+      - MYSQL_HOST=colux-db
+      - SPRING_PROFILES_ACTIVE=dev
+    networks:
+      - colux-network
+    command: sh -c "sleep 20 && java -jar your-app.jar"
+
 
 networks:
-  microservices-network:
+  colux-network:
     driver: bridge
 
-
-
 volumes:
-  mysql-db-data:
-  mongodb-data:
+  mysql_data:

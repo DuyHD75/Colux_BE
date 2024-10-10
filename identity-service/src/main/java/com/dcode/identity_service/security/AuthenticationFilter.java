@@ -86,8 +86,8 @@ public class AuthenticationFilter extends AbstractAuthenticationProcessingFilter
             throws IOException, ServletException {
         writeErrorResponse(request, response, failed, UNAUTHORIZED);
         SecurityContextHolder.clearContext();
-    }
 
+    }
     private Response sendResponse(HttpServletRequest request, HttpServletResponse response, User user) {
         jwtService.addCookie(response, user, ACCESS_TOKEN);
         jwtService.addCookie(response, user, REFRESH_TOKEN);

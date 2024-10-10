@@ -1,0 +1,15 @@
+package com.dcode.product_service.dtoResponse;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+
+import java.util.List;
+
+@Data
+@Builder
+public class WallpaperResponse {
+    private String area;
+    private List<VariantResponse> variants;
+    private ProductResponse product;
+}

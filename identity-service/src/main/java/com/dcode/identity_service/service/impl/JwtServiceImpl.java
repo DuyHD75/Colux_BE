@@ -54,7 +54,6 @@ public class JwtServiceImpl extends JwtConfiguration implements IJwtService {
                     .parseSignedClaims(token)
                     .getPayload();
 
-
     private <T> T getClaimsValue(String token, Function<Claims, T> claims) {
         return claimsFunction.andThen(claims).apply(token); // getSubject
     }
@@ -105,8 +104,8 @@ public class JwtServiceImpl extends JwtConfiguration implements IJwtService {
                 var accessToken = createToken(user, Token::getAccessToken);
                 var cookie = new Cookie(tokenType.getValue(), accessToken);
                 cookie.setHttpOnly(true);
-                /* cookie.setSecure(true);*/
-                cookie.setMaxAge(2 * 60);
+                 cookie.setSecure(false);
+                cookie.setMaxAge(60 * 60);
                 cookie.setPath("/");
                 cookie.setAttribute("SameSite", NONE.name());
                 response.addCookie(cookie);
@@ -115,7 +114,7 @@ public class JwtServiceImpl extends JwtConfiguration implements IJwtService {
                 var refreshToken = createToken(user, Token::getRefreshToken);
                 var cookie = new Cookie(tokenType.getValue(), refreshToken);
                 cookie.setHttpOnly(true);
-                /*cookie.setSecure(true);*/
+                cookie.setSecure(false);
                 cookie.setMaxAge(2 * 60 * 60);
                 cookie.setPath("/");
                 cookie.setAttribute("SameSite", NONE.name());

@@ -13,7 +13,6 @@ public class IdentityService {
     private final IdentityServiceClient identityServiceClient;
 
     public Mono<Response> introspectRequest(String token) {
-
         return identityServiceClient.introspectRequest(token);
     }
 }
