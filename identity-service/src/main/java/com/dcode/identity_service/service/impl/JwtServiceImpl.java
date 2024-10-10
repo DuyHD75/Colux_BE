@@ -18,6 +18,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Service;
 
@@ -32,7 +33,6 @@ import static com.dcode.identity_service.constant.Constants.AuthorityConstant.*;
 import static com.dcode.identity_service.enumeration.TokenType.ACCESS_TOKEN;
 import static io.jsonwebtoken.Header.JWT_TYPE;
 import static io.jsonwebtoken.Header.TYPE;
-import static org.apache.tomcat.util.http.SameSiteCookies.NONE;
 import static java.util.Arrays.stream;
 import static java.util.Optional.empty;
 import static org.springframework.security.core.authority.AuthorityUtils.commaSeparatedStringToAuthorityList;
@@ -42,6 +42,9 @@ import static org.springframework.security.core.authority.AuthorityUtils.commaSe
 @RequiredArgsConstructor
 @Slf4j
 public class JwtServiceImpl extends JwtConfiguration implements IJwtService {
+
+    @Value("${server.domain}")
+    private String DOMAIN_SERVER;
 
     private final IUserService userService;
 
@@ -118,9 +121,12 @@ public class JwtServiceImpl extends JwtConfiguration implements IJwtService {
 
         cookie.setHttpOnly(true);
         cookie.setPath("/");
-        cookie.setDomain("localhost");
+        cookie.setDomain(DOMAIN_SERVER);
         cookie.setAttribute("SameSite", "Lax");
-        cookie.setSecure(false);
+        if (DOMAIN_SERVER.contains("colux.site"))
+            cookie.setSecure(true);
+        else
+            cookie.setSecure(false);
 
         response.addCookie(cookie);
     };
