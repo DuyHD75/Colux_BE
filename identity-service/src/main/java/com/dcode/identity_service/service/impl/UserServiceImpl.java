@@ -5,6 +5,7 @@ import com.dcode.identity_service.cache.CacheStore;
 import com.dcode.identity_service.domain.RequestContext;
 import com.dcode.identity_service.dto.User;
 import com.dcode.identity_service.dtorequest.ResetPasswordRequest;
+import com.dcode.identity_service.dtorequest.UpdateProfileRequest;
 import com.dcode.identity_service.entity.ConfirmationEntity;
 import com.dcode.identity_service.entity.CredentialEntity;
 import com.dcode.identity_service.entity.RoleEntity;
@@ -166,6 +167,17 @@ public class UserServiceImpl implements IUserService {
         credentialEntity.setPassword(passwordEncoder.encode(data.getNewPassword()));
         resetPasswordCache.evict("email-reset");
         credentialRepository.save(credentialEntity);
+    }
+
+    @Override
+    public User updateUserProfile(String email, UpdateProfileRequest data) {
+        var userEntity = getUserEntityByEmail(email);
+        userEntity.setFirstName(data.getFirstName());
+        userEntity.setLastName(data.getLastName());
+        userEntity.setPhone(data.getPhone());
+        userEntity.setImageUrl(data.getImageUrl());
+        userRepository.save(userEntity);
+        return fromUserEntity(userEntity, userEntity.getRole(), getUserCredentialById(userEntity.getId()));
     }
 
     private UserEntity getUserEntityByEmail(String email) {

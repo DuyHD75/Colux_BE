@@ -6,6 +6,7 @@ import com.dcode.identity_service.domain.TokenData;
 import com.dcode.identity_service.dto.User;
 import com.dcode.identity_service.dtorequest.ChangePasswordRequest;
 import com.dcode.identity_service.dtorequest.ResetPasswordRequest;
+import com.dcode.identity_service.dtorequest.UpdateProfileRequest;
 import com.dcode.identity_service.dtorequest.UserRequest;
 import com.dcode.identity_service.exception.ApiException;
 import com.dcode.identity_service.service.IJwtService;
@@ -194,6 +195,20 @@ public class UserResource {
         }
         var user = (User) authentication.getPrincipal();
         return ResponseEntity.ok().body(getResponse(request, Map.of("user", user), "User info retrieved.", OK));
+    }
+
+    @PostMapping("/update-profile")
+    public ResponseEntity<Response> updateUserProfile(@RequestBody @Valid UpdateProfileRequest user, HttpServletRequest request, HttpServletResponse response) {
+        var authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return ResponseEntity.status(UNAUTHORIZED)
+                    .body(getErrorResponse(request,response, new ApiException("User not authenticated."), UNAUTHORIZED));
+        }
+
+        var userEntity = (User) authentication.getPrincipal();
+        userService.updateUserProfile(userEntity.getEmail(), user);
+        return ResponseEntity.ok().body(getResponse(request, emptyMap(), "User info updated.", OK));
     }
 
     private URI getUri() {

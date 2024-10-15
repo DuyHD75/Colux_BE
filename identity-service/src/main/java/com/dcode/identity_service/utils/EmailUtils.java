@@ -22,11 +22,10 @@ public class EmailUtils {
     }
 
     public static String getAccountVerificationUrl(String host, String serviceName, String apiPrefix, String key) {
-        return  String.format("%s/%s%s/users/verify/account?key=%s", host, serviceName, apiPrefix, key);
+        return  String.format("%s/verify/account?key=%s", host, key);
     }
 
     public static String getResetPasswordUrl(String host, String serviceName, String apiPrefix, String key) {
-
-        return  String.format("%s/%s%s/users/password/reset/verify?key=%s", host, serviceName, apiPrefix, key);
+        return  String.format("%s/verify/reset?key=%s", host, key);
     }
 }

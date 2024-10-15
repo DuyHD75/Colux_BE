@@ -2,6 +2,7 @@ package com.dcode.identity_service.service;
 
 import com.dcode.identity_service.dto.User;
 import com.dcode.identity_service.dtorequest.ResetPasswordRequest;
+import com.dcode.identity_service.dtorequest.UpdateProfileRequest;
 import com.dcode.identity_service.entity.CredentialEntity;
 import com.dcode.identity_service.entity.RoleEntity;
 import com.dcode.identity_service.enumeration.LoginType;
@@ -29,4 +30,7 @@ public interface IUserService {
     void verifyResetPasswordKey(String key);
 
     void resetPassword(ResetPasswordRequest data);
+
+
+    User updateUserProfile(String email, UpdateProfileRequest data);
 }
