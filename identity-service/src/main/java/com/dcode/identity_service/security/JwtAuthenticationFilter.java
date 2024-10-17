@@ -45,13 +45,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             String token = jwtService.extractToken(request, "access-token")
                     .orElseThrow(() -> new JwtException("Token not found !"));
 
-            if(token.isBlank()) {
+            if (token.isBlank()) {
                 writeErrorResponse(request, response, new JwtException("Token not found !"), UNAUTHORIZED);
                 return;
             }
 
             TokenData tokenData = jwtService.getTokenData(token, data -> data);
-
             if (!tokenData.isValidToken()) {
                 writeErrorResponse(request, response, new JwtException("Invalid token !"), UNAUTHORIZED);
                 return;

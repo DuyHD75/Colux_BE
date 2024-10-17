@@ -140,7 +140,6 @@ public class UserServiceImpl implements IUserService {
 
     @Override
     public void sendResetPasswordUri(String email) {
-
         var userEntity = getUserEntityByEmail(email);
         if (userEntity == null) throw new ApiException("User is not found.");
         var confirmationEntity = new ConfirmationEntity(userEntity);
