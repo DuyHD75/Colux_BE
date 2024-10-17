@@ -64,12 +64,11 @@ public class OrderServiceImpl implements IOrderService {
 
         log.info("Customer found: {}", customer);
 
-/*
         var purchasedProducts = this.productClientProxy.purchaseProducts(request.getPurchaseProducts());
 
         var order = this.orderRepository.save(createNewOrderEntity(request));
 
-        for (PurchaseRequest purchaseRequest : request.getPurchaseProducts()) {
+        /*for (PurchaseRequest purchaseRequest : request.getPurchaseProducts()) {
             orderLineService.saveOrderLine(
                     new OrderLineRequest(
                             order.getOrderId(),
@@ -111,9 +110,9 @@ public class OrderServiceImpl implements IOrderService {
                 log.error("Error while processing payment", e);
                 throw new BusinessException("Error while processing payment");
             }
-        }*/
+        }
 
-       /* orderProducer.sendOrderConfirmation(
+        orderProducer.sendOrderConfirmation(
                 new OrderConfirmation(
                         request.getReference(),
                         request.getTotalPay(),

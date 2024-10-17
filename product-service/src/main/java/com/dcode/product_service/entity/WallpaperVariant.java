@@ -14,7 +14,7 @@ import lombok.*;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class WallpaperVariant extends Auditable implements IVariant{
+public class WallpaperVariant extends Auditable {
     @ManyToOne
     @JoinColumn(name = "wallpaper_id", nullable = false)
     private Wallpaper wallpaper;
@@ -26,26 +26,4 @@ public class WallpaperVariant extends Auditable implements IVariant{
     private Double quantity;
     private Double price;
 
-    @Override
-    public String getVariantId() {
-        return variant.getVariantId();
-    }
-
-    @Override
-    public String getSizeName() {
-        return variant.getSizeName();
-    }
-
-    @Override
-    public String getCategoryName() {
-        return variant.getCategoryName();
-    }
-    @Override
-    public String getPackageType() {
-        return variant.getPackageType();
-    }
-    @Override
-    public Double getQuantity() {
-        return quantity.doubleValue();
-    }
 }

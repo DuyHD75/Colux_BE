@@ -20,25 +20,42 @@ import static com.dcode.product_service.utils.ProductUtils.fromProductEntitySimp
 @AllArgsConstructor
 public class PaintUtils {
 
-    public static PaintResponse fromPaintEntity(Paint paint) {
-        return PaintResponse.builder()
-                .color(paint.getColor().getName())
-                .variants(convertVariantToVResponse(paint.getPaintVariants()))
-                .product(fromProductEntitySimple(paint.getProduct()))
-                .build();
+ public static PaintResponse fromPaintEntity(Paint paint) {
+    return PaintResponse.builder()
+            .paintId(paint.getPaintId())
+            .color(paint.getColor().getName())
+            .variants(convertVariantToVResponse(paint.getPaintVariants()))
+            .product(fromProductEntitySimple(paint.getProduct()))
+            .build();
+}
 
-    }
-
-    public static List<VariantResponse> convertVariantToVResponse(Set<? extends IVariant> variants) {
-        return variants.stream()
-                .map(variant -> VariantResponse.builder()
-                        .variantId(variant.getVariantId())
-                        .sizeName(variant.getSizeName())
-                        .categoryName(variant.getCategoryName())
-                        .packageType(variant.getPackageType())
-                        .build())
-                .collect(Collectors.toList());
-    }
+public static <T> List<VariantResponse> convertVariantToVResponse(Set<T> variants) {
+    return variants.stream()
+            .map(variant -> {
+                VariantResponse.VariantResponseBuilder builder = VariantResponse.builder();
+                if (variant instanceof PaintVariant v) {
+                    builder.variantId(v.getVariant().getVariantId())
+                           .sizeName(v.getVariant().getSizeName())
+                           .categoryName(v.getVariant().getCategoryName())
+                           .packageType(v.getVariant().getPackageType())
+                           .quantity(v.getQuantity().toString());
+                } else if (variant instanceof WallpaperVariant v) {
+                    builder.variantId(v.getVariant().getVariantId())
+                           .sizeName(v.getVariant().getSizeName())
+                           .categoryName(v.getVariant().getCategoryName())
+                           .packageType(v.getVariant().getPackageType())
+                           .quantity(v.getQuantity().toString());
+                } else if (variant instanceof FloorVariant v) {
+                    builder.variantId(v.getVariant().getVariantId())
+                           .sizeName(v.getVariant().getSizeName())
+                           .categoryName(v.getVariant().getCategoryName())
+                           .packageType(v.getVariant().getPackageType())
+                           .quantity(v.getQuantity().toString());
+                }
+                return builder.build();
+            })
+            .collect(Collectors.toList());
+}
 
     public static Map<Variant, Pair<Double, Double>> checkVariantRequestSet(Set<VariantRequest> variantRequestSet, Set<Variant> variantSetInDb) {
         Set<String> foundVariantIds = variantSetInDb.stream().map(Variant::getVariantId).collect(Collectors.toSet());

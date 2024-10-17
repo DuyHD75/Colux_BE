@@ -37,19 +37,19 @@ public class PreorderServiceImpl implements IPreorderService {
         Product product = productRepository.findByProductId(preorderRequest.getProductId()).orElseThrow(() -> new ApiException("Product not found!"));
         CategoryType categoryType = productServiceImpl.getCategoryTypeFromName(product.getCategory().getName());
 
-        boolean inStock = switch (categoryType){
-            case PAINT -> productServiceImpl.checkStockForPaint(preorderRequest, product);
-            // Wallpaper and Floor
-            default -> throw new IllegalArgumentException("Unknown category type: " + categoryType);
-        };
-        if (inStock){
-            productServiceImpl.reduceStock(preorderRequest, categoryType, product);
-            Variant variant = entityManager.unwrap(Session.class)
-                    .byNaturalId(Variant.class)
-                    .using("variantId", preorderRequest.getVariantId())
-                    .getReference();
-            preorderRepository.save(createNewPreorderEntity(preorderRequest, product, variant));
-        }else throw new ApiException("Preorder out of stock!");
+//        boolean inStock = switch (categoryType){
+//            case PAINT -> productServiceImpl.checkStockForPaint(preorderRequest, product);
+//            // Wallpaper and Floor
+//            default -> throw new IllegalArgumentException("Unknown category type: " + categoryType);
+//        };
+//        if (inStock){
+//            productServiceImpl.reduceStock(preorderRequest, categoryType, product);
+//            Variant variant = entityManager.unwrap(Session.class)
+//                    .byNaturalId(Variant.class)
+//                    .using("variantId", preorderRequest.getVariantId())
+//                    .getReference();
+//            preorderRepository.save(createNewPreorderEntity(preorderRequest, product, variant));
+//        }else throw new ApiException("Preorder out of stock!");
     }
 
     @Override

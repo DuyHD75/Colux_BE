@@ -2,10 +2,15 @@ package com.dcode.product_service.controller;
 
 import com.dcode.product_service.domain.Response;
 import com.dcode.product_service.dtoRequest.*;
+import com.dcode.product_service.dtoResponse.ProductOrderResponse;
+import com.dcode.product_service.exception.ApiException;
 import com.dcode.product_service.service.impl.ProductServiceImpl;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -17,6 +22,7 @@ import java.net.URI;
 import java.util.List;
 import java.util.Map;
 
+import static com.dcode.product_service.utils.RequestUtils.getErrorResponse;
 import static com.dcode.product_service.utils.RequestUtils.getResponse;
 import static java.util.Collections.emptyMap;
 import static org.springframework.http.HttpStatus.*;
@@ -28,43 +34,86 @@ public class ProductController {
 
     private final ProductServiceImpl productService;
 
-    @PostMapping("/purchase-order")
-    public ResponseEntity<Response> purchaseOrder(@RequestBody @Valid PurchaseOrderRequest purchaseOrderRequest, HttpServletRequest request){
-        List<ProductOrderRequest> productOrderRequestList = productService.purchaseOrder(purchaseOrderRequest.getProducts());
-//        return ResponseEntity.ok().body(getResponse(request, Map.of("purchaseOrder", productOrderList),"Purchase Order handle successfully!", OK));
+    private static final Logger log = LoggerFactory.getLogger(ProductController.class);
 
-        boolean allSuccess = productOrderRequestList.stream().allMatch(ProductOrderRequest::isSuccess);
+    @PostMapping("/purchase-order")
+    public ResponseEntity<Response> purchaseOrder(@RequestBody @Valid PurchaseOrderRequest purchaseOrderRequest, HttpServletRequest request, HttpServletResponse response) {
+        List<ProductOrderResponse> productOrderResponseList;
+        try {
+            productOrderResponseList = productService.purchaseOrder(purchaseOrderRequest.getProducts());
+        } catch (ApiException ex) {
+            log.error("API exception occurred: ", ex); // Ghi log lỗi
+            productOrderResponseList = ex.getOrderResponses(); // Lấy danh sách phản hồi từ ngoại lệ
+        }
+
+        // Kiểm tra xem có sản phẩm nào không thành công hay không
+        boolean allSuccess = productOrderResponseList.stream().allMatch(ProductOrderResponse::isSuccess);
 
         if (allSuccess) {
-            return ResponseEntity.ok().body(getResponse(request, Map.of("products", productOrderRequestList), "Purchase Order handled successfully!", HttpStatus.OK));
+            return ResponseEntity.ok().body(getResponse(request,
+                    Map.of("products", productOrderResponseList),
+                    "Purchase Order handled successfully!",
+                    HttpStatus.OK));
         } else {
-            return ResponseEntity.status(HttpStatus.PARTIAL_CONTENT).body(getResponse(request, Map.of("products", productOrderRequestList), "Some products could not be processed!", HttpStatus.PARTIAL_CONTENT));
+            return ResponseEntity.status(HttpStatus.OK).body(getResponse(request,
+                    Map.of("products", productOrderResponseList),
+                    "Some products could not be processed!",
+                    HttpStatus.OK));
         }
     }
 
+
+
+
+
     @PostMapping("/product")
-    public ResponseEntity<Response> createProduct(@RequestBody @Valid ProductRequest productRequest, HttpServletRequest request) {
+    public ResponseEntity<Response> createProduct(@RequestBody @Valid ProductRequest productRequest, HttpServletRequest request, HttpServletResponse response) {
+        try {
         productService.createProduct(productRequest);
         return ResponseEntity.created(getUri()).body(
                 getResponse(request, emptyMap(),
                         "Product created successfully!", CREATED)
         );
+        }catch (ApiException ex) {
+            return ResponseEntity.status(BAD_REQUEST)
+                    .body(getErrorResponse(request, response, ex, BAD_REQUEST));
+        } catch (Exception exception) {
+            return ResponseEntity.status(INTERNAL_SERVER_ERROR)
+                    .body(getErrorResponse(request, response, new ApiException("An unexpected error occurred."), INTERNAL_SERVER_ERROR));
+        }
     }
 
     @GetMapping("/product")
-    public ResponseEntity<Response> getAllProduct(HttpServletRequest request) {
+    public ResponseEntity<Response> getAllProduct(HttpServletRequest request, HttpServletResponse response) {
+        try {
         var products = productService.getAllProduct();
         return ResponseEntity.ok().body(getResponse(request, Map.of("products", products), "Product info retrieved", OK));
+        }catch (ApiException ex) {
+            return ResponseEntity.status(BAD_REQUEST)
+                    .body(getErrorResponse(request, response, ex, BAD_REQUEST));
+        } catch (Exception exception) {
+            return ResponseEntity.status(INTERNAL_SERVER_ERROR)
+                    .body(getErrorResponse(request, response, new ApiException("An unexpected error occurred."), INTERNAL_SERVER_ERROR));
+        }
     }
 
     @GetMapping("/product/pageable")
     public ResponseEntity<Response> getAllProductWithPagination(@RequestParam(defaultValue = "0") int page,
                                                                 @RequestParam(defaultValue = "10") int size,
-                                                                HttpServletRequest request){
+                                                                HttpServletRequest request,
+                                                                HttpServletResponse response){
+        try {
         Pageable pageable = PageRequest.of(page,size);
         var products = productService.getAllProduct(pageable);
 
         return ResponseEntity.ok().body(getResponse(request,Map.of("products", products), "Product retrieve successfully!", OK));
+        }catch (ApiException ex) {
+            return ResponseEntity.status(BAD_REQUEST)
+                    .body(getErrorResponse(request, response, ex, BAD_REQUEST));
+        } catch (Exception exception) {
+            return ResponseEntity.status(INTERNAL_SERVER_ERROR)
+                    .body(getErrorResponse(request, response, new ApiException("An unexpected error occurred."), INTERNAL_SERVER_ERROR));
+        }
     }
 
 

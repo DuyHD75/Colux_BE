@@ -8,6 +8,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.Optional;
 
 public interface PaintVariantRepository extends JpaRepository<PaintVariant, Long> {
-    Optional<PaintVariant> findByPaintAndVariant(Paint paint, Variant variant);
+    Optional<PaintVariant> findByPaint_paintIdAndVariant_variantId(String paintId, String variantId);
     void deleteByPaint(Paint paint);
 }

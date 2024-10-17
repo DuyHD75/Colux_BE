@@ -32,36 +32,77 @@ public class ColorController {
     private final ColorServiceImpl colorService;
 
     @PostMapping()
-    public ResponseEntity<Response> createAColor(@RequestBody @Valid List<ColorRequest> colorRequest, HttpServletRequest request) {
-        colorService.createColors(colorRequest);
-        return ResponseEntity.created(getUri()).body(getResponse(request, emptyMap(), "Color created successfully!", CREATED));
+    public ResponseEntity<Response> createAColor(@RequestBody @Valid List<ColorRequest> colorRequest, HttpServletRequest request, HttpServletResponse response) {
+        try {
+            colorService.createColors(colorRequest);
+            return ResponseEntity.created(getUri()).body(getResponse(request, emptyMap(), "Color created successfully!", CREATED));
+        }catch (ApiException ex) {
+            return ResponseEntity.status(BAD_REQUEST)
+                    .body(getErrorResponse(request, response, ex, BAD_REQUEST));
+        } catch (Exception exception) {
+            return ResponseEntity.status(INTERNAL_SERVER_ERROR)
+                    .body(getErrorResponse(request, response, new ApiException("An unexpected error occurred."), INTERNAL_SERVER_ERROR));
+        }
     }
 
     @GetMapping("{colorId}")
-    public ResponseEntity<Response> getAColor(@PathVariable("colorId") String colorId, HttpServletRequest request) {
-        var color = colorService.getAColor(colorId);
-        return ResponseEntity.ok().body(getResponse(request, Map.of("color", color), "Color retrieve successfully!", OK));
+    public ResponseEntity<Response> getAColor(@PathVariable("colorId") String colorId, HttpServletRequest request, HttpServletResponse response) {
+        try {
+            var color = colorService.getAColor(colorId);
+            return ResponseEntity.ok().body(getResponse(request, Map.of("color", color), "Color retrieve successfully!", OK));
+        }catch (ApiException ex) {
+            return ResponseEntity.status(BAD_REQUEST)
+                    .body(getErrorResponse(request, response, ex, BAD_REQUEST));
+        } catch (Exception exception) {
+            return ResponseEntity.status(INTERNAL_SERVER_ERROR)
+                    .body(getErrorResponse(request, response, new ApiException("An unexpected error occurred."), INTERNAL_SERVER_ERROR));
+        }
     }
 
     @PutMapping("{colorId}")
-    public ResponseEntity<Response> updateAColor(@PathVariable("colorId") String colorId, @RequestBody ColorRequest colorRequest, HttpServletRequest request) {
-        colorService.updateAColor(colorId, colorRequest);
-        return ResponseEntity.ok().body(getResponse(request, emptyMap(), "Color update successfully!", OK));
+    public ResponseEntity<Response> updateAColor(@PathVariable("colorId") String colorId, @RequestBody ColorRequest colorRequest, HttpServletRequest request, HttpServletResponse response) {
+        try {
+            colorService.updateAColor(colorId, colorRequest);
+            return ResponseEntity.ok().body(getResponse(request, emptyMap(), "Color update successfully!", OK));
+        }catch (ApiException ex) {
+            return ResponseEntity.status(BAD_REQUEST)
+                    .body(getErrorResponse(request, response, ex, BAD_REQUEST));
+        } catch (Exception exception) {
+            return ResponseEntity.status(INTERNAL_SERVER_ERROR)
+                    .body(getErrorResponse(request, response, new ApiException("An unexpected error occurred."), INTERNAL_SERVER_ERROR));
+        }
     }
 
     @DeleteMapping("{colorId}")
-    public ResponseEntity<Response> deleteAColor(@PathVariable("colorId") String colorId, HttpServletRequest request) {
-        colorService.deleteAColor(colorId);
-        return ResponseEntity.ok().body(getResponse(request, emptyMap(), "Color deleted successfully!", OK));
+    public ResponseEntity<Response> deleteAColor(@PathVariable("colorId") String colorId, HttpServletRequest request, HttpServletResponse response) {
+        try {
+            colorService.deleteAColor(colorId);
+            return ResponseEntity.ok().body(getResponse(request, emptyMap(), "Color deleted successfully!", OK));
+        }catch (ApiException ex) {
+            return ResponseEntity.status(BAD_REQUEST)
+                    .body(getErrorResponse(request, response, ex, BAD_REQUEST));
+        } catch (Exception exception) {
+            return ResponseEntity.status(INTERNAL_SERVER_ERROR)
+                    .body(getErrorResponse(request, response, new ApiException("An unexpected error occurred."), INTERNAL_SERVER_ERROR));
+        }
     }
 
     @GetMapping
     public ResponseEntity<Response> getAllColor(@RequestParam(defaultValue = "0") int page,
                                                 @RequestParam(defaultValue = "10") int size,
-                                                HttpServletRequest request) {
-        Pageable pageable = PageRequest.of(page, size);
-        var colors = colorService.getAllColor(pageable);
-        return ResponseEntity.ok().body(getResponse(request, Map.of("colors", colors), "Retrieve all color successfully", OK));
+                                                HttpServletRequest request,
+                                                HttpServletResponse response) {
+        try {
+            Pageable pageable = PageRequest.of(page, size);
+            var colors = colorService.getAllColor(pageable);
+            return ResponseEntity.ok().body(getResponse(request, Map.of("colors", colors), "Retrieve all color successfully", OK));
+        }catch (ApiException ex) {
+            return ResponseEntity.status(BAD_REQUEST)
+                    .body(getErrorResponse(request, response, ex, BAD_REQUEST));
+        } catch (Exception exception) {
+            return ResponseEntity.status(INTERNAL_SERVER_ERROR)
+                    .body(getErrorResponse(request, response, new ApiException("An unexpected error occurred."), INTERNAL_SERVER_ERROR));
+        }
     }
 
     @GetMapping("/color-family/{colorFamilyId}/collection/{collectionId}")
@@ -69,10 +110,20 @@ public class ColorController {
                                                                        @PathVariable("collectionId") String collectionId,
                                                                        @RequestParam(defaultValue = "0") int page,
                                                                        @RequestParam(defaultValue = "10") int size,
-                                                                       HttpServletRequest request) {
-        Pageable pageable = PageRequest.of(page, size);
-        var colors = colorService.getColorByColorFamilyAndCollection(collectionId, colorFamilyId, pageable);
-        return ResponseEntity.ok().body(getResponse(request, Map.of("colors", colors), "Retrieve colors by color family and collection successfully!", OK));
+                                                                       HttpServletRequest request,
+                                                                       HttpServletResponse response) {
+        try {
+            Pageable pageable = PageRequest.of(page, size);
+            var colors = colorService.getColorByColorFamilyAndCollection(collectionId, colorFamilyId, pageable);
+            return ResponseEntity.ok().body(getResponse(request, Map.of("colors", colors), "Retrieve colors by color family and collection successfully!", OK));
+        }catch (ApiException ex) {
+            return ResponseEntity.status(BAD_REQUEST)
+                    .body(getErrorResponse(request, response, ex, BAD_REQUEST));
+        } catch (Exception exception) {
+            return ResponseEntity.status(INTERNAL_SERVER_ERROR)
+                    .body(getErrorResponse(request, response, new ApiException("An unexpected error occurred."), INTERNAL_SERVER_ERROR));
+        }
+
     }
     @GetMapping("/collection/{collectionId}/room/{roomId}")
     public ResponseEntity<Response> getColorByCollectionAndRoomId(@PathVariable("collectionId") String collectionId,
@@ -100,10 +151,19 @@ public class ColorController {
             @RequestParam(value = "exterior", required = false) Boolean exterior,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
-            HttpServletRequest request) {
+            HttpServletRequest request,
+            HttpServletResponse response) {
+        try {
         Pageable pageable = PageRequest.of(page, size);
         var colors = colorService.getColor(interior, exterior, pageable);
         return ResponseEntity.ok().body(getResponse(request, Map.of("colors", colors), "Color retrieve successfully!", OK));
+        }catch (ApiException ex) {
+            return ResponseEntity.status(BAD_REQUEST)
+                    .body(getErrorResponse(request, response, ex, BAD_REQUEST));
+        } catch (Exception exception) {
+            return ResponseEntity.status(INTERNAL_SERVER_ERROR)
+                    .body(getErrorResponse(request, response, new ApiException("An unexpected error occurred."), INTERNAL_SERVER_ERROR));
+        }
     }
 
     private URI getUri() {

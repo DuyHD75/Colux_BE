@@ -31,8 +31,6 @@ public class Product extends Auditable{
     private String warranty;
     private String applicableSurface;
 
-    @OneToMany(mappedBy = "product")
-    private List<ProductPriceTracking> productPriceTrackings;
 
     @ManyToMany
     @JoinTable(
