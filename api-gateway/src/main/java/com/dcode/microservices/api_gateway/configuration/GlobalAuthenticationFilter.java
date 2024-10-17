@@ -59,12 +59,14 @@ public class GlobalAuthenticationFilter implements GlobalFilter, Ordered {
                     try {
                         return unAuthenticatedError(exchange, "Invalid token");
                     } catch (JsonProcessingException e) {
+                        log.error("Something went wrong in the authentication process1!", e);
                         throw new RuntimeException(e);
                     }
                 }).onErrorResume(throwable -> {
                     try {
                         return unAuthenticatedError(exchange, "Something went wrong in the authentication process!");
                     } catch (JsonProcessingException e) {
+                        log.error("Something went wrong in the authentication process!", e);
                         throw new RuntimeException(e);
                     }
                 });

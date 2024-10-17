@@ -12,8 +12,11 @@ import lombok.*;
 @Table(name = "paint_variant", uniqueConstraints = {
         @UniqueConstraint(columnNames = {"paint_id", "variant_id"})
 })
-public class PaintVariant extends Auditable implements IVariant{
+public class PaintVariant extends Auditable {
 
+
+    @JoinColumn(nullable = false, updatable = false, unique = true)
+    private String paintVariantId;
     @ManyToOne
     @JoinColumn(name = "paint_id", nullable = false)
     private Paint paint;
@@ -30,27 +33,5 @@ public class PaintVariant extends Auditable implements IVariant{
     @JoinColumn(name = "promotion_id")
     private Promotion promotion;
 
-    @Override
-    public String getVariantId() {
-        return variant.getVariantId();
-    }
-
-    @Override
-    public String getSizeName() {
-        return variant.getSizeName();
-    }
-
-    @Override
-    public String getCategoryName() {
-        return variant.getCategoryName();
-    }
-    @Override
-    public String getPackageType() {
-        return variant.getPackageType();
-    }
-    @Override
-    public Double getQuantity() {
-        return quantity.doubleValue();
-    }
 
 }
