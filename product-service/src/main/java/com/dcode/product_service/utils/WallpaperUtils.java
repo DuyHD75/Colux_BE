@@ -48,6 +48,7 @@ public class WallpaperUtils {
     public static WallpaperResponse fromWallpaperEntity(Wallpaper wallpaper){
 
         return WallpaperResponse.builder()
+                .wallpaperId(wallpaper.getWallpaperId())
                 .area(String.valueOf(wallpaper.getArea()))
                 .variants(convertVariantToVResponse(wallpaper.getWallpaperVariants()))
                 .product(fromProductEntitySimple(wallpaper.getProduct()))

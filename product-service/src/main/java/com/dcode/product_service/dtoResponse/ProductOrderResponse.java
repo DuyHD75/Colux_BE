@@ -6,6 +6,7 @@ import lombok.Data;
 @Data
 @Builder
 public class ProductOrderResponse {
+    private String productId;
     private String paintId;
     private String wallpaperId;
     private String floorId;

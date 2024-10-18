@@ -7,6 +7,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.Accessors;
+import org.hibernate.annotations.NaturalId;
 import org.springframework.lang.Nullable;
 
 import java.math.BigDecimal;
@@ -26,6 +27,7 @@ import java.util.List;
 public class OrderEntity extends Auditable {
 
     @Column(name = "order_id", nullable = false, unique = true)
+    @NaturalId
     private String orderId;
 
     @Column(name = "customer_id", nullable = false)

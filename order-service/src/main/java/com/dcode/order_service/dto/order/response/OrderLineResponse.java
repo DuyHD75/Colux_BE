@@ -4,7 +4,9 @@ public record OrderLineResponse(
         Long id,
         String productId,
         String variantId,
-        String colorID,
+        String paintId,
+        String wallpaperId,
+        String floorId,
         double quantity
 ) {
 }

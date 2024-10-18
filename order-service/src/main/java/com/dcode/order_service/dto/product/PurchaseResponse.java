@@ -1,12 +1,17 @@
 package com.dcode.order_service.dto.product;
 
-import java.math.BigDecimal;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import lombok.Data;
 
-public record PurchaseResponse(
-        String productId,
-        String name,
-        BigDecimal listPrice,
-        BigDecimal payPrice,
-        double quantity
-) {
+@Data
+@JsonInclude(JsonInclude.Include.NON_NULL)
+public class PurchaseResponse {
+    private String productId;
+    private String paintId;
+    private String wallpaperId;
+    private String floorId;
+    private Double quantity;
+    private Double price;
+    private String message;
+    private Boolean success;
 }

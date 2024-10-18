@@ -29,7 +29,7 @@ public class OrderResource {
       return "Order service is up and running!";
     }
 
-    @PostMapping("/hi")
+    @PostMapping("/create")
     public ResponseEntity<Response> createNewOrder(
             @RequestBody @Valid OrderRequest orderRequest, HttpServletRequest request
     ) {

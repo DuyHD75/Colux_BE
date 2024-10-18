@@ -156,7 +156,6 @@ public class ProductServiceImpl implements IProductService {
             String message = reduceStock(productOrderRequest);
             response.setSuccess(true);
             response.setMessage(message != null ? message : "Stock updated successfully");
-
             orderResponses.add(response);
         }
 
@@ -199,6 +198,7 @@ public class ProductServiceImpl implements IProductService {
             return "Paint variant not found!";
         }
         response.setPrice(variant.getPrice());
+        response.setProductId(variant.getPrice().toString());
         return (variant.getQuantity() >= request.getQuantity()) ? null :
                 "Not enough stock for paint variant ID: " + request.getPaintId();
     }
@@ -211,6 +211,7 @@ public class ProductServiceImpl implements IProductService {
             return "Floor variant not found!";
         }
         response.setPrice(variant.getPrice());
+        response.setProductId(variant.getPrice().toString());
         return (variant.getQuantity() >= request.getQuantity()) ? null :
                 "Not enough stock for floor variant ID: " + request.getFloorId();
     }
@@ -223,6 +224,7 @@ public class ProductServiceImpl implements IProductService {
             return "Wallpaper variant not found!";
         }
         response.setPrice(variant.getPrice());
+        response.setProductId(variant.getPrice().toString());
         return (variant.getQuantity() >= request.getQuantity()) ? null :
                 "Not enough stock for wallpaper variant ID: " + request.getWallpaperId();
     }

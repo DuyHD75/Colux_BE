@@ -1,5 +1,6 @@
 package com.dcode.product_service.controller;
 
+import com.dcode.product_service.domain.ArrayResponse;
 import com.dcode.product_service.domain.Response;
 import com.dcode.product_service.dtoRequest.*;
 import com.dcode.product_service.dtoResponse.ProductOrderResponse;
@@ -37,10 +38,10 @@ public class ProductController {
     private static final Logger log = LoggerFactory.getLogger(ProductController.class);
 
     @PostMapping("/purchase-order")
-    public ResponseEntity<Response> purchaseOrder(@RequestBody @Valid PurchaseOrderRequest purchaseOrderRequest, HttpServletRequest request, HttpServletResponse response) {
+    public ResponseEntity<ArrayResponse> purchaseOrder(@RequestBody @Valid List<ProductOrderRequest> productOrderRequestList, HttpServletRequest request, HttpServletResponse response) {
         List<ProductOrderResponse> productOrderResponseList;
         try {
-            productOrderResponseList = productService.purchaseOrder(purchaseOrderRequest.getProducts());
+            productOrderResponseList = productService.purchaseOrder(productOrderRequestList);
         } catch (ApiException ex) {
             log.error("API exception occurred: ", ex); // Ghi log lỗi
             productOrderResponseList = ex.getOrderResponses(); // Lấy danh sách phản hồi từ ngoại lệ
@@ -50,15 +51,27 @@ public class ProductController {
         boolean allSuccess = productOrderResponseList.stream().allMatch(ProductOrderResponse::isSuccess);
 
         if (allSuccess) {
-            return ResponseEntity.ok().body(getResponse(request,
-                    Map.of("products", productOrderResponseList),
+            return ResponseEntity.ok().body(new ArrayResponse(
+                    request.getRequestURI(),
                     "Purchase Order handled successfully!",
-                    HttpStatus.OK));
+                    HttpStatus.OK,
+                    productOrderResponseList
+//                    Map.of("products", productOrderResponseList),
+//                    "Purchase Order handled successfully!",
+//                    HttpStatus.OK
+            ));
         } else {
-            return ResponseEntity.status(HttpStatus.OK).body(getResponse(request,
-                    Map.of("products", productOrderResponseList),
+            return ResponseEntity.status(
+                    HttpStatus.OK).body(new ArrayResponse(
+                    request.getRequestURI(),
                     "Some products could not be processed!",
-                    HttpStatus.OK));
+                    HttpStatus.OK,
+                    productOrderResponseList
+//                    HttpStatus.OK).body(getResponse(request,
+//                    Map.of("products", productOrderResponseList),
+//                    "Some products could not be processed!",
+//                    HttpStatus.OK
+                    ));
         }
     }
 

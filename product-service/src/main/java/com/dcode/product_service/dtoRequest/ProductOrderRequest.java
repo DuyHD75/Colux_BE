@@ -8,6 +8,6 @@ public class ProductOrderRequest {
     private String wallpaperId;
     private String floorId;
     private String variantId;
-    private Double quantity;
+    private double quantity;
 
 }
