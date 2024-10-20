@@ -11,6 +11,7 @@ import com.dcode.order_service.dto.payment.PaypalRequest;
 import com.dcode.order_service.dto.payment.PaypalResponse;
 import com.dcode.order_service.dto.product.PurchaseRequest;
 import com.dcode.order_service.dto.product.PurchaseResponse;
+import com.dcode.order_service.dto.product.PurchaseResponseWrapper;
 import com.dcode.order_service.enumuration.PaymentMethod;
 import com.dcode.order_service.event.listener.OrderEvent;
 import com.dcode.order_service.exception.BusinessException;
@@ -21,11 +22,13 @@ import com.dcode.order_service.repository.IOrderRepository;
 import com.dcode.order_service.service.IOrderLineService;
 import com.dcode.order_service.service.IOrderService;
 import com.dcode.order_service.utils.OrderUtils;
-import com.fasterxml.jackson.core.JsonProcessingException;
+import com.paypal.api.payments.Payment;
+import com.paypal.base.rest.PayPalRESTException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -64,130 +67,126 @@ public class OrderServiceImpl implements IOrderService {
     }
 
     @Override
-    public void createClientOrder(OrderRequest request) {
+    public String createClientOrder(OrderRequest request) {
         var customer = this.clientProxy.findUserByUserId(request.getCustomerId())
                 .orElseThrow(() -> new BusinessException("Cannot create order :: No customer found with ID: " + request.getCustomerId()));
 
         log.info("Customer found: {}", customer);
         log.info("Sending purchase order request: {}", request.getPurchaseProducts());
-        List<PurchaseResponse> purchasedProducts = productClientProxy.purchaseProducts(request.getPurchaseProducts());
+        PurchaseResponseWrapper purchaseResponseWrapper = productClientProxy.purchaseProducts(request.getPurchaseProducts());
 
-        // tạo map để ánh xạ giữa request và response để tạo orderLine phía bên dưới
-        Map<String, PurchaseResponse> responseMap = purchasedProducts.stream()
-                .collect(Collectors.toMap(
-                        response -> {
-                            if (response.getPaintId() != null) return response.getPaintId();
-                            if (response.getWallpaperId() != null) return response.getWallpaperId();
-                            if (response.getFloorId() != null) return response.getFloorId();
-                            return null;
-                        },
-                        response -> response
-                ));
+        if (purchaseResponseWrapper.getStatus() == 200) {
+            List<PurchaseResponse> purchasedProducts = purchaseResponseWrapper.getData();
 
-        for (PurchaseResponse response : purchasedProducts) {
-            if (!response.getSuccess()) {
-                log.warn("Product purchase failed: {}", response.getMessage());
-                // Xử lý các phản hồi từ purchasedProducts
+            boolean allProductsSuccessful = purchasedProducts.stream().allMatch(PurchaseResponse::getSuccess);
+
+            if (!allProductsSuccessful) {
+                // Return the response from product-service directly
+                throw new BusinessException("Some products could not be processed: " + purchaseResponseWrapper.getMessage());
             }
-        }
 
-        var order = this.orderRepository.save(createNewOrderEntity(request));
+            // Create a map to map between request and response to create orderLine below
+            Map<String, PurchaseResponse> responseMap = purchasedProducts.stream()
+                    .collect(Collectors.toMap(
+                            response -> {
+                                if (response.getPaintId() != null) return response.getPaintId();
+                                if (response.getWallpaperId() != null) return response.getWallpaperId();
+                                if (response.getFloorId() != null) return response.getFloorId();
+                                return null;
+                            },
+                            response -> response
+                    ));
 
-        for (PurchaseRequest purchaseRequest : request.getPurchaseProducts()) {
-            String key = purchaseRequest.paintId() != null ? purchaseRequest.paintId() :
-                    purchaseRequest.wallpaperId() != null ? purchaseRequest.wallpaperId() :
-                            purchaseRequest.floorId();
+            var order = this.orderRepository.save(createNewOrderEntity(request));
 
-            PurchaseResponse correspondingResponse = responseMap.get(key);
+            for (PurchaseRequest purchaseRequest : request.getPurchaseProducts()) {
+                String key = purchaseRequest.paintId() != null ? purchaseRequest.paintId() :
+                        purchaseRequest.wallpaperId() != null ? purchaseRequest.wallpaperId() :
+                                purchaseRequest.floorId();
 
-            if (correspondingResponse != null) {
-                orderLineService.saveOrderLine(
-                        new OrderLineRequest(
-                                order.getOrderId(),
-                                purchaseRequest.productId(),
-                                purchaseRequest.quantity(),
-                                correspondingResponse.getPrice(),
-                                purchaseRequest.variantId(),
-                                purchaseRequest.paintId(),
-                                purchaseRequest.wallpaperId(),
-                                purchaseRequest.floorId()
-                        )
-                );
-            }else {
-                log.warn("No corresponding response found for productId: {}", purchaseRequest.productId());
-            }
-        }
+                PurchaseResponse correspondingResponse = responseMap.get(key);
 
-        if (request.getPaymentMethod() == PaymentMethod.CASH) {
-            orderRepository.save(order);
-        } else if (request.getPaymentMethod() == PaymentMethod.PAYPAL) {
-            try {
-
-                BigDecimal convertTotalPayUSD = request.getTotalPay()
-                        .divide(BigDecimal.valueOf(VND_TO_USD), 0, BigDecimal.ROUND_HALF_UP);
-
-                PaypalRequest paypalRequest = new PaypalRequest();
-
-                paypalRequest.setIntent(CAPTURE);
-                paypalRequest.setPurchaseUnits(
-                        List.of(
-                                new PaypalRequest.PurchaseUnit(
-                                        new PaypalRequest.PurchaseUnit.Money("USD", convertTotalPayUSD.toString())
-                                )
-                        )
-                );
-                paypalRequest.setApplicationContext(
-                        new PaypalRequest.PayPalAppContext()
-                                .setBrandName("Colux")
-                                .setLandingPage(BILLING)
-                                .setReturnUrl(HOST_URL + "/api/v1/orders/paypal/capture")
-                                .setCancelUrl(HOST_URL + "/api/v1/orders/paypal/cancel")
-                );
-
-              /*  // Gửi yêu cầu thanh toán đến PayPal
-                PaypalResponse paypalResponse = paypalConfig.createPayment(paypalRequest);
-
-                // Xử lý phản hồi từ PayPal
-                if (paypalResponse != null && paypalResponse.getStatus().equals("CREATED")) {
-                    // Lưu thông tin giao dịch PayPal vào cơ sở dữ liệu nếu cần
-                    // Chuyển hướng người dùng đến URL để hoàn tất thanh toán
-                    String approvalUrl = paypalResponse.getLinks().stream()
-                            .filter(link -> link.getRel().equals("approve"))
-                            .findFirst()
-                            .orElseThrow(() -> new BusinessException("No approval URL found in PayPal response"))
-                            .getHref();
-
-                    // Chuyển hướng người dùng đến approvalUrl để hoàn tất thanh toán
-                    // Bạn có thể trả về URL này trong phản hồi API hoặc chuyển hướng trực tiếp nếu là ứng dụng web
-                    log.info("Redirecting user to PayPal for payment approval: {}", approvalUrl);
+                if (correspondingResponse != null) {
+                    orderLineService.saveOrderLine(
+                            new OrderLineRequest(
+                                    order.getOrderId(),
+                                    purchaseRequest.productId(),
+                                    purchaseRequest.quantity(),
+                                    correspondingResponse.getPrice(),
+                                    purchaseRequest.variantId(),
+                                    purchaseRequest.paintId(),
+                                    purchaseRequest.wallpaperId(),
+                                    purchaseRequest.floorId()
+                            )
+                    );
                 } else {
-                    throw new BusinessException("Error while creating PayPal payment");
-                }*/
-
-            } catch (Exception e) {
-                log.error("Error while processing payment", e);
-                throw new BusinessException("Error while processing payment");
+                    log.warn("No corresponding response found for productId: {}", purchaseRequest.productId());
+                }
             }
+
+            if (request.getPaymentMethod() == PaymentMethod.CASH) {
+                orderRepository.save(order);
+            } else if (request.getPaymentMethod() == PaymentMethod.PAYPAL) {
+                try {
+                    BigDecimal totalPay = request.getTotalPay();
+                    if (totalPay.compareTo(BigDecimal.ZERO) <= 0) {
+                        throw new BusinessException("Total payment amount must be greater than zero");
+                    }
+
+                    BigDecimal convertTotalPayUSD = totalPay.divide(BigDecimal.valueOf(VND_TO_USD), 2, BigDecimal.ROUND_HALF_UP);
+
+                    Payment payment = paypalConfig.createPayment(
+                            convertTotalPayUSD.doubleValue(),
+                            "USD",
+                            "paypal",
+                            "sale",
+                            "Order payment",
+                            HOST_URL + "/api/v1/orders/paypal/cancel",
+                            HOST_URL + "/api/v1/orders/paypal/capture"
+                    );
+
+                    // Handle PayPal payment processing here
+                    if (payment != null && payment.getState().equals("created")) {
+                        String approvalUrl = payment.getLinks().stream()
+                                .filter(link -> link.getRel().equals("approval_url"))
+                                .findFirst()
+                                .orElseThrow(() -> new BusinessException("No approval URL found in PayPal response"))
+                                .getHref();
+
+                        log.info("Redirecting user to PayPal for payment approval: {}", approvalUrl);
+
+                        // Return the approval URL to the client
+                        return approvalUrl;
+                    } else {
+                        throw new BusinessException("Error while creating PayPal payment");
+                    }
+
+                } catch (PayPalRESTException e) {
+                    log.error("Error while processing payment", e);
+                    throw new BusinessException("Error while processing payment");
+                }
+            }
+
+        } else if (purchaseResponseWrapper.getStatus() == 400) {
+            // Return the response from product-service directly
+            throw new BusinessException("Product purchase failed: " + purchaseResponseWrapper.getMessage(), purchaseResponseWrapper);
+        } else {
+            throw new BusinessException("Unexpected error while purchasing products");
         }
-
-        // send kafka event
-       /* orderProducer.sendOrderConfirmation(
-                new OrderConfirmation(
-                        request.getReference(),
-                        request.getTotalPay(),
-                        request.getPaymentMethod(),
-                        customer,
-                        purchasedProducts
-                )
-        );*/
-        // send kafka event
+        return null;
     }
-
+    //        orderProducer.sendOrderConfirmation(
+//                new OrderConfirmation(
+//                        request.getReference(),
+//                        request.getTotalPay(),
+//                        request.getPaymentMethod(),
+//                        customer,
+//                        purchasedProducts
+//                )
+//        );
     @Override
-    public void captureTransactionPaypal(String paypalOrderId, String payerId) {
-
+    public void captureTransactionPaypal (String paypalOrderId, String payerId) {
     }
-
     @Override
     public List<Order> getAllOrders() {
         return orderRepository.findAll()
@@ -196,39 +195,4 @@ public class OrderServiceImpl implements IOrderService {
                 .toList();
 
     }
-
-/*
-    public PurchaseResponseWrapper purchaseProducts(List<PurchaseRequest> purchaseRequests) {
-        HttpHeaders headers = new HttpHeaders();
-        headers.set(CONTENT_TYPE, APPLICATION_JSON_VALUE);
-
-        HttpEntity<List<PurchaseRequest>> requestEntity = new HttpEntity<>(purchaseRequests, headers);
-
-        try {
-            ResponseEntity<PurchaseResponseWrapper> responseEntity = restTemplate.exchange(
-                    PRODUCT_URL + "/purchase-order",
-                    POST,
-                    requestEntity,
-                    PurchaseResponseWrapper.class
-            );
-
-            PurchaseResponseWrapper responseWrapper = responseEntity.getBody();
-            assert responseWrapper != null;
-            responseWrapper.setStatus(responseEntity.getStatusCode().value());
-            return responseWrapper;
-        } catch (HttpClientErrorException | HttpServerErrorException e) {
-            try {
-                PurchaseResponseWrapper errorResponse = new ObjectMapper().readValue(e.getResponseBodyAsString(), PurchaseResponseWrapper.class);
-                errorResponse.setStatus(e.getStatusCode().value());
-                return errorResponse;
-            } catch (JsonProcessingException jsonException) {
-                throw new BusinessException("Error while parsing error response from product service");
-            }
-        } catch (Exception e) {
-            log.error("here: ", e);
-            throw new BusinessException("Unexpected error while purchasing products");
-        }
-    }*/
-
-
 }

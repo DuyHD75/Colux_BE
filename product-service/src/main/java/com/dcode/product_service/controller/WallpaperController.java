@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
 import java.util.Map;
+import java.util.Set;
 
 import static com.dcode.product_service.utils.RequestUtils.getErrorResponse;
 import static com.dcode.product_service.utils.RequestUtils.getResponse;
@@ -32,8 +33,22 @@ public class WallpaperController {
     @PostMapping("/{productId}")
     public ResponseEntity<Response> createAWallpaper(@PathVariable("productId") String productId, @RequestBody @Valid WallpaperRequest wallpaperRequest, HttpServletRequest request, HttpServletResponse response) {
         try {
-        wallpaperService.createAWallpaper(productId, wallpaperRequest);
+        wallpaperService.createWallpaper(productId, wallpaperRequest);
         return ResponseEntity.created(getUri()).body(getResponse(request, emptyMap(), "Wallpaper created successfully!", CREATED));
+        }catch (ApiException ex) {
+            return ResponseEntity.status(BAD_REQUEST)
+                    .body(getErrorResponse(request, response, ex, BAD_REQUEST));
+        } catch (Exception exception) {
+            return ResponseEntity.status(INTERNAL_SERVER_ERROR)
+                    .body(getErrorResponse(request, response, new ApiException("An unexpected error occurred."), INTERNAL_SERVER_ERROR));
+        }
+    }
+
+    @PostMapping
+    public ResponseEntity<Response> createWallpapers(@RequestBody @Valid Set<WallpaperRequest> wallpaperRequests, HttpServletRequest request, HttpServletResponse response) {
+        try {
+            wallpaperService.createWallpapers(wallpaperRequests);
+            return ResponseEntity.created(getUri()).body(getResponse(request, emptyMap(), "Wallpaper created successfully!", CREATED));
         }catch (ApiException ex) {
             return ResponseEntity.status(BAD_REQUEST)
                     .body(getErrorResponse(request, response, ex, BAD_REQUEST));

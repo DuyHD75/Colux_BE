@@ -1,6 +1,7 @@
 package com.dcode.product_service.dtoResponse;
 
 import com.dcode.product_service.entity.Feature;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;

@@ -10,17 +10,21 @@ import static com.dcode.product_service.utils.FeatureUtils.fromFeatureEntity;
 import static com.dcode.product_service.utils.PropertyUtils.fromPropertyEntity;
 
 public class FeatureValueUtils {
-    public static Set<FeatureValueResponse> fromFeatureValueEntity(Set<FeatureValue> featureValues){
-        Set<FeatureValueResponse> featureValueSet = featureValues.stream()
-                .map(featureValue -> {
-                    FeatureValueResponse response =  FeatureValueResponse.builder()
-                            .featureValueId(featureValue.getFeatureValueId())
-                            .value(featureValue.getValue())
-                            .feature(fromFeatureEntity(featureValue.getFeature()))
-                            .build();
-                    return response;
-                }).collect(Collectors.toSet());
-        return featureValueSet;
+    public static Set<FeatureValueResponse> fromFeatureValueEntity(Set<FeatureValue> featureValues) {
+        return featureValues.stream()
+                .map(featureValue -> FeatureValueResponse.builder()
+                        .featureValueId(featureValue.getFeatureValueId())
+                        .value(featureValue.getValue())
+                        .feature(FeatureUtils.fromFeatureEntityWithoutValues(featureValue.getFeature()))
+                        .build())
+                .collect(Collectors.toSet());
+    }
 
+    public static FeatureValueResponse fromFeatureValueEntity(FeatureValue featureValue) {
+        return FeatureValueResponse.builder()
+                .featureValueId(featureValue.getFeatureValueId())
+                .value(featureValue.getValue())
+                .feature(FeatureUtils.fromFeatureEntityWithoutValues(featureValue.getFeature()))
+                .build();
     }
 }

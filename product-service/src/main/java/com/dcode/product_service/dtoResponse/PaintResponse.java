@@ -3,6 +3,7 @@ package com.dcode.product_service.dtoResponse;
 
 import com.dcode.product_service.entity.Category;
 import com.dcode.product_service.entity.Product;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -19,7 +20,8 @@ import java.util.Set;
 public class PaintResponse {
     @JsonProperty("id")
     private String paintId;
-    private String color;
+    private ColorResponse color;
     private List<VariantResponse> variants;
+    @JsonBackReference
     private ProductResponse product;
 }

@@ -31,4 +31,6 @@ public class OrderLineEntity extends Auditable {
     private String variantId;
 
     private double quantity;
+
+    private double trackingPrice;
 }

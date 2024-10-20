@@ -10,6 +10,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
@@ -26,6 +27,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class ProductClientProxy {
 
     @Value("${application.config.product-url}")
@@ -33,7 +35,7 @@ public class ProductClientProxy {
 
     private final RestTemplate restTemplate;
 
-    public List<PurchaseResponse> purchaseProducts(List<PurchaseRequest> purchaseRequests) {
+    public PurchaseResponseWrapper purchaseProducts(List<PurchaseRequest> purchaseRequests) {
         HttpHeaders headers = new HttpHeaders();
         headers.set(CONTENT_TYPE, APPLICATION_JSON_VALUE);
 
@@ -47,24 +49,21 @@ public class ProductClientProxy {
                     PurchaseResponseWrapper.class
             );
 
-            if (responseEntity.getStatusCode().isError()) {
-                throw new BusinessException("Error while purchasing products :: " + responseEntity.getStatusCode());
-            }
-            return responseEntity.getBody().getData();
+            PurchaseResponseWrapper responseWrapper = responseEntity.getBody();
+            assert responseWrapper != null;
+            responseWrapper.setStatus(responseEntity.getStatusCode().value());
+            return responseWrapper;
         } catch (HttpClientErrorException | HttpServerErrorException e) {
-            if (e.getStatusCode() == HttpStatus.INTERNAL_SERVER_ERROR || e.getStatusCode() == HttpStatus.BAD_REQUEST) {
-                // Xử lý lỗi 500 và 400 và trả về thông tin chi tiết về các sản phẩm không thành công
-                try {
-                    PurchaseResponseWrapper errorResponse = new ObjectMapper().readValue(e.getResponseBodyAsString(), PurchaseResponseWrapper.class);
-                    return errorResponse.getData();
-                } catch (JsonProcessingException jsonException) {
-                    throw new BusinessException("Error while parsing error response from product service", jsonException);
-                }
-            } else {
-                throw new BusinessException("Error while purchasing products :: " + e.getStatusCode());
+            try {
+                PurchaseResponseWrapper errorResponse = new ObjectMapper().readValue(e.getResponseBodyAsString(), PurchaseResponseWrapper.class);
+                errorResponse.setStatus(e.getStatusCode().value());
+                return errorResponse;
+            } catch (JsonProcessingException jsonException) {
+                throw new BusinessException("Error while parsing error response from product service");
             }
         } catch (Exception e) {
-            throw new BusinessException("Unexpected error while purchasing products", e);
+            log.error("here: ", e);
+            throw new BusinessException("Unexpected error while purchasing products");
         }
     }
 

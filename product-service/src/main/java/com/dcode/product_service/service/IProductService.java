@@ -1,5 +1,6 @@
 package com.dcode.product_service.service;
 
+import com.dcode.product_service.dto.CartDto;
 import com.dcode.product_service.dtoRequest.PreorderRequest;
 import com.dcode.product_service.dtoRequest.ProductOrderRequest;
 import com.dcode.product_service.dtoRequest.ProductRequest;
@@ -23,6 +24,7 @@ public interface IProductService {
 
     PageResponse<ProductResponse> getAllProduct(Pageable pageable);
 
+    List<CartDto> checkStockAvailability(List<ProductOrderRequest> productOrderRequestList);
 
 //    void createProduct(ProductRequest productRequest);
 }

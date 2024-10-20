@@ -13,6 +13,7 @@ import org.springframework.beans.BeanUtils;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static com.dcode.product_service.utils.ColorUtils.simpleColorResponse;
 import static com.dcode.product_service.utils.ProductUtils.fromProductEntity;
 import static com.dcode.product_service.utils.ProductUtils.fromProductEntitySimple;
 
@@ -20,44 +21,47 @@ import static com.dcode.product_service.utils.ProductUtils.fromProductEntitySimp
 @AllArgsConstructor
 public class PaintUtils {
 
- public static PaintResponse fromPaintEntity(Paint paint) {
-    return PaintResponse.builder()
-            .paintId(paint.getPaintId())
-            .color(paint.getColor().getName())
-            .variants(convertVariantToVResponse(paint.getPaintVariants()))
-            .product(fromProductEntitySimple(paint.getProduct()))
-            .build();
-}
+    public static PaintResponse fromPaintEntity(Paint paint) {
+        return PaintResponse.builder()
+                .paintId(paint.getPaintId())
+                .color(simpleColorResponse(paint.getColor()))
+                .variants(convertVariantToVResponse(paint.getPaintVariants()))
+                .product(fromProductEntitySimple(paint.getProduct()))
+                .build();
+    }
 
-public static <T> List<VariantResponse> convertVariantToVResponse(Set<T> variants) {
-    return variants.stream()
-            .map(variant -> {
-                VariantResponse.VariantResponseBuilder builder = VariantResponse.builder();
-                if (variant instanceof PaintVariant v) {
-                    builder.variantId(v.getVariant().getVariantId())
-                           .sizeName(v.getVariant().getSizeName())
-                           .categoryName(v.getVariant().getCategoryName())
-                           .packageType(v.getVariant().getPackageType())
-                           .quantity(v.getQuantity().toString());
-                } else if (variant instanceof WallpaperVariant v) {
-                    builder.variantId(v.getVariant().getVariantId())
-                           .sizeName(v.getVariant().getSizeName())
-                           .categoryName(v.getVariant().getCategoryName())
-                           .packageType(v.getVariant().getPackageType())
-                           .quantity(v.getQuantity().toString());
-                } else if (variant instanceof FloorVariant v) {
-                    builder.variantId(v.getVariant().getVariantId())
-                           .sizeName(v.getVariant().getSizeName())
-                           .categoryName(v.getVariant().getCategoryName())
-                           .packageType(v.getVariant().getPackageType())
-                           .quantity(v.getQuantity().toString());
-                }
-                return builder.build();
-            })
-            .collect(Collectors.toList());
-}
+    public static <T> List<VariantResponse> convertVariantToVResponse(Set<T> variants) {
+        return variants.stream()
+                .map(variant -> {
+                    VariantResponse.VariantResponseBuilder builder = VariantResponse.builder();
+                    if (variant instanceof PaintVariant v) {
+                        builder.variantId(v.getVariant().getVariantId())
+                                .sizeName(v.getVariant().getSizeName())
+                                .categoryName(v.getVariant().getCategoryName())
+                                .packageType(v.getVariant().getPackageType())
+                                .quantity(v.getQuantity().toString())
+                                .price(v.getPrice());
+                    } else if (variant instanceof WallpaperVariant v) {
+                        builder.variantId(v.getVariant().getVariantId())
+                                .sizeName(v.getVariant().getSizeName())
+                                .categoryName(v.getVariant().getCategoryName())
+                                .packageType(v.getVariant().getPackageType())
+                                .quantity(v.getQuantity().toString())
+                                .price(v.getPrice());
+                    } else if (variant instanceof FloorVariant v) {
+                        builder.variantId(v.getVariant().getVariantId())
+                                .sizeName(v.getVariant().getSizeName())
+                                .categoryName(v.getVariant().getCategoryName())
+                                .packageType(v.getVariant().getPackageType())
+                                .quantity(v.getQuantity().toString())
+                                .price(v.getPrice());
+                    }
+                    return builder.build();
+                })
+                .collect(Collectors.toList());
+    }
 
-    public static Map<Variant, Pair<Double, Double>> checkVariantRequestSet(Set<VariantRequest> variantRequestSet, Set<Variant> variantSetInDb) {
+    public static Map<Variant, Pair<Integer, Double>> checkVariantRequestSet(Set<VariantRequest> variantRequestSet, Set<Variant> variantSetInDb) {
         Set<String> foundVariantIds = variantSetInDb.stream().map(Variant::getVariantId).collect(Collectors.toSet());
 
         Set<String> notFoundVariantIds = variantRequestSet.stream()
@@ -79,21 +83,22 @@ public static <T> List<VariantResponse> convertVariantToVResponse(Set<T> variant
                 ));
     }
 
-    public static Paint createNewPaintEntity(Product product, Color color, Map<Variant, Pair<Double, Double>> variantRequestSet) {
+    public static Paint createNewPaintEntity(Product product, Color color, Map<Variant, Pair<Integer, Double>> variantRequestSet) {
         Set<PaintVariant> paintVariant = new HashSet<>();
         Paint paint = Paint.builder()
                 .paintId(UUID.randomUUID().toString())
                 .product(product)
-                .color(color) // colorId
+                .color(color)
                 .paintVariants(paintVariant)
                 .build();
 
-        for (Map.Entry<Variant, Pair<Double, Double>> entry : variantRequestSet.entrySet()) {
+        for (Map.Entry<Variant, Pair<Integer, Double>> entry : variantRequestSet.entrySet()) {
             Variant variant = entry.getKey();
-            Integer quantity = entry.getValue().getLeft().intValue();
+            Integer quantity = entry.getValue().getLeft();
             Double price = entry.getValue().getRight();
 
             PaintVariant temp = PaintVariant.builder()
+                    .paintVariantId(UUID.randomUUID().toString())
                     .paint(paint)
                     .variant(variant)
                     .quantity(quantity)
@@ -104,7 +109,7 @@ public static <T> List<VariantResponse> convertVariantToVResponse(Set<T> variant
         return paint;
     }
 
-    public static Paint fromPaintEntity(String color, Map<Variant, Pair<Double, Double>> variantRequestSet, Paint paint) {
+    public static Paint fromPaintEntity(String color, Map<Variant, Pair<Integer, Double>> variantRequestSet, Paint paint) {
 //        paint.setColor(color);
         Set<PaintVariant> existingPaintVariants = paint.getPaintVariants();
 

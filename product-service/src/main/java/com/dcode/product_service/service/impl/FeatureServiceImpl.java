@@ -1,10 +1,12 @@
 package com.dcode.product_service.service.impl;
 
+import com.dcode.product_service.dtoRequest.FeatureRequest;
 import com.dcode.product_service.dtoResponse.FeatureResponse;
 import com.dcode.product_service.entity.Feature;
 import com.dcode.product_service.exception.ApiException;
 import com.dcode.product_service.repository.FeatureRepository;
 import com.dcode.product_service.service.IFeatureService;
+import com.dcode.product_service.utils.FeatureUtils;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -13,6 +15,7 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static com.dcode.product_service.utils.FeatureUtils.*;
 
@@ -25,8 +28,8 @@ public class FeatureServiceImpl implements IFeatureService {
     private final FeatureRepository featureRepository;
 
     @Override
-    public void createFeature(String name, String description, Set<String> featureValue) {
-        featureRepository.save(createNewFeature(name, description, featureValue));
+    public void createFeatures(Set<FeatureRequest> featureRequest) {
+        featureRepository.saveAll(createNewFeature(featureRequest));
     }
 
     @Override
@@ -43,8 +46,15 @@ public class FeatureServiceImpl implements IFeatureService {
         return fromFeatureEntity(featureEntity);
     }
 
-    private Feature createNewFeature(String name, String description, Set<String> featureValue) {
-        log.info(String.format("Creating new feature: %s", name));
-        return createNewFeatureEntity(name, description, featureValue);
+    @Override
+    public List<FeatureResponse> getAllFeature() {
+        var featureEntityList = featureRepository.findAll();
+        return featureEntityList.stream().map(FeatureUtils::fromFeatureEntity).collect(Collectors.toList());
+    }
+
+    private Set<Feature> createNewFeature(Set<FeatureRequest> featureRequests) {
+        return featureRequests.stream().map(
+                FeatureUtils::createNewFeatureEntity)
+                .collect(Collectors.toSet());
     }
 }
