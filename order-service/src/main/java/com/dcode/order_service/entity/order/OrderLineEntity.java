@@ -22,9 +22,13 @@ public class OrderLineEntity extends Auditable {
 
     private String productId;
 
-    private String variantId;
+    private String paintId;
 
-    private String colorId;
+    private String wallpaperId;
+
+    private String floorId;
+
+    private String variantId;
 
     private double quantity;
 }

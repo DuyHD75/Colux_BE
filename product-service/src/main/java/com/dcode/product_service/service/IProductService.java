@@ -4,6 +4,7 @@ import com.dcode.product_service.dtoRequest.PreorderRequest;
 import com.dcode.product_service.dtoRequest.ProductOrderRequest;
 import com.dcode.product_service.dtoRequest.ProductRequest;
 import com.dcode.product_service.dtoResponse.PreorderResponse;
+import com.dcode.product_service.dtoResponse.ProductOrderResponse;
 import com.dcode.product_service.dtoResponse.ProductResponse;
 import com.dcode.product_service.entity.PageResponse;
 import org.springframework.data.domain.Pageable;
@@ -18,7 +19,7 @@ public interface IProductService {
 
     List<ProductResponse> getAllProduct();
 
-    List<ProductOrderRequest> purchaseOrder(List<ProductOrderRequest> products);
+    List<ProductOrderResponse> purchaseOrder(List<ProductOrderRequest> products);
 
     PageResponse<ProductResponse> getAllProduct(Pageable pageable);
 

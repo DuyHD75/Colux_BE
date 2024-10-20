@@ -1,17 +1,18 @@
-package com.dcode.order_service.dto.product;
+package com.dcode.product_service.dtoResponse;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
+import lombok.Builder;
 import lombok.Data;
 
 @Data
-@JsonInclude(JsonInclude.Include.NON_NULL)
-public class PurchaseResponse {
+@Builder
+public class ProductOrderResponse {
     private String productId;
     private String paintId;
     private String wallpaperId;
     private String floorId;
+    private String variantId;
     private Double quantity;
     private Double price;
     private String message;
-    private Boolean success;
+    private boolean success;
 }

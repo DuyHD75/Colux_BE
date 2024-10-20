@@ -7,4 +7,5 @@ import lombok.EqualsAndHashCode;
 @Data
 public class BusinessException extends RuntimeException {
     private final String message;
+
 }

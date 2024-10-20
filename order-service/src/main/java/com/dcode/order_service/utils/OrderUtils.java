@@ -51,8 +51,11 @@ public class OrderUtils {
         return OrderLineEntity.builder()
                 .orderLineId(UUID.randomUUID().toString())
                 .productId(request.productId())
-                .orderEntity(OrderEntity.builder().orderId(request.orderId()).build())
                 .quantity(request.quantity())
+                .variantId(request.variantId())
+                .paintId(request.paintId())
+                .wallpaperId(request.wallpaperId())
+                .floorId(request.floorId())
                 .build();
     }
 
@@ -61,7 +64,9 @@ public class OrderUtils {
                 orderLine.getId(),
                 orderLine.getProductId(),
                 orderLine.getVariantId(),
-                orderLine.getColorId(),
+                orderLine.getPaintId(),
+                orderLine.getWallpaperId(),
+                orderLine.getFloorId(),
                 orderLine.getQuantity()
         );
     }

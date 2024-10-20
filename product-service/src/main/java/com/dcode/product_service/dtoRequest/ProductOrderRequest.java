@@ -1,17 +1,13 @@
 package com.dcode.product_service.dtoRequest;
 
-import com.dcode.product_service.entity.OrderRequest;
 import lombok.Data;
 
 @Data
-public class ProductOrderRequest implements OrderRequest {
-    private String productId;
+public class ProductOrderRequest {
+    private String paintId;
+    private String wallpaperId;
+    private String floorId;
     private String variantId;
-    private String colorId;
-    private Double quantity;
-    private boolean success;
+    private double quantity;
 
-    public String getIdentity(){
-        return colorId;
-    }
 }

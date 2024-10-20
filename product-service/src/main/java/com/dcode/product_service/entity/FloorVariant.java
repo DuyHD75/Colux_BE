@@ -13,7 +13,7 @@ import lombok.*;
 @AllArgsConstructor
 @Entity
 @Table(name = "floor_variant")
-public class FloorVariant extends Auditable implements IVariant{
+public class FloorVariant extends Auditable {
 
     @ManyToOne
     @JoinColumn(name = "floor_id", nullable = false)
@@ -26,26 +26,5 @@ public class FloorVariant extends Auditable implements IVariant{
     private Double quantity;
     private Double price;
 
-    @Override
-    public String getVariantId() {
-        return variant.getVariantId();
-    }
 
-    @Override
-    public String getSizeName() {
-        return variant.getSizeName();
-    }
-
-    @Override
-    public String getCategoryName() {
-        return variant.getCategoryName();
-    }
-    @Override
-    public String getPackageType() {
-        return variant.getPackageType();
-    }
-    @Override
-    public Double getQuantity() {
-        return quantity;
-    }
 }
