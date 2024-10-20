@@ -38,8 +38,14 @@ public class RequestUtils {
     };
 
     public static Response getResponse(HttpServletRequest request, String message, HttpStatus status, Map<?, ?> data) {
-        return new Response(now().toString(), status.value(), request.getRequestURI(),
-                HttpStatus.valueOf(status.value()), message, EMPTY, data);
+        return new Response(
+                now().toString(),
+                status.value(),
+                request.getRequestURI(),
+                HttpStatus.valueOf(status.value()),
+                message,
+                EMPTY,
+                data);
     }
 
     public static Response getErrorResponse(HttpServletRequest request, HttpServletResponse response, Exception exception, HttpStatus status) {

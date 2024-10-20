@@ -29,7 +29,7 @@ public class OrderResource {
       return "Order service is up and running!";
     }
 
-    @PostMapping
+    @PostMapping("/create")
     public ResponseEntity<Response> createNewOrder(
             @RequestBody @Valid OrderRequest orderRequest, HttpServletRequest request
     ) {
@@ -39,9 +39,11 @@ public class OrderResource {
         );
     }
 
+    // cancel //
+    // update //
+
     @GetMapping()
     public ResponseEntity<Response> getAllOrders(HttpServletRequest request) {
-
         var orders = orderService.getAllOrders();
         return ResponseEntity.ok().body(
                 getResponse(request, "Orders retrieved successfully!", OK, Map.of("orders", orders))

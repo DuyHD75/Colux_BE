@@ -36,6 +36,4 @@ public class Paint extends Auditable{
     @OneToMany(cascade = {PERSIST, MERGE}, mappedBy = "paint")
     private Set<PaintVariant> paintVariants;
 
-
-
 }

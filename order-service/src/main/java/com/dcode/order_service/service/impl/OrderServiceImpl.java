@@ -18,6 +18,7 @@ import com.dcode.order_service.repository.IOrderRepository;
 import com.dcode.order_service.service.IOrderLineService;
 import com.dcode.order_service.service.IOrderService;
 import com.dcode.order_service.utils.OrderUtils;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -60,11 +61,11 @@ public class OrderServiceImpl implements IOrderService {
     @Override
     public void createClientOrder(OrderRequest request) {
         var customer = this.clientProxy.findUserByUserId(request.getCustomerId())
-                .orElseThrow(() -> new BusinessException("Cannot create order :: No customer found with ID: " + request.getToWardName()));
+                .orElseThrow(() -> new BusinessException("Cannot create order :: No customer found with ID: " + request.getCustomerId()));
 
         log.info("Customer found: {}", customer);
 
-/*
+
         var purchasedProducts = this.productClientProxy.purchaseProducts(request.getPurchaseProducts());
 
         var order = this.orderRepository.save(createNewOrderEntity(request));
@@ -111,8 +112,9 @@ public class OrderServiceImpl implements IOrderService {
                 log.error("Error while processing payment", e);
                 throw new BusinessException("Error while processing payment");
             }
-        }*/
+        }
 
+        // send kafka event
        /* orderProducer.sendOrderConfirmation(
                 new OrderConfirmation(
                         request.getReference(),
@@ -122,7 +124,7 @@ public class OrderServiceImpl implements IOrderService {
                         purchasedProducts
                 )
         );*/
-
+        // send kafka event
     }
 
     @Override
@@ -138,6 +140,39 @@ public class OrderServiceImpl implements IOrderService {
                 .toList();
 
     }
+
+/*
+    public PurchaseResponseWrapper purchaseProducts(List<PurchaseRequest> purchaseRequests) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.set(CONTENT_TYPE, APPLICATION_JSON_VALUE);
+
+        HttpEntity<List<PurchaseRequest>> requestEntity = new HttpEntity<>(purchaseRequests, headers);
+
+        try {
+            ResponseEntity<PurchaseResponseWrapper> responseEntity = restTemplate.exchange(
+                    PRODUCT_URL + "/purchase-order",
+                    POST,
+                    requestEntity,
+                    PurchaseResponseWrapper.class
+            );
+
+            PurchaseResponseWrapper responseWrapper = responseEntity.getBody();
+            assert responseWrapper != null;
+            responseWrapper.setStatus(responseEntity.getStatusCode().value());
+            return responseWrapper;
+        } catch (HttpClientErrorException | HttpServerErrorException e) {
+            try {
+                PurchaseResponseWrapper errorResponse = new ObjectMapper().readValue(e.getResponseBodyAsString(), PurchaseResponseWrapper.class);
+                errorResponse.setStatus(e.getStatusCode().value());
+                return errorResponse;
+            } catch (JsonProcessingException jsonException) {
+                throw new BusinessException("Error while parsing error response from product service");
+            }
+        } catch (Exception e) {
+            log.error("here: ", e);
+            throw new BusinessException("Unexpected error while purchasing products");
+        }
+    }*/
 
 
 }

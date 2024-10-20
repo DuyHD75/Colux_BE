@@ -27,13 +27,11 @@ public class OrderRequest {
     private String reference;
     @Nullable
     private Long orderCancellationReasonId;
-
     @Nullable
     private String note;
 
     @NotNull(message = "Customer should be present")
     @NotEmpty(message = "Customer should not be empty")
-
     @NotBlank(message = "Customer should not be blank")
     private String customerId;
 

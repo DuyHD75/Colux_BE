@@ -1,5 +1,7 @@
 package com.dcode.order_service.proxy;
 
+import com.dcode.order_service.dto.cart.request.CartVariantRequest;
+import com.dcode.order_service.dto.cart.response.CartVariantResponse;
 import com.dcode.order_service.dto.product.PurchaseRequest;
 import com.dcode.order_service.dto.product.PurchaseResponse;
 import com.dcode.order_service.exception.BusinessException;
@@ -11,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
+import java.util.Set;
 
 import static org.springframework.http.HttpHeaders.CONTENT_TYPE;
 import static org.springframework.http.HttpMethod.*;
@@ -47,4 +50,33 @@ public class ProductClientProxy {
         }
         return responseEntity.getBody();
     }
+
+    public List<CartVariantResponse.ClientVariantResponse> getProductByVariantId(List<CartVariantRequest> cartVariantRequests) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.set(CONTENT_TYPE, APPLICATION_JSON_VALUE);
+
+        HttpEntity<List<CartVariantRequest>> requestEntity = new HttpEntity<>(cartVariantRequests, headers);
+
+        ParameterizedTypeReference<List<CartVariantResponse.ClientVariantResponse>> responseType = new ParameterizedTypeReference<>() {};
+
+        ResponseEntity<List<CartVariantResponse.ClientVariantResponse>> responseEntity = restTemplate.exchange(
+                PRODUCT_URL + "/getProductByVariant/",
+                HttpMethod.POST,
+                requestEntity,
+                responseType
+        );
+
+        if (responseEntity.getStatusCode().isError()) {
+            throw new BusinessException("Error while fetching variant :: " + responseEntity.getStatusCode());
+        }
+
+        return responseEntity.getBody();
+    }
+
+
+
+
+
+
+
 }

@@ -17,7 +17,7 @@ import java.util.UUID;
 public class OrderUtils {
 
     public static OrderEntity createNewOrderEntity(OrderRequest request) {
-        // if the request have the toname field, we can use it to create the order if not we can use the customer name
+        // if the request have the to name field, we can use it to create the order if not we can use the customer name
         return OrderEntity.builder()
                 .orderId(UUID.randomUUID().toString())
                 .code(RandomString.make(12).toUpperCase())
@@ -55,7 +55,6 @@ public class OrderUtils {
                 .quantity(request.quantity())
                 .build();
     }
-
 
     public static OrderLineResponse fromOrderLineEntity(OrderLineEntity orderLine) {
         return new OrderLineResponse(

@@ -33,7 +33,6 @@ public class AuthenticationRequestInterceptor implements RequestInterceptor {
         if (attributes != null) {
             HttpServletRequest request = attributes.getRequest();
 
-            // Extract tokens using the extractToken function
             Optional<String> accessToken = extractToken.apply(request, "access-token");
             Optional<String> refreshToken = extractToken.apply(request, "refresh-token");
 
