@@ -10,7 +10,7 @@ import java.util.List;
 public interface IOrderService {
     void cancelOrder(String code);
 
-    void createClientOrder(OrderRequest request);
+    String createClientOrder(OrderRequest request);
 
     void captureTransactionPaypal(String paypalOrderId, String payerId);
 

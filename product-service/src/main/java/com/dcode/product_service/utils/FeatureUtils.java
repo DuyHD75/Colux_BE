@@ -1,5 +1,6 @@
 package com.dcode.product_service.utils;
 
+import com.dcode.product_service.dtoRequest.FeatureRequest;
 import com.dcode.product_service.dtoResponse.FeatureResponse;
 import com.dcode.product_service.dtoResponse.FeatureValueResponse;
 import com.dcode.product_service.dtoResponse.PropertyValueResponse;
@@ -11,16 +12,17 @@ import org.springframework.beans.BeanUtils;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static com.dcode.product_service.utils.FeatureValueUtils.fromFeatureValueEntity;
 import static com.dcode.product_service.utils.PropertyUtils.fromPropertyEntity;
 
 public class FeatureUtils {
-    public static Feature createNewFeatureEntity(String name, String description, Set<String> featureValue){
+    public static Feature createNewFeatureEntity(FeatureRequest featureRequest) {
         Feature feature = Feature.builder()
                 .featureId(UUID.randomUUID().toString())
-                .name(name)
-                .description(description)
+                .name(featureRequest.getName())
+                .description(featureRequest.getDescription())
                 .build();
-        Set<FeatureValue> featureValueSet = mapToListFeatureValue(featureValue, feature);
+        Set<FeatureValue> featureValueSet = mapToListFeatureValue(featureRequest.getFeatureValue(), feature);
         feature.setFeatureValues(featureValueSet);
         return feature;
     }
@@ -48,6 +50,26 @@ public class FeatureUtils {
                     .collect(Collectors.toSet());
     }
     public static FeatureResponse fromFeatureEntity(Feature feature){
+        return FeatureResponse.builder()
+                .featureId(feature.getFeatureId())
+                .name(feature.getName())
+                .description(feature.getDescription())
+                .featureValues(fromFeatureValueEntity(feature.getFeatureValues()))
+                .build();
+    }
+
+
+    public static Set<FeatureValueResponse> fromFeatureValueEntities(Set<FeatureValue> featureValues, boolean includeFeature) {
+        return featureValues.stream()
+                .map(featureValue -> FeatureValueResponse.builder()
+                        .featureValueId(featureValue.getFeatureValueId())
+                        .value(featureValue.getValue())
+                        .feature(includeFeature ? fromFeatureEntityWithoutValues(featureValue.getFeature()) : null)
+                        .build())
+                .collect(Collectors.toSet());
+    }
+
+    public static FeatureResponse fromFeatureEntityWithoutValues(Feature feature) {
         return FeatureResponse.builder()
                 .featureId(feature.getFeatureId())
                 .name(feature.getName())

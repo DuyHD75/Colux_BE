@@ -3,10 +3,12 @@ package com.dcode.order_service.resource;
 
 import com.dcode.order_service.domain.Response;
 import com.dcode.order_service.dto.order.request.OrderRequest;
+import com.dcode.order_service.exception.BusinessException;
 import com.dcode.order_service.service.IOrderService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -30,13 +32,17 @@ public class OrderResource {
     }
 
     @PostMapping("/create")
-    public ResponseEntity<Response> createNewOrder(
-            @RequestBody @Valid OrderRequest orderRequest, HttpServletRequest request
-    ) {
-        orderService.createClientOrder(orderRequest);
-        return ResponseEntity.created(getUri()).body(
-                getResponse(request, "Order created successfully!", CREATED, emptyMap())
-        );
+    public ResponseEntity<?> createNewOrder(@RequestBody @Valid OrderRequest orderRequest, HttpServletRequest request) {
+        try {
+            String approvalUrl = orderService.createClientOrder(orderRequest);
+            return ResponseEntity.status(HttpStatus.FOUND).location(URI.create(approvalUrl)).build();
+        } catch (BusinessException ex) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getData());
+        }
+    }
+    @ExceptionHandler(BusinessException.class)
+    public ResponseEntity<Object> handleBusinessException(BusinessException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getData());
     }
 
     @GetMapping()
@@ -51,4 +57,8 @@ public class OrderResource {
     private URI getUri() {
         return URI.create("/api/v1/orders");
     }
+//    private Response getResponse(HttpServletRequest request, String message, HttpStatus status, Map<String, Object> data) {
+//        // Implement this method to return a Response object
+//        return new Response(message, status, data);
+//    }
 }

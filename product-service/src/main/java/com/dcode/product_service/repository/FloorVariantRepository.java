@@ -7,7 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.Optional;
 
 public interface FloorVariantRepository extends JpaRepository<FloorVariant, Long> {
-    Optional<FloorVariant> findByFloor_floorIDAndVariant_VariantId(String floorId, String variantId);
+    Optional<FloorVariant> findByFloor_floorIdAndVariant_VariantId(String floorId, String variantId);
 
     void deleteByFloor (Floor floor);
 }

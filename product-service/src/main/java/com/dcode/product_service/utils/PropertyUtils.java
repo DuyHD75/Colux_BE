@@ -1,5 +1,6 @@
 package com.dcode.product_service.utils;
 
+import com.dcode.product_service.dtoRequest.RequestProperty;
 import com.dcode.product_service.dtoResponse.PropertyResponse;
 import com.dcode.product_service.entity.Property;
 import com.dcode.product_service.entity.PropertyValue;
@@ -10,13 +11,13 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 public class PropertyUtils {
-    public static Property createNewPropertyEntity(String name, String description, Set<String> propertyValueSet) {
+    public static Property createNewPropertyEntity(RequestProperty requestProperty) {
         Property property = Property.builder()
                 .propertyId(UUID.randomUUID().toString())
-                .name(name)
-                .description(description)
+                .name(requestProperty.getName())
+                .description(requestProperty.getDescription())
                 .build();
-        Set<PropertyValue> propertyValues = mapToListPropertyValue(propertyValueSet, property);
+        Set<PropertyValue> propertyValues = mapToListPropertyValue(requestProperty.getPropertyValues(), property);
         property.setPropertyValues(propertyValues);
         return property;
     }

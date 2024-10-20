@@ -24,8 +24,7 @@ public class Product extends Auditable{
     private String productName;
     @Column(columnDefinition = "TEXT")
     private String description;
-    private String price;
-    private String ratingAverage;
+    private Double ratingAverage;
     private String code;
     private String placeOfOrigin;
     private String warranty;
@@ -57,9 +56,6 @@ public class Product extends Auditable{
     @JoinColumn(name = "brand_id", referencedColumnName = "id")
 //    @JsonIgnoreProperties("products")
     private Brand brand;
-
-    @OneToMany(mappedBy = "product")
-    private List<ProductImage> productImages;
 
     @OneToMany(mappedBy = "product")
     private List<Paint> paints;

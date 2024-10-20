@@ -11,4 +11,5 @@ public class VariantResponse {
     private String categoryName;
     private String packageType;
     private String quantity;
+    private Double price;
 }

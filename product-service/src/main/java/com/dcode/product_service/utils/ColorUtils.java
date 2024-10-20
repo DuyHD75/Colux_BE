@@ -95,5 +95,14 @@ public class ColorUtils {
         color.setDescription(colorRequest.getDescription());
         return color;
     }
+    public static ColorResponse simpleColorResponse(Color color){
+        return ColorResponse.builder()
+                .hex(color.getHex())
+                .name(color.getName())
+                .colorId(color.getColorId())
+                .code(color.getCode())
+                .build();
+
+    }
 }
 

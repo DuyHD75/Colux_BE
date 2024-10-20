@@ -1,7 +1,6 @@
 package com.dcode.product_service.service.impl;
 
 import com.dcode.product_service.dtoRequest.FloorRequest;
-import com.dcode.product_service.dtoRequest.VariantRequest;
 import com.dcode.product_service.dtoResponse.FloorResponse;
 import com.dcode.product_service.entity.Floor;
 import com.dcode.product_service.entity.PageResponse;
@@ -21,6 +20,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static com.dcode.product_service.utils.FloorUtils.createNewFloorEntity;
 import static com.dcode.product_service.utils.FloorUtils.fromFloorEntity;
@@ -38,27 +38,33 @@ public class FloorServiceImpl implements IFloorService {
     private final FloorVariantRepository floorVariantRepository;
 
     @Override
-    public void createAFloor(String productId, FloorRequest floorRequest) {
+    public void createFloor(String productId, FloorRequest floorRequest) {
         floorRepository.save(createAFloorEntity(productId, floorRequest));
+    }
+
+    public void createFloors(Set<FloorRequest> floorRequests) {
+        floorRepository.saveAll(floorRequests.stream().map(
+                floorRequest -> createAFloorEntity(floorRequest.getProductId(), floorRequest)
+        ).collect(Collectors.toSet()));
     }
 
     @Override
     public FloorResponse getAFloor(String floorId) {
-        var floorEntity = floorRepository.findByFloorID(floorId).orElseThrow(() -> new ApiException("Floor id not found while get a Floor!"));
+        var floorEntity = floorRepository.findByFloorId(floorId).orElseThrow(() -> new ApiException("Floor id not found while get a Floor!"));
         return fromFloorEntity(floorEntity);
     }
 
     @Override
-    public void updateAFloor(String floorId, Double foamThickness, String accessoryType, String packagingMaterial, Integer numberOfPiecesPerBox, Set<VariantRequest> variantRequestSet) {
-        var floor = floorRepository.findByFloorID(floorId).orElseThrow(() -> new ApiException("Floor not found while updating!"));
-        Set<String> variantIds = extractVariantIds(variantRequestSet);
-        Floor floorUpdate = fromFloorEntity(foamThickness, accessoryType, packagingMaterial, numberOfPiecesPerBox, checkVariantRequestSet(variantRequestSet, variantRepository.findAllByVariantIdIn(variantIds)), floor);
+    public void updateAFloor(String floorId, FloorRequest floorRequest) {
+        var floor = floorRepository.findByFloorId(floorId).orElseThrow(() -> new ApiException("Floor not found while updating!"));
+        Set<String> variantIds = extractVariantIds(floorRequest.getVariants());
+        Floor floorUpdate = fromFloorEntity(floorRequest, checkVariantRequestSet(floorRequest.getVariants(), variantRepository.findAllByVariantIdIn(variantIds)), floor);
         floorRepository.save(floorUpdate);
     }
 
     @Override
     public void deleteAFloor(String floorId) {
-        var floor = floorRepository.findByFloorID(floorId).orElseThrow(()-> new ApiException("Floor not found while deleting process"));
+        var floor = floorRepository.findByFloorId(floorId).orElseThrow(()-> new ApiException("Floor not found while deleting process"));
         floorVariantRepository.deleteByFloor(floor);
         floorRepository.delete(floor);
     }

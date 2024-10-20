@@ -11,7 +11,7 @@ public class ProductOrderResponse {
     private String wallpaperId;
     private String floorId;
     private String variantId;
-    private Double quantity;
+    private Integer quantity;
     private Double price;
     private String message;
     private boolean success;

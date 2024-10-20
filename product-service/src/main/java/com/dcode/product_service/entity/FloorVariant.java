@@ -15,6 +15,8 @@ import lombok.*;
 @Table(name = "floor_variant")
 public class FloorVariant extends Auditable {
 
+    @JoinColumn(updatable = false, unique = true, nullable = false)
+    private String floorVariantId;
     @ManyToOne
     @JoinColumn(name = "floor_id", nullable = false)
     private Floor floor;
@@ -23,7 +25,7 @@ public class FloorVariant extends Auditable {
     @JoinColumn(name = "variant_id", nullable = false)
     private Variant variant;
 
-    private Double quantity;
+    private Integer quantity;
     private Double price;
 
 

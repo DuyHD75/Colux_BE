@@ -2,6 +2,7 @@ package com.dcode.product_service.controller;
 
 import com.dcode.product_service.domain.ArrayResponse;
 import com.dcode.product_service.domain.Response;
+import com.dcode.product_service.dto.CartDto;
 import com.dcode.product_service.dtoRequest.*;
 import com.dcode.product_service.dtoResponse.ProductOrderResponse;
 import com.dcode.product_service.exception.ApiException;
@@ -22,6 +23,7 @@ import org.springframework.web.bind.annotation.*;
 import java.net.URI;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static com.dcode.product_service.utils.RequestUtils.getErrorResponse;
 import static com.dcode.product_service.utils.RequestUtils.getResponse;
@@ -62,32 +64,64 @@ public class ProductController {
             ));
         } else {
             return ResponseEntity.status(
-                    HttpStatus.OK).body(new ArrayResponse(
+                    BAD_REQUEST).body(new ArrayResponse(
                     request.getRequestURI(),
                     "Some products could not be processed!",
-                    HttpStatus.OK,
+                    BAD_REQUEST,
                     productOrderResponseList
 //                    HttpStatus.OK).body(getResponse(request,
 //                    Map.of("products", productOrderResponseList),
 //                    "Some products could not be processed!",
 //                    HttpStatus.OK
-                    ));
+            ));
         }
     }
 
+    @PostMapping("/cart")
+    public ResponseEntity<Response> cartVariant(@RequestBody @Valid List<ProductOrderRequest> productOrderRequestList, HttpServletRequest request, HttpServletResponse response) {
+        try{
+             List<CartDto> productCartResponses = productService.checkStockAvailability(productOrderRequestList);
+            return ResponseEntity.created(getUri()).body(
+                    getResponse(request, Map.of("products", productCartResponses),
+                            "Product created successfully!", CREATED)
+            );
+        }catch (ApiException ex) {
+            return ResponseEntity.status(BAD_REQUEST)
+                    .body(getErrorResponse(request, response, ex, BAD_REQUEST));
+        } catch (Exception exception) {
+            return ResponseEntity.status(INTERNAL_SERVER_ERROR)
+                    .body(getErrorResponse(request, response, new ApiException("An unexpected error occurred."), INTERNAL_SERVER_ERROR));
+        }
 
-
-
+    }
 
     @PostMapping("/product")
     public ResponseEntity<Response> createProduct(@RequestBody @Valid ProductRequest productRequest, HttpServletRequest request, HttpServletResponse response) {
         try {
-        productService.createProduct(productRequest);
-        return ResponseEntity.created(getUri()).body(
-                getResponse(request, emptyMap(),
-                        "Product created successfully!", CREATED)
-        );
-        }catch (ApiException ex) {
+            productService.createProduct(productRequest);
+            return ResponseEntity.created(getUri()).body(
+                    getResponse(request, emptyMap(),
+                            "Product created successfully!", CREATED)
+            );
+        } catch (ApiException ex) {
+            return ResponseEntity.status(BAD_REQUEST)
+                    .body(getErrorResponse(request, response, ex, BAD_REQUEST));
+        } catch (Exception exception) {
+            return ResponseEntity.status(INTERNAL_SERVER_ERROR)
+                    .body(getErrorResponse(request, response, new ApiException("An unexpected error occurred."), INTERNAL_SERVER_ERROR));
+        }
+    }
+
+    @PostMapping("/product/bulk")
+    public ResponseEntity<Response> createProducts(@RequestBody @Valid Set<ProductRequest> productRequest, HttpServletRequest request, HttpServletResponse response) {
+        try {
+            productService.createProducts(productRequest);
+            return ResponseEntity.created(getUri()).body(
+                    getResponse(request, emptyMap(),
+                            "Product created successfully!", CREATED)
+            );
+        } catch (ApiException ex) {
+            log.error("here: ", ex);
             return ResponseEntity.status(BAD_REQUEST)
                     .body(getErrorResponse(request, response, ex, BAD_REQUEST));
         } catch (Exception exception) {
@@ -99,9 +133,9 @@ public class ProductController {
     @GetMapping("/product")
     public ResponseEntity<Response> getAllProduct(HttpServletRequest request, HttpServletResponse response) {
         try {
-        var products = productService.getAllProduct();
-        return ResponseEntity.ok().body(getResponse(request, Map.of("products", products), "Product info retrieved", OK));
-        }catch (ApiException ex) {
+            var products = productService.getAllProduct();
+            return ResponseEntity.ok().body(getResponse(request, Map.of("products", products), "Product info retrieved", OK));
+        } catch (ApiException ex) {
             return ResponseEntity.status(BAD_REQUEST)
                     .body(getErrorResponse(request, response, ex, BAD_REQUEST));
         } catch (Exception exception) {
@@ -114,13 +148,13 @@ public class ProductController {
     public ResponseEntity<Response> getAllProductWithPagination(@RequestParam(defaultValue = "0") int page,
                                                                 @RequestParam(defaultValue = "10") int size,
                                                                 HttpServletRequest request,
-                                                                HttpServletResponse response){
+                                                                HttpServletResponse response) {
         try {
-        Pageable pageable = PageRequest.of(page,size);
-        var products = productService.getAllProduct(pageable);
+            Pageable pageable = PageRequest.of(page, size);
+            var products = productService.getAllProduct(pageable);
 
-        return ResponseEntity.ok().body(getResponse(request,Map.of("products", products), "Product retrieve successfully!", OK));
-        }catch (ApiException ex) {
+            return ResponseEntity.ok().body(getResponse(request, Map.of("products", products), "Product retrieve successfully!", OK));
+        } catch (ApiException ex) {
             return ResponseEntity.status(BAD_REQUEST)
                     .body(getErrorResponse(request, response, ex, BAD_REQUEST));
         } catch (Exception exception) {
@@ -129,6 +163,33 @@ public class ProductController {
         }
     }
 
+    @GetMapping("/filter")
+    public ResponseEntity<Response> getAllProductWithFilter(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String type,
+            @RequestParam(required = false) List<String> features,
+            @RequestParam(required = false) List<String> properties,
+            @RequestParam(required = false) Double rating,
+            @RequestParam(required = false) Double minPrice,
+            @RequestParam(required = false) Double maxPrice,
+            HttpServletResponse response,
+            HttpServletRequest request) {
+        try{
+            Pageable pageable = PageRequest.of(page, size);
+            var filteredProducts = productService.filterProducts(type, features, properties, rating, minPrice, maxPrice, pageable);
+            return ResponseEntity.ok().body(getResponse(request, Map.of("products", filteredProducts), "Product retrieve successfully!", OK));
+        }catch (ApiException ex) {
+            log.error("bad-request: ", ex);
+            return ResponseEntity.status(BAD_REQUEST)
+                    .body(getErrorResponse(request, response, ex, BAD_REQUEST));
+        } catch (Exception exception) {
+            log.error("internal: ", exception);
+            return ResponseEntity.status(INTERNAL_SERVER_ERROR)
+                    .body(getErrorResponse(request, response, new ApiException("An unexpected error occurred."), INTERNAL_SERVER_ERROR));
+        }
+
+    }
 
 
     private URI getUri() {

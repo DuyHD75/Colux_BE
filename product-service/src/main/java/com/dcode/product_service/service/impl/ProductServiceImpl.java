@@ -1,6 +1,6 @@
 package com.dcode.product_service.service.impl;
 
-import com.dcode.product_service.domain.Response;
+import com.dcode.product_service.dto.CartDto;
 import com.dcode.product_service.dtoRequest.ProductOrderRequest;
 import com.dcode.product_service.dtoRequest.ProductRequest;
 import com.dcode.product_service.dtoResponse.ProductOrderResponse;
@@ -10,19 +10,18 @@ import com.dcode.product_service.enumeration.CategoryType;
 import com.dcode.product_service.exception.ApiException;
 import com.dcode.product_service.repository.*;
 import com.dcode.product_service.service.IProductService;
-import com.dcode.product_service.utils.RequestUtils;
+import com.dcode.product_service.utils.ProductUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.aspectj.lang.annotation.AfterThrowing;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
@@ -52,13 +51,22 @@ public class ProductServiceImpl implements IProductService {
         productRepository.save(createNewProduct(productRequest));
     }
 
+    public void createProducts(Set<ProductRequest> productRequest) {
+        productRepository.saveAll(createNewProducts(productRequest));
+    }
+
     private Product createNewProduct(ProductRequest productRequest) {
-        log.info(String.format("Creating new product: %s", productRequest.getProductName()));
         var brand = getBrandByBrandId(productRequest.getBrandId());
         var category = getCategoryByCategoryId(productRequest.getCategoryId());
         var featureValues = getFeatureValueByFeatureValueIds(productRequest.getFeatureValueIds());
         var propertyValues = getPropertyValueByPropertyValueIds(productRequest.getPropertyValueIds());
         return createNewProductEntity(productRequest, brand, category, featureValues, propertyValues);
+    }
+
+    private Set<Product> createNewProducts(Set<ProductRequest> productRequests) {
+        return productRequests.stream().map(
+                this::createNewProduct
+         ).collect(Collectors.toSet());
     }
 
     private Set<PropertyValue> getPropertyValueByPropertyValueIds(Set<String> propertyValueIds) {
@@ -114,7 +122,6 @@ public class ProductServiceImpl implements IProductService {
         return PageResponseBuilder.buildPageResponse(productResponses);
     }
 
-
     public CategoryType getCategoryTypeFromName(String name) {
         for (CategoryType categoryType : CategoryType.values()) {
             if (categoryType.getName().equalsIgnoreCase(name)) {
@@ -126,6 +133,92 @@ public class ProductServiceImpl implements IProductService {
     public ProductResponse mapToProductResponse(Product product) {
         return fromProductEntity(product);
     }
+
+    public List<CartDto> checkStockAvailability(List<ProductOrderRequest> productOrderRequestList) {
+        List<CartDto> cartDtos = new ArrayList<>();
+
+        for (ProductOrderRequest productOrderRequest : productOrderRequestList) {
+            CartDto cartDto = new CartDto();
+            cartDto.setVariantId(productOrderRequest.getVariantId());
+
+            if (productOrderRequest.getPaintId() != null) {
+                Optional<PaintVariant> variantOpt = paintVariantRepository.findByPaint_paintIdAndVariant_variantId(
+                        productOrderRequest.getPaintId(), productOrderRequest.getVariantId());
+                if (variantOpt.isPresent()) {
+                    PaintVariant variant = variantOpt.get();
+                    cartDto.setVariantDescription(variant.getVariant().getSizeName());
+                    cartDto.setCategoryName(variant.getVariant().getCategoryName());
+                    cartDto.setPackageType(variant.getVariant().getPackageType());
+                    cartDto.setVariantInventory(variant.getQuantity());
+                    cartDto.setPriceSell(variant.getPrice());
+
+                    CartDto.ProductDetailsDto productDetailsDto = new CartDto.ProductDetailsDto();
+                    productDetailsDto.setProductId(variant.getPaint().getProduct().getProductId());
+                    productDetailsDto.setProductName(variant.getPaint().getProduct().getProductName());
+                    productDetailsDto.setProductImage(variant.getPaint().getProduct().getImages().isEmpty() ? null : variant.getPaint().getProduct().getImages().get(0).getUrl());
+                    productDetailsDto.setCode(variant.getPaint().getProduct().getCode());
+
+                    CartDto.PaintDetailsDto paintDetailsDto = new CartDto.PaintDetailsDto();
+                    paintDetailsDto.setColorId(variant.getPaint().getColor().getColorId());
+                    paintDetailsDto.setHex(variant.getPaint().getColor().getHex());
+                    productDetailsDto.setPaintDetails(paintDetailsDto);
+
+                    cartDto.setProductDetails(productDetailsDto);
+                } else {
+                    cartDto.setVariantDescription("Paint variant not found!");
+                }
+            } else if (productOrderRequest.getFloorId() != null) {
+                Optional<FloorVariant> variantOpt = floorVariantRepository.findByFloor_floorIdAndVariant_VariantId(
+                        productOrderRequest.getFloorId(), productOrderRequest.getVariantId());
+                if (variantOpt.isPresent()) {
+                    FloorVariant variant = variantOpt.get();
+                    cartDto.setVariantDescription(variant.getVariant().getSizeName());
+                    cartDto.setCategoryName(variant.getVariant().getCategoryName());
+                    cartDto.setPackageType(variant.getVariant().getPackageType());
+                    cartDto.setVariantInventory(variant.getQuantity());
+                    cartDto.setPriceSell(variant.getPrice());
+
+                    CartDto.ProductDetailsDto productDetailsDto = new CartDto.ProductDetailsDto();
+                    productDetailsDto.setProductId(variant.getFloor().getProduct().getProductId());
+                    productDetailsDto.setProductName(variant.getFloor().getProduct().getProductName());
+                    productDetailsDto.setProductImage(variant.getFloor().getProduct().getImages().isEmpty() ? null : variant.getFloor().getProduct().getImages().get(0).getUrl());
+                    productDetailsDto.setCode(variant.getFloor().getProduct().getCode());
+
+                    cartDto.setProductDetails(productDetailsDto);
+                } else {
+                    cartDto.setVariantDescription("Floor variant not found!");
+                }
+            } else if (productOrderRequest.getWallpaperId() != null) {
+                Optional<WallpaperVariant> variantOpt = wallpaperVariantRepository.findByWallpaper_wallpaperIdAndVariant_variantId(
+                        productOrderRequest.getWallpaperId(), productOrderRequest.getVariantId());
+                if (variantOpt.isPresent()) {
+                    WallpaperVariant variant = variantOpt.get();
+                    cartDto.setVariantDescription(variant.getVariant().getSizeName());
+                    cartDto.setCategoryName(variant.getVariant().getCategoryName());
+                    cartDto.setPackageType(variant.getVariant().getPackageType());
+                    cartDto.setVariantInventory(variant.getQuantity());
+                    cartDto.setPriceSell(variant.getPrice());
+
+                    CartDto.ProductDetailsDto productDetailsDto = new CartDto.ProductDetailsDto();
+                    productDetailsDto.setProductId(variant.getWallpaper().getProduct().getProductId());
+                    productDetailsDto.setProductName(variant.getWallpaper().getProduct().getProductName());
+                    productDetailsDto.setProductImage(variant.getWallpaper().getProduct().getImages().isEmpty() ? null : variant.getWallpaper().getProduct().getImages().get(0).getUrl());
+                    productDetailsDto.setCode(variant.getWallpaper().getProduct().getCode());
+
+                    cartDto.setProductDetails(productDetailsDto);
+                } else {
+                    cartDto.setVariantDescription("Wallpaper variant not found!");
+                }
+            }
+
+            cartDtos.add(cartDto);
+        }
+
+        return cartDtos;
+    }
+
+
+
 
     @Override
     public List<ProductOrderResponse> purchaseOrder(List<ProductOrderRequest> productOrderRequestList) {
@@ -204,7 +297,7 @@ public class ProductServiceImpl implements IProductService {
     }
 
     private String checkFloorStock(ProductOrderRequest request, ProductOrderResponse response) {
-        FloorVariant variant = floorVariantRepository.findByFloor_floorIDAndVariant_VariantId(
+        FloorVariant variant = floorVariantRepository.findByFloor_floorIdAndVariant_VariantId(
                 request.getFloorId(), request.getVariantId()).orElse(null);
 
         if (variant == null) {
@@ -244,7 +337,7 @@ public class ProductServiceImpl implements IProductService {
                 return "Stock updated successfully!";
 
             } else if (request.getFloorId() != null) {
-                FloorVariant variant = floorVariantRepository.findByFloor_floorIDAndVariant_VariantId(
+                FloorVariant variant = floorVariantRepository.findByFloor_floorIdAndVariant_VariantId(
                         request.getFloorId(), request.getVariantId()).orElseThrow(() ->
                         new ApiException("Floor variant not found for ID: " + request.getFloorId()));
                 if (variant.getQuantity() < request.getQuantity()) {
@@ -274,6 +367,17 @@ public class ProductServiceImpl implements IProductService {
         }
     }
 
+    public PageResponse<ProductResponse> filterProducts(String type, List<String> features, List<String> properties, Double rating, Double minPrice, Double maxPrice, Pageable pageable) {
+        Specification<Product> spec = new ProductSpecification(features, properties, rating, minPrice, maxPrice, type);
+        Page<Product> productPage = productRepository.findAll(spec, pageable);
+
+        if (productPage.isEmpty()) {
+            throw new ApiException("No products found with the given criteria");
+        }
+
+        Page<ProductResponse> productResponsePage = productPage.map(ProductUtils::fromProductEntity);
+        return PageResponseBuilder.buildPageResponse(productResponsePage);
+    }
 
 
 }

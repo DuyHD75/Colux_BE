@@ -21,8 +21,7 @@ public class ProductUtils {
                 .productId(UUID.randomUUID().toString())
                 .productName(productRequest.getProductName())
                 .description(productRequest.getDescription())
-                .price(productRequest.getPrice())
-                .ratingAverage(productRequest.getRatingAverage())
+                .ratingAverage(0.0)
                 .code(productRequest.getCode())
                 .placeOfOrigin(productRequest.getPlaceOfOrigin())
                 .warranty(productRequest.getWarranty())
@@ -39,7 +38,6 @@ public class ProductUtils {
                 .productId(product.getProductId())
                 .productName(product.getProductName())
                 .description(product.getDescription())
-                .price(product.getPrice())
                 .ratingAverage(product.getRatingAverage())
                 .code(product.getCode())
                 .placeOfOrigin(product.getPlaceOfOrigin())
@@ -59,7 +57,6 @@ public class ProductUtils {
                 .productId(product.getProductId())
                 .productName(product.getProductName())
                 .description(product.getDescription())
-                .price(product.getPrice())
                 .ratingAverage(product.getRatingAverage())
                 .code(product.getCode())
                 .placeOfOrigin(product.getPlaceOfOrigin())
@@ -94,4 +91,6 @@ public class ProductUtils {
                 .status(brand.getStatus())
                 .build();
     }
+
+
 }

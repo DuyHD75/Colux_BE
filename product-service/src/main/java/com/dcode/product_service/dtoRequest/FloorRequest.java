@@ -6,10 +6,8 @@ import java.util.Set;
 
 @Data
 public class FloorRequest {
+    private String productId;
     private Double foamThickness;
-    private String accessoryType;
-
-    private String packagingMaterial;
     private Integer numberOfPiecesPerBox;
 //    private Double areaPerBox; => sizeName in variant class
 

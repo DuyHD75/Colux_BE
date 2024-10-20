@@ -1,5 +1,6 @@
 package com.dcode.product_service.dtoResponse;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -14,5 +15,6 @@ public class WallpaperResponse {
     private String wallpaperId;
     private String area;
     private List<VariantResponse> variants;
+    @JsonBackReference
     private ProductResponse product;
 }

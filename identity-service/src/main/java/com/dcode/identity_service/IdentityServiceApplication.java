@@ -27,7 +27,7 @@ public class IdentityServiceApplication {
 	CommandLineRunner commandLineRunner(RoleRepository roleRepository) {
 		return args -> {
 			RequestContext.setUserId(0L);
-            /*var userRole = new RoleEntity();
+            var userRole = new RoleEntity();
             userRole.setName(Authority.USER.name());
             userRole.setAuthorities(Authority.USER.getAuthorityValue());
             roleRepository.save(userRole);
@@ -35,7 +35,7 @@ public class IdentityServiceApplication {
             var adminRole = new RoleEntity();
             adminRole.setName(Authority.ADMIN.name());
             adminRole.setAuthorities(Authority.ADMIN.getAuthorityValue());
-            roleRepository.save(adminRole);*/
+            roleRepository.save(adminRole);
 
             RequestContext.start();
 		};

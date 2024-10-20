@@ -8,9 +8,8 @@ import java.util.Set;
 public class ProductRequest {
     private String description;
     private String placeOfOrigin;
-    private String price;
     private String productName;
-    private String ratingAverage;
+    private Double ratingAverage;
     private String code;
     private String warranty;
     private String applicableSurface;
