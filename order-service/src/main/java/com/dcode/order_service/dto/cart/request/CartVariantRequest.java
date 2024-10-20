@@ -6,7 +6,7 @@ import lombok.Data;
 public class CartVariantRequest {
     private String variantId;
     private String productId;
-    private String colorId;
+    private String paintId;
     private String wallpaperId;
     private String floorId;
     private Integer quantity;

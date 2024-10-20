@@ -77,7 +77,7 @@ public class ProductController {
         }
     }
 
-    @PostMapping("/cart")
+    @PostMapping("/getProductByVariant")
     public ResponseEntity<Response> cartVariant(@RequestBody @Valid List<ProductOrderRequest> productOrderRequestList, HttpServletRequest request, HttpServletResponse response) {
         try{
              List<CartDto> productCartResponses = productService.checkStockAvailability(productOrderRequestList);

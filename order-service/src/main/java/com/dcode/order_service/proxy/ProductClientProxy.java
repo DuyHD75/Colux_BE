@@ -12,6 +12,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
@@ -76,7 +77,7 @@ public class ProductClientProxy {
         ParameterizedTypeReference<List<CartVariantResponse.ClientVariantResponse>> responseType = new ParameterizedTypeReference<>() {};
 
         ResponseEntity<List<CartVariantResponse.ClientVariantResponse>> responseEntity = restTemplate.exchange(
-                PRODUCT_URL + "/getProductByVariant/",
+                PRODUCT_URL + "/getProductByVariant",
                 HttpMethod.POST,
                 requestEntity,
                 responseType
@@ -88,11 +89,4 @@ public class ProductClientProxy {
 
         return responseEntity.getBody();
     }
-
-
-
-
-
-
-
 }
