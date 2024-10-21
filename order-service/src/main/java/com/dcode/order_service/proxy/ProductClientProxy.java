@@ -95,4 +95,5 @@ public class ProductClientProxy {
 
         return  responseBody.getData().getProducts();
     }
+
 }

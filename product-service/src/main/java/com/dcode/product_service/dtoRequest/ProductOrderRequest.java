@@ -9,5 +9,4 @@ public class ProductOrderRequest {
     private String floorId;
     private String variantId;
     private Integer quantity;
-
 }
