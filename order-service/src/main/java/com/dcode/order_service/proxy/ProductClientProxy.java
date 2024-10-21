@@ -2,6 +2,7 @@ package com.dcode.order_service.proxy;
 
 import com.dcode.order_service.dto.cart.request.CartVariantRequest;
 import com.dcode.order_service.dto.cart.response.CartVariantResponse;
+import com.dcode.order_service.dto.cart.response.ProductResponseWrapper;
 import com.dcode.order_service.dto.product.PurchaseRequest;
 import com.dcode.order_service.dto.product.PurchaseResponse;
 import com.dcode.order_service.dto.product.PurchaseResponseWrapper;
@@ -74,9 +75,9 @@ public class ProductClientProxy {
 
         HttpEntity<List<CartVariantRequest>> requestEntity = new HttpEntity<>(cartVariantRequests, headers);
 
-        ParameterizedTypeReference<List<CartVariantResponse.ClientVariantResponse>> responseType = new ParameterizedTypeReference<>() {};
+        ParameterizedTypeReference<ProductResponseWrapper> responseType = new ParameterizedTypeReference<>() {};
 
-        ResponseEntity<List<CartVariantResponse.ClientVariantResponse>> responseEntity = restTemplate.exchange(
+        ResponseEntity<ProductResponseWrapper> responseEntity = restTemplate.exchange(
                 PRODUCT_URL + "/getProductByVariant",
                 HttpMethod.POST,
                 requestEntity,
@@ -87,6 +88,11 @@ public class ProductClientProxy {
             throw new BusinessException("Error while fetching variant :: " + responseEntity.getStatusCode());
         }
 
-        return responseEntity.getBody();
+        ProductResponseWrapper responseBody = responseEntity.getBody();
+        if (responseBody == null || responseBody.getData() == null || responseBody.getData().getProducts() == null) {
+            throw new BusinessException("No products found in response");
+        }
+
+        return  responseBody.getData().getProducts();
     }
 }

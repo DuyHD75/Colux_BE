@@ -2,8 +2,6 @@ package com.dcode.product_service.dto;
 
 import lombok.*;
 
-import java.util.List;
-
 @Data
 public class CartDto {
 
@@ -13,10 +11,10 @@ public class CartDto {
     private String packageType;
     private Integer variantInventory;
     private Double priceSell;
-    private ProductDetailsDto productDetails;
+    private ClientProductResponse productDetails;
 
     @Data
-    public static class ProductDetailsDto {
+    public static class ClientProductResponse {
         private String productId;
         private String productName;
         private String productImage; // chỉ cần 1 image hiển thị

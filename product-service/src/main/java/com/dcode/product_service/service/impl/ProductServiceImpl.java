@@ -152,18 +152,18 @@ public class ProductServiceImpl implements IProductService {
                     cartDto.setVariantInventory(variant.getQuantity());
                     cartDto.setPriceSell(variant.getPrice());
 
-                    CartDto.ProductDetailsDto productDetailsDto = new CartDto.ProductDetailsDto();
-                    productDetailsDto.setProductId(variant.getPaint().getProduct().getProductId());
-                    productDetailsDto.setProductName(variant.getPaint().getProduct().getProductName());
-                    productDetailsDto.setProductImage(variant.getPaint().getProduct().getImages().isEmpty() ? null : variant.getPaint().getProduct().getImages().get(0).getUrl());
-                    productDetailsDto.setCode(variant.getPaint().getProduct().getCode());
+                    CartDto.ClientProductResponse clientProductResponse = new CartDto.ClientProductResponse();
+                    clientProductResponse.setProductId(variant.getPaint().getProduct().getProductId());
+                    clientProductResponse.setProductName(variant.getPaint().getProduct().getProductName());
+                    clientProductResponse.setProductImage(variant.getPaint().getProduct().getImages().isEmpty() ? null : variant.getPaint().getProduct().getImages().get(0).getUrl());
+                    clientProductResponse.setCode(variant.getPaint().getProduct().getCode());
 
                     CartDto.PaintDetailsDto paintDetailsDto = new CartDto.PaintDetailsDto();
                     paintDetailsDto.setColorId(variant.getPaint().getColor().getColorId());
                     paintDetailsDto.setHex(variant.getPaint().getColor().getHex());
-                    productDetailsDto.setPaintDetails(paintDetailsDto);
+                    clientProductResponse.setPaintDetails(paintDetailsDto);
 
-                    cartDto.setProductDetails(productDetailsDto);
+                    cartDto.setProductDetails(clientProductResponse);
                 } else {
                     cartDto.setVariantDescription("Paint variant not found!");
                 }
@@ -178,13 +178,13 @@ public class ProductServiceImpl implements IProductService {
                     cartDto.setVariantInventory(variant.getQuantity());
                     cartDto.setPriceSell(variant.getPrice());
 
-                    CartDto.ProductDetailsDto productDetailsDto = new CartDto.ProductDetailsDto();
-                    productDetailsDto.setProductId(variant.getFloor().getProduct().getProductId());
-                    productDetailsDto.setProductName(variant.getFloor().getProduct().getProductName());
-                    productDetailsDto.setProductImage(variant.getFloor().getProduct().getImages().isEmpty() ? null : variant.getFloor().getProduct().getImages().get(0).getUrl());
-                    productDetailsDto.setCode(variant.getFloor().getProduct().getCode());
+                    CartDto.ClientProductResponse clientProductResponse = new CartDto.ClientProductResponse();
+                    clientProductResponse.setProductId(variant.getFloor().getProduct().getProductId());
+                    clientProductResponse.setProductName(variant.getFloor().getProduct().getProductName());
+                    clientProductResponse.setProductImage(variant.getFloor().getProduct().getImages().isEmpty() ? null : variant.getFloor().getProduct().getImages().get(0).getUrl());
+                    clientProductResponse.setCode(variant.getFloor().getProduct().getCode());
 
-                    cartDto.setProductDetails(productDetailsDto);
+                    cartDto.setProductDetails(clientProductResponse);
                 } else {
                     cartDto.setVariantDescription("Floor variant not found!");
                 }
@@ -199,13 +199,13 @@ public class ProductServiceImpl implements IProductService {
                     cartDto.setVariantInventory(variant.getQuantity());
                     cartDto.setPriceSell(variant.getPrice());
 
-                    CartDto.ProductDetailsDto productDetailsDto = new CartDto.ProductDetailsDto();
-                    productDetailsDto.setProductId(variant.getWallpaper().getProduct().getProductId());
-                    productDetailsDto.setProductName(variant.getWallpaper().getProduct().getProductName());
-                    productDetailsDto.setProductImage(variant.getWallpaper().getProduct().getImages().isEmpty() ? null : variant.getWallpaper().getProduct().getImages().get(0).getUrl());
-                    productDetailsDto.setCode(variant.getWallpaper().getProduct().getCode());
+                    CartDto.ClientProductResponse clientProductResponse = new CartDto.ClientProductResponse();
+                    clientProductResponse.setProductId(variant.getWallpaper().getProduct().getProductId());
+                    clientProductResponse.setProductName(variant.getWallpaper().getProduct().getProductName());
+                    clientProductResponse.setProductImage(variant.getWallpaper().getProduct().getImages().isEmpty() ? null : variant.getWallpaper().getProduct().getImages().get(0).getUrl());
+                    clientProductResponse.setCode(variant.getWallpaper().getProduct().getCode());
 
-                    cartDto.setProductDetails(productDetailsDto);
+                    cartDto.setProductDetails(clientProductResponse);
                 } else {
                     cartDto.setVariantDescription("Wallpaper variant not found!");
                 }
