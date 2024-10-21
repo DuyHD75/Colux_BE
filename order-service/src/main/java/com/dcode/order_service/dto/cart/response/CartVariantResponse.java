@@ -10,11 +10,12 @@ public class CartVariantResponse {
     @Data
     public static class ClientVariantResponse {
         private String variantId;
-        private String variantName;
         private String variantDescription;
+        private String categoryName;
+        private String packageType;
         private Integer variantInventory;
-
-        private ClientProductResponse variantProduct;
+        private Double priceSell;
+        private ClientProductResponse productDetails;
 
         @Data
         public static class ClientProductResponse {
@@ -23,25 +24,12 @@ public class CartVariantResponse {
             private String productImage;
 
             private PaintDetails paintDetails;
-            private WallpaperDetails wallpaperDetails;
-            private FloorDetails floorDetails;
+
 
             @Data
             public static class PaintDetails {
-                private String paintId;
-                private String paintName;
-            }
-
-            @Data
-            public static class WallpaperDetails {
-                private String wallpaperId;
-                private String wallpaperName;
-            }
-
-            @Data
-            public static class FloorDetails {
-                private String floorId;
-                private String floorName;
+                private String colorId;
+                private String hex;
             }
         }
     }

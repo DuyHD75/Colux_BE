@@ -6,16 +6,12 @@ import com.dcode.order_service.dto.cart.request.CartVariantKeyRequest;
 import com.dcode.order_service.dto.cart.response.ClientCartResponse;
 import com.dcode.order_service.service.ICartService;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
-import java.util.List;
 import java.util.Map;
 
 import static com.dcode.order_service.utils.RequestUtils.getResponse;
@@ -39,7 +35,7 @@ public class CartResource {
     public ResponseEntity<Response> createNewCart(
             @RequestBody @Valid CartRequest cartRequest, HttpServletRequest request
     ) {
-        ClientCartResponse response =  cartService.createClientCart(cartRequest);
+        ClientCartResponse response =  cartService.saveClientCart(cartRequest);
         return ResponseEntity.created(getUri()).body(
                 getResponse(request, "Cart created successfully!", CREATED, Map.of("cart", response))
         );

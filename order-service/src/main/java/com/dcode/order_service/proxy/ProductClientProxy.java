@@ -89,11 +89,11 @@ public class ProductClientProxy {
         }
 
         ProductResponseWrapper responseBody = responseEntity.getBody();
-        if (responseBody == null || responseBody.getData() == null || responseBody.getData() == null) {
+        if (responseBody == null || responseBody.getData() == null || responseBody.getData().getProducts() == null) {
             throw new BusinessException("No products found in response");
         }
 
-        return (List<CartVariantResponse.ClientVariantResponse>) responseBody.getData();
+        return  responseBody.getData().getProducts();
     }
 
 }

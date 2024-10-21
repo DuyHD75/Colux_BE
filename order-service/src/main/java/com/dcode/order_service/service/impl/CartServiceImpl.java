@@ -40,10 +40,11 @@ public class CartServiceImpl implements ICartService {
 
 
     @Override
-    public ClientCartResponse createClientCart(CartRequest request) {
+    public ClientCartResponse saveClientCart(CartRequest request) {
 
         final CartEntity cartBeforeSave;
 
+        assert request.getCartId() != null;
         if (request.getCartId().isEmpty() || request.getCartId().isBlank()) {
             cartBeforeSave = cartUtils.createNewCartEntity(request);
         } else {
@@ -59,13 +60,11 @@ public class CartServiceImpl implements ICartService {
         // Step 3: Fetch product variant details from product service
         var variantResponses = this.productClientProxy.getProductByVariantId(request.getCartItems());
 
-//        var variantResponses = this.mockProductVariantData(request.getCartItems());
-
         for (CartVariantEntity cartVariant : cartBeforeSave.getCartVariants()) {
             for (var variant : variantResponses) {
                 if (cartVariant.getVariantId().equals(variant.getVariantId())) {
                     if (cartVariant.getQuantity() > variant.getVariantInventory()) {
-                        throw new BusinessException(String.format("Only %s quantity remaining for item: %s",
+                        throw new BusinessException(String.format("Sorry, you can only purchase a maximum of %s products this %s.",
                                 variant.getVariantInventory(),
                                 variant.getVariantId()));
                     }
@@ -73,12 +72,12 @@ public class CartServiceImpl implements ICartService {
             }
         }
 
+        // Coi chỗ này nó map đúng ko nữa chạy hết for
+
         CartEntity cart = cartRepository.save(cartBeforeSave);
         log.info("Cart saved: {}", cart);
 
-        ClientCartResponse cartResponse = cartUtils.entityToResponse(cart, variantResponses);
-
-        return cartResponse;
+        return cartUtils.entityToResponse(cart, variantResponses);
     }
 
 
@@ -99,8 +98,8 @@ public class CartServiceImpl implements ICartService {
                 })
                 .collect(Collectors.toList());
 
-//        var variantResponses = this.productClientProxy.getProductByVariantId(cartItems);
-        var variantResponses = this.mockProductVariantData(cartItems);
+        var variantResponses = this.productClientProxy.getProductByVariantId(cartItems);
+//        var variantResponses = this.mockProductVariantData(cartItems);
 
         ClientCartResponse cartResponse = cartUtils.entityToResponse(cart, variantResponses);
 
@@ -124,36 +123,4 @@ public class CartServiceImpl implements ICartService {
         cartVariantRepository.deleteByCart_CartIdAndVariantIdIn(cart.getCartId(), idRequests.getVariantIds());
     }
 
-
-    private List<CartVariantResponse.ClientVariantResponse> mockProductVariantData(List<CartVariantRequest> cartItems) {
-        // Tạo dữ liệu mock cho variant responses
-        return cartItems.stream().map(variantId -> {
-            CartVariantResponse.ClientVariantResponse variantResponse = new CartVariantResponse.ClientVariantResponse();
-            variantResponse.setVariantId("var-002");  // Mock variant ID cố định
-            variantResponse.setVariantName("Blue Wallpaper");
-            variantResponse.setVariantDescription("High quality blue wallpaper");
-            variantResponse.setVariantInventory(10);  // Mock số lượng tồn kho
-
-            // Mock product details
-            CartVariantResponse.ClientVariantResponse.ClientProductResponse productResponse = new CartVariantResponse.ClientVariantResponse.ClientProductResponse();
-            productResponse.setProductId("prod-003");
-            productResponse.setProductName("Sơn Chống Thêm 2in1 -Dulux");
-            productResponse.setProductImage("image-url");
-
-            // Paint details không cần, để null
-            productResponse.setPaintDetails(null);
-
-            // Mock Wallpaper Details
-            CartVariantResponse.ClientVariantResponse.ClientProductResponse.WallpaperDetails wallpaperDetails = new CartVariantResponse.ClientVariantResponse.ClientProductResponse.WallpaperDetails();
-            wallpaperDetails.setWallpaperId("wall-001");
-            wallpaperDetails.setWallpaperName("Ocean Blue");
-
-            productResponse.setWallpaperDetails(wallpaperDetails);
-
-            productResponse.setFloorDetails(null);
-            variantResponse.setVariantProduct(productResponse);
-
-            return variantResponse;
-        }).collect(Collectors.toList());
-    }
 }

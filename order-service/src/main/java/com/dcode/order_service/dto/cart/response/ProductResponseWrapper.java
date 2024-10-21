@@ -11,9 +11,11 @@ public class ProductResponseWrapper {
     private String path;
     private String status;
     private String message;
-    private ProductData data;
+    private ProductData data;// object nì
 
+    @Data
     public static class ProductData {
-        private List<CartVariantResponse.ClientVariantResponse> products;
+        private List<CartVariantResponse.ClientVariantResponse> products; // chỗ ni cậu lưu là gì array product á show lại cái json vs
+
     }
 }
