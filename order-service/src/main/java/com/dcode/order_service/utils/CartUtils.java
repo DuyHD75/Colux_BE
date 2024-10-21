@@ -39,7 +39,7 @@ public class CartUtils {
         var entity = new CartVariantEntity();
         entity.setVariantId(request.getVariantId());
         entity.setProductId(request.getProductId());
-        entity.setColorId(request.getPaintId());
+        entity.setPaintId(request.getPaintId());
         entity.setFloorId(request.getFloorId());
         entity.setWallpaperId(request.getWallpaperId());
         entity.setQuantity(request.getQuantity());
@@ -52,9 +52,9 @@ public class CartUtils {
         var entity = new CartVariantEntity();
         entity.setVariantId(request.getVariantId());
         entity.setProductId(request.getProductId());
-        entity.setColorId(request.getPaintId());
-        entity.setColorId(request.getFloorId());
-        entity.setColorId(request.getWallpaperId());
+        entity.setPaintId(request.getPaintId());
+        entity.setFloorId(request.getFloorId());
+        entity.setWallpaperId(request.getWallpaperId());
         entity.setQuantity(request.getQuantity());
         return entity;
     }

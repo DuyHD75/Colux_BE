@@ -10,7 +10,7 @@
     </parent>
     <groupId>com.dcode</groupId>
     <artifactId>order-service</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>0.0.3-SNAPSHOT</version>
     <name>order-service</name>
     <description>Implement Order Service</description>
     <url/>
@@ -182,6 +182,9 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <configuration>
+                    <image>
+                        <name>coluxalpha/mmv3-${project.artifactId}:${project.version}</name>
+                    </image>
                     <excludes>
                         <exclude>
                             <groupId>org.projectlombok</groupId>

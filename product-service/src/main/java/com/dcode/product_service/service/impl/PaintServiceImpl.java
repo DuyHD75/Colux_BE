@@ -13,10 +13,13 @@ import com.dcode.product_service.utils.PaintUtils;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.sql.SQLIntegrityConstraintViolationException;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -47,8 +50,20 @@ public class PaintServiceImpl implements IPaintService {
 
 
     public void createPaint(String productId, PaintRequest paintRequest) {
-        paintRepository.save(createAPaintEntity(productId, paintRequest));
+        try {
+            paintRepository.save(createAPaintEntity(productId, paintRequest));
+        } catch (DataIntegrityViolationException e) {
+            Throwable cause = e.getRootCause();
+            if (cause instanceof SQLIntegrityConstraintViolationException) {
+                // Customize the error message based on the input data
+                String errorMessage = String.format("Color with name '%s' already exists for product ID: %s!",
+                        paintRequest.getColor(), productId);
+                throw new ApiException(errorMessage, e);
+            }
+            throw e; // Rethrow if it's not the expected exception
+        }
     }
+
     public void createPaints(Set<PaintRequest> paintRequests) {
         paintRepository.saveAll(paintRequests.stream().map(
                 paintRequest -> createAPaintEntity(paintRequest.getProductId(), paintRequest)).collect(Collectors.toSet())

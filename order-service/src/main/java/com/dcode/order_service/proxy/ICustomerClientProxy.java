@@ -10,7 +10,7 @@ import java.util.Optional;
 
 @FeignClient(
         name = "identity-service",
-        url = "${CUSTOMER_SERVICE_HOST:http://localhost}:8100",
+        url = "${application.config.customer-url:http://localhost}:8100",
         configuration = {AuthenticationRequestInterceptor.class}
 )
 public interface ICustomerClientProxy {
