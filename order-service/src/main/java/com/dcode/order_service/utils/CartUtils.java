@@ -53,13 +53,14 @@ public class CartUtils {
         entity.setVariantId(request.getVariantId());
         entity.setProductId(request.getProductId());
         entity.setPaintId(request.getPaintId());
-        entity.setWallpaperId(request.getFloorId());
-        entity.setFloorId(request.getWallpaperId());
+        entity.setFloorId(request.getFloorId());
+        entity.setWallpaperId(request.getWallpaperId());
         entity.setQuantity(request.getQuantity());
         return entity;
     }
     // TODO Create new cart entity - END
 
+    //CartiUtils
     public CartEntity partialUpdate(CartEntity entity, CartRequest request) {
         List<String> currentVariantIds = entity.getCartVariants().stream()
                 .map(CartVariantEntity::getVariantId)
@@ -108,7 +109,6 @@ public class CartUtils {
     }
 
 
-    // TODO Dang fix
     public ClientCartResponse entityToResponse(CartEntity cart, List<CartVariantResponse.ClientVariantResponse> variantResponses) {
         var cartResponse = new ClientCartResponse();
         cartResponse.setCartId(cart.getCartId());

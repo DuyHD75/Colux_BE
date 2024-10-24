@@ -117,6 +117,10 @@ public class CartServiceImpl implements ICartService {
                 .map(cartVariantEntity -> {
                     CartVariantRequest request = new CartVariantRequest();
                     request.setVariantId(cartVariantEntity.getVariantId());
+                    request.setPaintId(cartVariantEntity.getPaintId());
+                    request.setQuantity(cartVariantEntity.getQuantity());
+                    request.setWallpaperId(cartVariantEntity.getWallpaperId());
+                    request.setFloorId(cartVariantEntity.getFloorId());
                     return request;
                 })
                 .collect(Collectors.toList());

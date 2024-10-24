@@ -8,6 +8,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -26,21 +28,24 @@ import static org.springframework.http.HttpStatus.*;
 @RestController
 @RequestMapping("/api/v1/products/paints")
 @AllArgsConstructor
+@Slf4j
 public class PaintController {
 
     private final PaintServiceImpl paintService;
 
     @PostMapping("{productId}")
-    public ResponseEntity<Response> createAPaint(@PathVariable("productId")String productId, @RequestBody @Valid PaintRequest paintRequest, HttpServletRequest request, HttpServletResponse response){
-        try{
-        paintService.createPaint(productId, paintRequest);
-        return ResponseEntity.created(getUri()).body(getResponse(request, emptyMap(), "Paint created successfully!", CREATED));
-        }catch (ApiException ex) {
-            return ResponseEntity.status(BAD_REQUEST)
-                    .body(getErrorResponse(request, response, ex, BAD_REQUEST));
+    public ResponseEntity<Response> createAPaint(@PathVariable("productId") String productId,
+                                                 @RequestBody @Valid PaintRequest paintRequest,
+                                                 HttpServletRequest request, HttpServletResponse response) {
+        try {
+            paintService.createPaint(productId, paintRequest);
+            return ResponseEntity.created(getUri()).body(getResponse(request, emptyMap(), "Paint created successfully!", CREATED));
+        } catch (ApiException ex) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(getErrorResponse(request, response, ex, HttpStatus.BAD_REQUEST));
         } catch (Exception exception) {
-            return ResponseEntity.status(INTERNAL_SERVER_ERROR)
-                    .body(getErrorResponse(request, response, new ApiException("An unexpected error occurred."), INTERNAL_SERVER_ERROR));
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(getErrorResponse(request, response, new ApiException("An unexpected error occurred."), HttpStatus.INTERNAL_SERVER_ERROR));
         }
     }
 

@@ -18,6 +18,7 @@ import com.dcode.order_service.exception.BusinessException;
 
 import com.dcode.order_service.proxy.ICustomerClientProxy;
 import com.dcode.order_service.proxy.ProductClientProxy;
+import com.dcode.order_service.repository.IOrderLineRepository;
 import com.dcode.order_service.repository.IOrderRepository;
 import com.dcode.order_service.service.IOrderLineService;
 import com.dcode.order_service.service.IOrderService;
@@ -50,11 +51,9 @@ public class OrderServiceImpl implements IOrderService {
 
     private final ICustomerClientProxy clientProxy;
     private final ProductClientProxy productClientProxy;
-
     private final IOrderRepository orderRepository;
-
+    private final IOrderLineRepository orderLineRepository;
     private final IOrderLineService orderLineService;
-    private final ApplicationEventPublisher publisher;
     private final PaypalConfig paypalConfig;
 
     private static final int VND_TO_USD = 23_000;
@@ -194,5 +193,10 @@ public class OrderServiceImpl implements IOrderService {
                 .map(OrderUtils::fromOrderEntity)
                 .toList();
 
+    }
+
+    @Override
+    public boolean hasCustomerPurchasedProduct(String customerId, String productId) {
+        return orderLineRepository.existsByOrderEntity_customerIdAndProductId(customerId, productId);
     }
 }

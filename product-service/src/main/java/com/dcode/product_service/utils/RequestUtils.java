@@ -73,7 +73,7 @@ public class RequestUtils {
         response.setStatus(status.value());
         return new Response(now().toString(), status.value(),
                 request.getRequestURI(), HttpStatus.valueOf(status.value()),
-                null, errorReason.apply(exception, status), emptyMap());
+                exception.getMessage(), errorReason.apply(exception, status), emptyMap());
     }
 
 

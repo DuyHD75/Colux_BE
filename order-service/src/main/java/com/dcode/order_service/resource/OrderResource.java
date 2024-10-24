@@ -56,11 +56,13 @@ public class OrderResource {
         );
     }
 
+    @GetMapping("/{customer-id}/{product-id}")
+    public boolean hasCustomerPurchasedProduct(@PathVariable("customer-id") String customerId, @PathVariable("product-id") String productId) {
+        return orderService.hasCustomerPurchasedProduct(customerId, productId);
+    }
     private URI getUri() {
         return URI.create("/api/v1/orders");
     }
-//    private Response getResponse(HttpServletRequest request, String message, HttpStatus status, Map<String, Object> data) {
-//        // Implement this method to return a Response object
-//        return new Response(message, status, data);
-//    }
+
+
 }

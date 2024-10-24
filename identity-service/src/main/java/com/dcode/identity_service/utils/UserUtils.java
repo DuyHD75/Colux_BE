@@ -48,7 +48,15 @@ public class UserUtils {
         user.setAuthorities(roleEntity.getAuthorities());
         return user;
     }
-
+    public static User fromReviewUserEntity(UserEntity userEntity){
+        User user = new User();
+        user.setImageUrl(userEntity.getImageUrl());
+        user.setFirstName(userEntity.getFirstName());
+        user.setLastLogin(userEntity.getLastName());
+        user.setRole(userEntity.getRole().getName());
+        user.setUserId(userEntity.getUserId());
+        return user;
+    }
     private static boolean isCredentialsNonExpired(CredentialEntity credentialEntity) {
         return credentialEntity.getUpdatedAt().plusDays(EXPIRATION_DAYS).isAfter(now());
     }

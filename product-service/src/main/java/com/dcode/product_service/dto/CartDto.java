@@ -20,12 +20,22 @@ public class CartDto {
         private String productImage; // chỉ cần 1 image hiển thị
         private String code;
         private PaintDetailsDto paintDetails;
+        private WallpaperDetailsDto wallpaperDetails;
+        private FloorDetailsDto floorDetails;
     }
 
     @Data
     public static class PaintDetailsDto {
+        private String paintId;
         private String colorId;
         private String hex;
+    } @Data
+    public static class WallpaperDetailsDto {
+        private String wallpaperId;
+    } @Data
+    public static class FloorDetailsDto {
+        private String floorId;
+
     }
 }
 
