@@ -159,6 +159,7 @@ public class ProductServiceImpl implements IProductService {
                     clientProductResponse.setCode(variant.getPaint().getProduct().getCode());
 
                     CartDto.PaintDetailsDto paintDetailsDto = new CartDto.PaintDetailsDto();
+                    paintDetailsDto.setPaintId(variant.getPaint().getPaintId());
                     paintDetailsDto.setColorId(variant.getPaint().getColor().getColorId());
                     paintDetailsDto.setHex(variant.getPaint().getColor().getHex());
                     clientProductResponse.setPaintDetails(paintDetailsDto);
@@ -184,7 +185,10 @@ public class ProductServiceImpl implements IProductService {
                     clientProductResponse.setProductImage(variant.getFloor().getProduct().getImages().isEmpty() ? null : variant.getFloor().getProduct().getImages().get(0).getUrl());
                     clientProductResponse.setCode(variant.getFloor().getProduct().getCode());
 
+                    CartDto.FloorDetailsDto floorDetailsDto = new CartDto.FloorDetailsDto();
+                    floorDetailsDto.setFloorId(variant.getFloor().getFloorId());
                     cartDto.setProductDetails(clientProductResponse);
+                    clientProductResponse.setFloorDetails(floorDetailsDto);
                 } else {
                     cartDto.setVariantDescription("Floor variant not found!");
                 }
@@ -204,6 +208,10 @@ public class ProductServiceImpl implements IProductService {
                     clientProductResponse.setProductName(variant.getWallpaper().getProduct().getProductName());
                     clientProductResponse.setProductImage(variant.getWallpaper().getProduct().getImages().isEmpty() ? null : variant.getWallpaper().getProduct().getImages().get(0).getUrl());
                     clientProductResponse.setCode(variant.getWallpaper().getProduct().getCode());
+
+                    CartDto.WallpaperDetailsDto wallpaperDetailsDto = new CartDto.WallpaperDetailsDto();
+                    wallpaperDetailsDto.setWallpaperId(variant.getWallpaper().getWallpaperId());
+                    clientProductResponse.setWallpaperDetails(wallpaperDetailsDto);
 
                     cartDto.setProductDetails(clientProductResponse);
                 } else {

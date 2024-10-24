@@ -1,6 +1,8 @@
 package com.dcode.product_service.entity;
 
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 
@@ -13,5 +15,10 @@ public class PageResponseBuilder {
                 .size(page.getSize())
                 .number(page.getNumber())
                 .build();
+    }
+
+    public static <T> PageResponse<T> buildPageResponseFromList(List<T> list, Pageable pageable, long totalElements) {
+        Page<T> page = new PageImpl<>(list, pageable, totalElements);
+        return buildPageResponse(page);
     }
 }

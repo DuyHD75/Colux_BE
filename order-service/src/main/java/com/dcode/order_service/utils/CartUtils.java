@@ -60,6 +60,7 @@ public class CartUtils {
     }
     // TODO Create new cart entity - END
 
+    //CartiUtils
     public CartEntity partialUpdate(CartEntity entity, CartRequest request) {
         List<String> currentVariantIds = entity.getCartVariants().stream()
                 .map(CartVariantEntity::getVariantId)
@@ -72,7 +73,16 @@ public class CartUtils {
                 if (Objects.equals(cartVariant.getVariantId(), clientCartVariantRequest.getVariantId())) {
                     if (request.getUpdateQuantityType() == UpdateQuantityType.OVERRIDE) {
                         cartVariant.setQuantity(clientCartVariantRequest.getQuantity());
-                    } else {
+                    }
+                    else if(request.getUpdateQuantityType() == UpdateQuantityType.DECREMENTAL){
+                        if(cartVariant.getQuantity() - clientCartVariantRequest.getQuantity() < 0){
+                            cartVariant.setQuantity(0);
+                        }
+                        else {
+                            cartVariant.setQuantity(cartVariant.getQuantity() - clientCartVariantRequest.getQuantity());
+                        }
+                    }
+                    else {
                         cartVariant.setQuantity(cartVariant.getQuantity() + clientCartVariantRequest.getQuantity());
                     }
                     break;
@@ -99,25 +109,24 @@ public class CartUtils {
     }
 
 
-    // TODO Dang fix
     public ClientCartResponse entityToResponse(CartEntity cart, List<CartVariantResponse.ClientVariantResponse> variantResponses) {
         var cartResponse = new ClientCartResponse();
         cartResponse.setCartId(cart.getCartId());
-        Set<CartVariantResponse> cartVariantResponses = cart.getCartVariants().stream()
-                .map(cartVariantEntity -> {
-                    CartVariantResponse cartVariantResponse = new CartVariantResponse();
+        Set<CartVariantResponse> cartVariantResponses = new HashSet<>();
+        for (CartVariantEntity cartVariantEntity : cart.getCartVariants()) {
+            CartVariantResponse cartVariantResponse = new CartVariantResponse();
 
-                    cartVariantResponse.setCartItemQuantity(cartVariantEntity.getQuantity());
+            cartVariantResponse.setCartItemQuantity(cartVariantEntity.getQuantity());
 
-                    variantResponses.forEach(variant -> {
-                        if (variant.getVariantId().equals(cartVariantEntity.getVariantId())) {
-                            cartVariantResponse.setCartItemVariant(variant);
-                        }
-                    });
+            for (CartVariantResponse.ClientVariantResponse variant : variantResponses) {
+                if (variant.getVariantId().equals(cartVariantEntity.getVariantId())) {
+                    cartVariantResponse.setCartItemVariant(variant);
+                    break;
+                }
+            }
 
-                    return cartVariantResponse;
-                })
-                .collect(Collectors.toSet());
+            cartVariantResponses.add(cartVariantResponse);
+        }
 
         cartResponse.setCartItems(cartVariantResponses);
 

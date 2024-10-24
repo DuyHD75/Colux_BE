@@ -1,6 +1,8 @@
 package com.dcode.product_service.entity;
 
 import jakarta.persistence.Entity;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -17,4 +19,8 @@ public class Supplier extends Auditable{
     private String name;
     private String code;
     private String phone;
+
+    @OneToOne
+    @JoinColumn(name = "product_id")
+    private Product product;
 }

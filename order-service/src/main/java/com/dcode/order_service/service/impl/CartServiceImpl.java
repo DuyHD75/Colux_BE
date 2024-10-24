@@ -45,7 +45,8 @@ public class CartServiceImpl implements ICartService {
         final CartEntity cartBeforeSave;
 
         assert request.getCartId() != null;
-        if (request.getCartId().isEmpty() || request.getCartId().isBlank()) {
+
+        if (isCartIdInvalid(request.getCartId())) {
             cartBeforeSave = cartUtils.createNewCartEntity(request);
         } else {
             cartBeforeSave = cartRepository.findByCartId(request.getCartId())
@@ -55,16 +56,16 @@ public class CartServiceImpl implements ICartService {
 
         var customer = this.clientProxy.findUserByUserId(request.getCustomerId())
                 .orElseThrow(() -> new BusinessException("Cannot create cart :: No customer found with ID: " + request.getCustomerId()));
-        log.info("Customer found: {}", customer);
 
-        // Step 3: Fetch product variant details from product service
+
         var variantResponses = this.productClientProxy.getProductByVariantId(request.getCartItems());
 
         for (CartVariantEntity cartVariant : cartBeforeSave.getCartVariants()) {
             for (var variant : variantResponses) {
-                if (cartVariant.getVariantId().equals(variant.getVariantId())) {
-                    if (cartVariant.getQuantity() > variant.getVariantInventory()) {
-                        throw new BusinessException(String.format("Sorry, you can only purchase a maximum of %s products this %s.",
+
+                if (isVariantMatching(cartVariant, variant)) {
+                    if (isQuantityExceedingInventory(cartVariant.getQuantity(), variant.getVariantInventory())) {
+                        throw new BusinessException(String.format("Sorry, you can only purchase a maximum of %s products of this %s.",
                                 variant.getVariantInventory(),
                                 variant.getVariantId()));
                     }
@@ -72,12 +73,35 @@ public class CartServiceImpl implements ICartService {
             }
         }
 
-        // Coi chỗ này nó map đúng ko nữa chạy hết for
-
         CartEntity cart = cartRepository.save(cartBeforeSave);
         log.info("Cart saved: {}", cart);
 
         return cartUtils.entityToResponse(cart, variantResponses);
+    }
+
+    private boolean isCartIdInvalid(String cartId) {
+        return cartId.isEmpty() || cartId.isBlank();
+    }
+
+    private boolean isVariantMatching(CartVariantEntity cartVariant, CartVariantResponse.ClientVariantResponse variant) {
+        boolean isPaintMatch = cartVariant.getPaintId() != null &&
+                variant.getProductDetails().getPaintDetails() != null &&
+                variant.getProductDetails().getPaintDetails().getPaintId().equals(cartVariant.getPaintId());
+
+        boolean isWallpaperMatch = cartVariant.getWallpaperId() != null &&
+                variant.getProductDetails().getWallpaperDetails() != null &&
+                variant.getProductDetails().getWallpaperDetails().getWallpaperId().equals(cartVariant.getWallpaperId());
+
+        boolean isFloorMatch = cartVariant.getFloorId() != null &&
+                variant.getProductDetails().getFloorDetails()!= null &&
+                variant.getProductDetails().getFloorDetails().getFloorId().equals(cartVariant.getFloorId());
+
+        return isPaintMatch || isWallpaperMatch || isFloorMatch;
+    }
+
+
+    private boolean isQuantityExceedingInventory(int quantity, int availableInventory) {
+        return quantity > availableInventory;
     }
 
 

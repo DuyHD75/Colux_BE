@@ -7,4 +7,5 @@ import java.util.List;
 
 public interface IOrderLineRepository extends JpaRepository<OrderLineEntity, Long> {
     List<OrderLineEntity> findAllByOrderEntityId (Long orderId);
+    boolean existsByOrderEntity_customerIdAndProductId(String customerId, String productId);
 }

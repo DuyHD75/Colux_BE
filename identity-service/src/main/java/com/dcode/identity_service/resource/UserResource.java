@@ -4,10 +4,7 @@ package com.dcode.identity_service.resource;
 import com.dcode.identity_service.domain.Response;
 import com.dcode.identity_service.domain.TokenData;
 import com.dcode.identity_service.dto.User;
-import com.dcode.identity_service.dtorequest.ChangePasswordRequest;
-import com.dcode.identity_service.dtorequest.ResetPasswordRequest;
-import com.dcode.identity_service.dtorequest.UpdateProfileRequest;
-import com.dcode.identity_service.dtorequest.UserRequest;
+import com.dcode.identity_service.dtorequest.*;
 import com.dcode.identity_service.exception.ApiException;
 import com.dcode.identity_service.service.IJwtService;
 import com.dcode.identity_service.service.IUserService;
@@ -24,6 +21,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
+import java.util.List;
 import java.util.Map;
 
 import static com.dcode.identity_service.enumeration.TokenType.ACCESS_TOKEN;
@@ -209,6 +207,12 @@ public class UserResource {
         var userEntity = (User) authentication.getPrincipal();
         userService.updateUserProfile(userEntity.getEmail(), user);
         return ResponseEntity.ok().body(getResponse(request, emptyMap(), "User info updated.", OK));
+    }
+
+    @PostMapping("/reviews/info")
+    public ResponseEntity<Response> getUserInfoForReview(@RequestBody @Valid List<UserReviewRequest> userReviewRequest, HttpServletRequest request, HttpServletResponse response){
+        var userReviewResponse = userService.getUserReviewInfo(userReviewRequest);
+        return ResponseEntity.ok().body(getResponse(request, Map.of("user", userReviewResponse), "Users info retrieve success!", OK));
     }
 
     private URI getUri() {

@@ -6,6 +6,7 @@ import com.dcode.identity_service.domain.RequestContext;
 import com.dcode.identity_service.dto.User;
 import com.dcode.identity_service.dtorequest.ResetPasswordRequest;
 import com.dcode.identity_service.dtorequest.UpdateProfileRequest;
+import com.dcode.identity_service.dtorequest.UserReviewRequest;
 import com.dcode.identity_service.entity.ConfirmationEntity;
 import com.dcode.identity_service.entity.CredentialEntity;
 import com.dcode.identity_service.entity.RoleEntity;
@@ -19,6 +20,7 @@ import com.dcode.identity_service.repository.CredentialRepository;
 import com.dcode.identity_service.repository.RoleRepository;
 import com.dcode.identity_service.repository.UserRepository;
 import com.dcode.identity_service.service.IUserService;
+import com.dcode.identity_service.utils.UserUtils;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -27,12 +29,12 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 
+import java.util.List;
 import java.util.Map;
 
 import static com.dcode.identity_service.enumeration.EventType.REGISTRATION;
 import static com.dcode.identity_service.enumeration.EventType.RESET_PASSWORD;
-import static com.dcode.identity_service.utils.UserUtils.createNewUserEntity;
-import static com.dcode.identity_service.utils.UserUtils.fromUserEntity;
+import static com.dcode.identity_service.utils.UserUtils.*;
 import static java.time.LocalDateTime.now;
 
 @Service
@@ -178,6 +180,12 @@ public class UserServiceImpl implements IUserService {
         userEntity.setImageUrl(data.getImageUrl());
         userRepository.save(userEntity);
         return fromUserEntity(userEntity, userEntity.getRole(), getUserCredentialById(userEntity.getId()));
+    }
+
+    @Override
+    public List<User> getUserReviewInfo(List<UserReviewRequest> userReviewRequest) {
+        var userReviewInfos = userRepository.findAllByUserIdIn(userReviewRequest.stream().map(UserReviewRequest::getCustomerId).toList());
+        return userReviewInfos.stream().map(UserUtils::fromReviewUserEntity).toList() ;
     }
 
     private UserEntity getUserEntityByEmail(String email) {
