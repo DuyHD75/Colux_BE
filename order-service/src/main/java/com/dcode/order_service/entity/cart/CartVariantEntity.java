@@ -26,8 +26,8 @@ public class CartVariantEntity extends Auditable {
     @Column(name = "product_id", nullable = false)
     private String productId;
 
-    @Column(name = "color_id")
-    private String colorId;
+    @Column(name = "paint_id")
+    private String paintId;
 
     @Column(name = "wallpaper_id")
     private String wallpaperId;

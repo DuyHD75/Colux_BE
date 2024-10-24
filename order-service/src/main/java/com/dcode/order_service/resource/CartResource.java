@@ -59,40 +59,9 @@ public class CartResource {
 
 
 
-//    @PostMapping
-//    public ResponseEntity<ClientCartResponse> saveCart(@RequestBody ClientCartRequest request) {
-//        final Cart cartBeforeSave;
-//
-//        // TODO: Đôi khi cartId null nhưng thực tế user vẫn đang có cart trong DB
-//        if (request.getCartId() == null) {
-//            cartBeforeSave = clientCartMapper.requestToEntity(request);
-//        } else {
-//            cartBeforeSave = cartRepository.findById(request.getCartId())
-//                    .map(existingEntity -> clientCartMapper.partialUpdate(existingEntity, request))
-//                    .orElseThrow(() -> new ResourceNotFoundException(ResourceName.CART, FieldName.ID, request.getCartId()));
-//        }
-//
-//        // Validate Variant Inventory
-//        for (CartVariant cartVariant : cartBeforeSave.getCartVariants()) {
-//            int inventory = InventoryUtils
-//                    .calculateInventoryIndices(docketVariantRepository.findByVariantId(cartVariant.getCartVariantKey().getVariantId()))
-//                    .get("canBeSold");
-//            if (cartVariant.getQuantity() > inventory) {
-//                throw new RuntimeException("Variant quantity cannot greater than variant inventory");
-//            }
-//        }
-//
-//        Cart cart = cartRepository.save(cartBeforeSave);
-//        ClientCartResponse clientCartResponse = clientCartMapper.entityToResponse(cart);
-//        return ResponseEntity.status(HttpStatus.OK).body(clientCartResponse);
-//    }
-
-
     private URI getUri() {
         return URI.create("/api/v1/carts");
     }
-
-
 
 
 }

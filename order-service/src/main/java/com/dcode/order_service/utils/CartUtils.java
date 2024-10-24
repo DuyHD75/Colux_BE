@@ -39,7 +39,7 @@ public class CartUtils {
         var entity = new CartVariantEntity();
         entity.setVariantId(request.getVariantId());
         entity.setProductId(request.getProductId());
-        entity.setColorId(request.getPaintId());
+        entity.setPaintId(request.getPaintId());
         entity.setFloorId(request.getFloorId());
         entity.setWallpaperId(request.getWallpaperId());
         entity.setQuantity(request.getQuantity());
@@ -52,9 +52,9 @@ public class CartUtils {
         var entity = new CartVariantEntity();
         entity.setVariantId(request.getVariantId());
         entity.setProductId(request.getProductId());
-        entity.setColorId(request.getPaintId());
-        entity.setColorId(request.getFloorId());
-        entity.setColorId(request.getWallpaperId());
+        entity.setPaintId(request.getPaintId());
+        entity.setWallpaperId(request.getFloorId());
+        entity.setFloorId(request.getWallpaperId());
         entity.setQuantity(request.getQuantity());
         return entity;
     }
@@ -72,7 +72,16 @@ public class CartUtils {
                 if (Objects.equals(cartVariant.getVariantId(), clientCartVariantRequest.getVariantId())) {
                     if (request.getUpdateQuantityType() == UpdateQuantityType.OVERRIDE) {
                         cartVariant.setQuantity(clientCartVariantRequest.getQuantity());
-                    } else {
+                    }
+                    else if(request.getUpdateQuantityType() == UpdateQuantityType.DECREMENTAL){
+                        if(cartVariant.getQuantity() - clientCartVariantRequest.getQuantity() < 0){
+                            cartVariant.setQuantity(0);
+                        }
+                        else {
+                            cartVariant.setQuantity(cartVariant.getQuantity() - clientCartVariantRequest.getQuantity());
+                        }
+                    }
+                    else {
                         cartVariant.setQuantity(cartVariant.getQuantity() + clientCartVariantRequest.getQuantity());
                     }
                     break;
@@ -103,57 +112,24 @@ public class CartUtils {
     public ClientCartResponse entityToResponse(CartEntity cart, List<CartVariantResponse.ClientVariantResponse> variantResponses) {
         var cartResponse = new ClientCartResponse();
         cartResponse.setCartId(cart.getCartId());
-        Set<CartVariantResponse> cartVariantResponses = cart.getCartVariants().stream()
-                .map(cartVariantEntity -> {
-                    CartVariantResponse cartVariantResponse = new CartVariantResponse();
+        Set<CartVariantResponse> cartVariantResponses = new HashSet<>();
+        for (CartVariantEntity cartVariantEntity : cart.getCartVariants()) {
+            CartVariantResponse cartVariantResponse = new CartVariantResponse();
 
-                    cartVariantResponse.setCartItemQuantity(cartVariantEntity.getQuantity());
+            cartVariantResponse.setCartItemQuantity(cartVariantEntity.getQuantity());
 
-                    variantResponses.forEach(variant -> {
-                        if (variant.getVariantId().equals(cartVariantEntity.getVariantId())) {
-                            cartVariantResponse.setCartItemVariant(variant);
-                        }
-                    });
+            for (CartVariantResponse.ClientVariantResponse variant : variantResponses) {
+                if (variant.getVariantId().equals(cartVariantEntity.getVariantId())) {
+                    cartVariantResponse.setCartItemVariant(variant);
+                    break;
+                }
+            }
 
-                    return cartVariantResponse;
-                })
-                .collect(Collectors.toSet());
+            cartVariantResponses.add(cartVariantResponse);
+        }
 
         cartResponse.setCartItems(cartVariantResponses);
 
         return cartResponse;
     }
-
-
-//    private CartVariantResponse.ClientVariantResponse entityToResponse(CartEntity entity) {
-//        var response = new CartVariantResponse.ClientVariantResponse();
-//        response.setVariantId(entity.getId());
-//        response.setVariantProduct(entityToResponse(entity.getProduct()));
-//        response.setVariantPrice(entity.getPrice());
-//        response.setVariantProperties(entity.getProperties());
-//        response.setVariantInventory(InventoryUtils
-//                .calculateInventoryIndices(docketVariantRepository.findByVariantId(entity.getId()))
-//                .get("canBeSold"));
-//        return response;
-//    }
-
-//    private CartVariantResponse entityToResponse(CartVariantEntity entity) {
-//        var response = new CartVariantResponse();
-//        response.setCartItemVariant(entityToResponse(entity.getVariant()));
-//        response.setCartItemQuantity(entity.getQuantity());
-//        return response;
-//    }
-//
-//    private CartVariantResponse.ClientVariantResponse entityToResponse(Variant entity) {
-//        var response = new ClientCartVariantResponse.ClientVariantResponse();
-//        response.setVariantId(entity.getId());
-//        response.setVariantProduct(entityToResponse(entity.getProduct()));
-//        response.setVariantPrice(entity.getPrice());
-//        response.setVariantProperties(entity.getProperties());
-//        response.setVariantInventory(InventoryUtils
-//                .calculateInventoryIndices(docketVariantRepository.findByVariantId(entity.getId()))
-//                .get("canBeSold"));
-//        return response;
-//    }
-
 }

@@ -22,15 +22,27 @@ public class CartVariantResponse {
             private String productId;
             private String productName;
             private String productImage;
-
+            private String code;
             private PaintDetails paintDetails;
+            private WallpaperDetails wallpaperDetails;
+            private FloorDetails floorDetails;
 
 
             @Data
             public static class PaintDetails {
+                private String paintId;
                 private String colorId;
                 private String hex;
             }
+            @Data
+            public static class WallpaperDetails {
+                private String wallpaperId;
+            }
+            @Data
+            public static class FloorDetails {
+                private String floorId;
+            }
+
         }
     }
 }
