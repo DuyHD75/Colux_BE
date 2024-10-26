@@ -3,6 +3,7 @@ package com.dcode.order_service.resource;
 
 import com.dcode.order_service.domain.Response;
 import com.dcode.order_service.dto.order.request.OrderRequest;
+import com.dcode.order_service.dto.order.response.ConfirmedOrderResponse;
 import com.dcode.order_service.exception.BusinessException;
 import com.dcode.order_service.service.IOrderService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -34,8 +35,11 @@ public class OrderResource {
     @PostMapping("/create")
     public ResponseEntity<?> createNewOrder(@RequestBody @Valid OrderRequest orderRequest, HttpServletRequest request) {
         try {
-            String approvalUrl = orderService.createClientOrder(orderRequest);
-            return ResponseEntity.status(HttpStatus.FOUND).location(URI.create(approvalUrl)).build();
+            ConfirmedOrderResponse response = orderService.createClientOrder(orderRequest);
+            return ResponseEntity.status(HttpStatus.CREATED).body(
+                    getResponse(request, "Order created successfully!", CREATED, Map.of("data", response))
+            );
+//            return ResponseEntity.status(HttpStatus.FOUND).location(URI.create(approvalUrl)).build();
         } catch (BusinessException ex) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getData());
         }

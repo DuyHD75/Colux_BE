@@ -1,19 +1,16 @@
 package com.dcode.order_service.service.impl;
 
 import com.dcode.order_service.config.PaypalConfig;
-import com.dcode.order_service.domain.kafka.OrderConfirmation;
-//import com.dcode.order_service.domain.kafka.OrderProducer;
 import com.dcode.order_service.dto.order.Order;
 import com.dcode.order_service.dto.order.request.OrderLineRequest;
 import com.dcode.order_service.dto.order.request.OrderRequest;
-import com.dcode.order_service.dto.order.response.OrderResponse;
-import com.dcode.order_service.dto.payment.PaypalRequest;
-import com.dcode.order_service.dto.payment.PaypalResponse;
+import com.dcode.order_service.dto.order.response.ConfirmedOrderResponse;
 import com.dcode.order_service.dto.product.PurchaseRequest;
 import com.dcode.order_service.dto.product.PurchaseResponse;
 import com.dcode.order_service.dto.product.PurchaseResponseWrapper;
+import com.dcode.order_service.entity.order.OrderEntity;
+import com.dcode.order_service.entity.order.OrderLineEntity;
 import com.dcode.order_service.enumuration.PaymentMethod;
-import com.dcode.order_service.event.listener.OrderEvent;
 import com.dcode.order_service.exception.BusinessException;
 
 import com.dcode.order_service.proxy.ICustomerClientProxy;
@@ -28,8 +25,7 @@ import com.paypal.base.rest.PayPalRESTException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.http.HttpStatus;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -37,10 +33,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.apache.kafka.clients.producer.ProducerRecord;
+
 import static com.dcode.order_service.constant.Constants.AppConstants.HOST_URL;
-import static com.dcode.order_service.enumuration.EventType.ORDER_CREATED;
-import static com.dcode.order_service.enumuration.TransactionIntent.CAPTURE;
-import static com.dcode.order_service.enumuration.PaymentPage.BILLING;
 import static com.dcode.order_service.utils.OrderUtils.createNewOrderEntity;
 
 @Service
@@ -55,7 +50,7 @@ public class OrderServiceImpl implements IOrderService {
     private final IOrderLineRepository orderLineRepository;
     private final IOrderLineService orderLineService;
     private final PaypalConfig paypalConfig;
-
+    private final KafkaTemplate<String, String> kafkaTemplate;
     private static final int VND_TO_USD = 23_000;
 
 //    private final OrderProducer orderProducer;
@@ -66,13 +61,15 @@ public class OrderServiceImpl implements IOrderService {
     }
 
     @Override
-    public String createClientOrder(OrderRequest request) {
+    public ConfirmedOrderResponse createClientOrder(OrderRequest request) {
         var customer = this.clientProxy.findUserByUserId(request.getCustomerId())
                 .orElseThrow(() -> new BusinessException("Cannot create order :: No customer found with ID: " + request.getCustomerId()));
 
         log.info("Customer found: {}", customer);
         log.info("Sending purchase order request: {}", request.getPurchaseProducts());
         PurchaseResponseWrapper purchaseResponseWrapper = productClientProxy.purchaseProducts(request.getPurchaseProducts());
+        // create order confirmation
+        ConfirmedOrderResponse confirmedOrderResponse = new ConfirmedOrderResponse();
 
         if (purchaseResponseWrapper.getStatus() == 200) {
             List<PurchaseResponse> purchasedProducts = purchaseResponseWrapper.getData();
@@ -123,9 +120,17 @@ public class OrderServiceImpl implements IOrderService {
                 }
             }
 
+            // Gửi message tới Kafka với order ID ngay khi tạo
+            ProducerRecord<String, String> record = new ProducerRecord<>("order-check-status", order.getOrderId());
+            kafkaTemplate.send(record);
+
+
+            confirmedOrderResponse.setOrderCode(order.getOrderId());
             if (request.getPaymentMethod() == PaymentMethod.CASH) {
                 orderRepository.save(order);
+                confirmedOrderResponse.setMessage(PaymentMethod.CASH);
             } else if (request.getPaymentMethod() == PaymentMethod.PAYPAL) {
+                confirmedOrderResponse.setMessage(PaymentMethod.PAYPAL);
                 try {
                     BigDecimal totalPay = request.getTotalPay();
                     if (totalPay.compareTo(BigDecimal.ZERO) <= 0) {
@@ -155,7 +160,7 @@ public class OrderServiceImpl implements IOrderService {
                         log.info("Redirecting user to PayPal for payment approval: {}", approvalUrl);
 
                         // Return the approval URL to the client
-                        return approvalUrl;
+                        confirmedOrderResponse.setOrderPaypalCheckoutLink(approvalUrl);
                     } else {
                         throw new BusinessException("Error while creating PayPal payment");
                     }
@@ -172,7 +177,7 @@ public class OrderServiceImpl implements IOrderService {
         } else {
             throw new BusinessException("Unexpected error while purchasing products");
         }
-        return null;
+        return confirmedOrderResponse;
     }
     //        orderProducer.sendOrderConfirmation(
 //                new OrderConfirmation(
@@ -183,9 +188,19 @@ public class OrderServiceImpl implements IOrderService {
 //                        purchasedProducts
 //                )
 //        );
-    @Override
-    public void captureTransactionPaypal (String paypalOrderId, String payerId) {
+
+    public List<OrderLineEntity> returnOrderToProductService(String orderId) {
+        var orderLines = orderLineRepository.findByOrderEntity_orderId(orderId);
+        if (orderLines.isEmpty()) {
+            throw new BusinessException("No order lines found for order ID: " + orderId);
+        }
+        return orderLines;
     }
+
+    @Override
+    public void captureTransactionPaypal(String paypalOrderId, String payerId) {
+    }
+
     @Override
     public List<Order> getAllOrders() {
         return orderRepository.findAll()
