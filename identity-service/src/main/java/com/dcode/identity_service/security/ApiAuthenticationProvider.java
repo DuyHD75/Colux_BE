@@ -28,12 +28,12 @@ public class ApiAuthenticationProvider implements AuthenticationProvider {
 
     @Override
     public Authentication authenticate(Authentication authentication) throws AuthenticationException {
-        var apiAuthentication = authenticationFunction.apply(authentication); // return ApiAuthentication [Authentication]
+        var apiAuthentication = authenticationFunction.apply(authentication);
 
         var user = userService.getUserByEmail(apiAuthentication.getEmail());
 
         if (user != null) {
-            var userCredential = userService.getUserCredentialById(user.getId()); // get password
+            var userCredential = userService.getUserCredentialById(user.getId());
             if (userCredential.getUpdatedAt().minusDays(EXPIRATION_DAYS).isAfter(LocalDateTime.now()))
                 throw new ApiException("Account is expired. Please contact admin!");
 

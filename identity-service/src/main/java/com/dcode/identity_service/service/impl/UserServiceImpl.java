@@ -192,6 +192,8 @@ public class UserServiceImpl implements IUserService {
         return userRepository.findByEmailIgnoreCase(email).orElseThrow(() -> new ApiException("Error: User is not found."));
     }
 
+
+
     private ConfirmationEntity getConfirmationEntity(String key) {
         return confirmationRepository.findByConfirmKey(key).orElseThrow(() -> new ApiException("Error: Confirmation key is not found."));
     }
@@ -203,3 +205,4 @@ public class UserServiceImpl implements IUserService {
         return createNewUserEntity(firstName, lastName, email, role);
     }
 }
+

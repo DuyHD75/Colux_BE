@@ -121,12 +121,13 @@ public class JwtServiceImpl extends JwtConfiguration implements IJwtService {
         cookie.setHttpOnly(true);
         cookie.setPath("/");
         cookie.setDomain(DOMAIN_SERVER);
-        cookie.setAttribute("SameSite", "None");
-        if (DOMAIN_SERVER.contains("colux.site"))
+        if (DOMAIN_SERVER.contains("colux.site")) {
             cookie.setSecure(true);
-        else
+            cookie.setAttribute("SameSite", "None"); // Use None for cross-site contexts
+        } else {
             cookie.setSecure(false);
-
+            cookie.setAttribute("SameSite", "Lax"); // Lax is less restrictive
+        }
         response.addCookie(cookie);
     };
 
