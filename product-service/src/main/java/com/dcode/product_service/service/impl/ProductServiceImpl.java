@@ -3,6 +3,7 @@ package com.dcode.product_service.service.impl;
 import com.dcode.product_service.dto.CartDto;
 import com.dcode.product_service.dtoRequest.ProductOrderRequest;
 import com.dcode.product_service.dtoRequest.ProductRequest;
+import com.dcode.product_service.dtoRequest.order_service.OrderLineDTO;
 import com.dcode.product_service.dtoResponse.ProductOrderResponse;
 import com.dcode.product_service.dtoResponse.ProductResponse;
 import com.dcode.product_service.entity.*;
@@ -269,16 +270,6 @@ public class ProductServiceImpl implements IProductService {
         return orderResponses;
     }
 
-//    // @AfterThrowing để xử lý ngoại lệ
-//    @AfterThrowing(pointcut = "execution(* com.dcode.product_service.service.impl.ProductServiceImpl.purchaseOrder(..))", throwing = "exception")
-//    public ResponseEntity<Response> handlePurchaseOrderException(Exception exception) {
-//        log.error("Transaction rolled back due to: {}", exception.getMessage());
-//
-//        // Tạo phản hồi cho người dùng
-//        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-//                .body(RequestUtils.getErrorResponse(null, null, new ApiException("An unexpected error occurred."), HttpStatus.BAD_REQUEST));
-//    }
-
     private String checkStock(ProductOrderRequest request, ProductOrderResponse response) {
         // Kiểm tra hàng tồn kho cho từng loại sản phẩm
         if (request.getPaintId() != null) {
@@ -385,6 +376,28 @@ public class ProductServiceImpl implements IProductService {
 
         Page<ProductResponse> productResponsePage = productPage.map(ProductUtils::fromProductEntity);
         return PageResponseBuilder.buildPageResponse(productResponsePage);
+    }
+
+    public String orderCancelRestore(List<OrderLineDTO> orderLineDTOList) {
+        for (OrderLineDTO dto : orderLineDTOList) {
+            if (dto.getPaintId() != null) {
+                PaintVariant paintVariant = paintVariantRepository.findByPaint_paintIdAndVariant_variantId(dto.getPaintId(), dto.getVariantId())
+                        .orElseThrow(() -> new ApiException("Paint not found!"));
+                paintVariant.setQuantity(paintVariant.getQuantity() + dto.getQuantity());
+                paintVariantRepository.save(paintVariant);
+            } else if (dto.getWallpaperId() != null) {
+                WallpaperVariant wallpaperVariant = wallpaperVariantRepository.findByWallpaper_wallpaperIdAndVariant_variantId(dto.getWallpaperId(), dto.getVariantId())
+                        .orElseThrow(() -> new ApiException("Wallpaper not found!"));
+                wallpaperVariant.setQuantity(wallpaperVariant.getQuantity() + dto.getQuantity());
+                wallpaperVariantRepository.save(wallpaperVariant);
+            } else if (dto.getFloorId() != null) {
+                FloorVariant floorVariant = floorVariantRepository.findByFloor_floorIdAndVariant_VariantId(dto.getFloorId(), dto.getVariantId())
+                        .orElseThrow(() -> new ApiException("Floor not found!"));
+                floorVariant.setQuantity(floorVariant.getQuantity() + dto.getQuantity());
+                floorVariantRepository.save(floorVariant);
+            }
+        }
+        return "Order cancel restore successful";
     }
 
 

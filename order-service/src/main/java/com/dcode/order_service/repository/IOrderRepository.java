@@ -16,7 +16,7 @@ public interface IOrderRepository extends JpaRepository<OrderEntity, Long>, JpaS
 
     Optional<OrderEntity> findByPaypalOrderId(String paypalOrderId);
 
-
+    Optional<OrderEntity> findByOrderId(String orderId);
 
 
 

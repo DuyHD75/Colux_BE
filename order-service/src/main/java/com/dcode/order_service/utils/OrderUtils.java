@@ -34,7 +34,7 @@ public class OrderUtils {
                 .shippingCost(request.getShippingCost())
                 .totalPay(request.getTotalPay())
                 .paymentMethod(request.getPaymentMethod())
-                .paymentStatus(request.getPaymentStatus())
+                .paymentStatus(1)
                 .note(request.getNote())
                 .build();
     }
