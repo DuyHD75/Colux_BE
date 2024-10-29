@@ -119,6 +119,8 @@ public class OrderServiceImpl implements IOrderService {
 
 
         if (request.getPaymentMethod() == PaymentMethod.CASH) {
+            //  TODO: Khách hàng thanh toán bằng tiền mặt nhưng phải thanh toán trước 25% giá trị đơn hàng
+
             orderRepository.save(orderEntity);
         } else if (request.getPaymentMethod() == PaymentMethod.PAYPAL) {
 
