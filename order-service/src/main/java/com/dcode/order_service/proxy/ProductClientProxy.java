@@ -30,6 +30,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 @Service
 @RequiredArgsConstructor
 @Slf4j
+
 public class ProductClientProxy {
 
     @Value("${application.config.product-url}")

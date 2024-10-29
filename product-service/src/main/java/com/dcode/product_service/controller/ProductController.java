@@ -79,13 +79,13 @@ public class ProductController {
 
     @PostMapping("/getProductByVariant")
     public ResponseEntity<Response> cartVariant(@RequestBody @Valid List<ProductOrderRequest> productOrderRequestList, HttpServletRequest request, HttpServletResponse response) {
-        try{
-             List<CartDto> productCartResponses = productService.checkStockAvailability(productOrderRequestList);
+        try {
+            List<CartDto> productCartResponses = productService.checkStockAvailability(productOrderRequestList);
             return ResponseEntity.created(getUri()).body(
                     getResponse(request, Map.of("products", productCartResponses),
                             "Product created successfully!", CREATED)
             );
-        }catch (ApiException ex) {
+        } catch (ApiException ex) {
             return ResponseEntity.status(BAD_REQUEST)
                     .body(getErrorResponse(request, response, ex, BAD_REQUEST));
         } catch (Exception exception) {
@@ -175,11 +175,11 @@ public class ProductController {
             @RequestParam(required = false) Double maxPrice,
             HttpServletResponse response,
             HttpServletRequest request) {
-        try{
+        try {
             Pageable pageable = PageRequest.of(page, size);
             var filteredProducts = productService.filterProducts(type, features, properties, rating, minPrice, maxPrice, pageable);
             return ResponseEntity.ok().body(getResponse(request, Map.of("products", filteredProducts), "Product retrieve successfully!", OK));
-        }catch (ApiException ex) {
+        } catch (ApiException ex) {
             log.error("bad-request: ", ex);
             return ResponseEntity.status(BAD_REQUEST)
                     .body(getErrorResponse(request, response, ex, BAD_REQUEST));

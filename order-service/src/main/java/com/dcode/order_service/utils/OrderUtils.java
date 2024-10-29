@@ -23,7 +23,7 @@ public class OrderUtils {
                 .code(RandomString.make(12).toUpperCase())
                 .status(1)
                 .toName("Nguyen Van Hoang")
-                .toPhone("090567665")
+                .toPhone("0375450919")
                 .toAddress("123/4/5")
                 .toWardName("Phuong 1")
                 .toDistrictName("Quan 1")
