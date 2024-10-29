@@ -5,6 +5,7 @@ import com.dcode.order_service.dto.order.Order;
 import com.dcode.order_service.dto.order.request.OrderRequest;
 import com.dcode.order_service.dto.order.response.ConfirmedOrderResponse;
 import com.dcode.order_service.dto.order.response.OrderResponse;
+import com.dcode.order_service.exception.ResourceNotFoundException;
 
 import java.util.List;
 
@@ -13,7 +14,7 @@ public interface IOrderService {
 
     ConfirmedOrderResponse createClientOrder(OrderRequest request);
 
-    void captureTransactionPaypal(String paypalOrderId, String payerId);
+    void captureTransactionPaypal(String paymentId, String payerId) throws ResourceNotFoundException;
 
     List<Order> getAllOrders();
 

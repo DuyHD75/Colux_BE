@@ -173,15 +173,13 @@ public class JwtServiceImpl extends JwtConfiguration implements IJwtService {
 
     @Override
     public void removeCookie(HttpServletRequest request, HttpServletResponse response, String cookieName) {
-        extractCookie.apply(request, cookieName).ifPresent(cookie -> {
-            cookie.setMaxAge(0);
-            cookie.setValue(EMPTY_VALUE);
-            cookie.setPath("/");
-            cookie.setHttpOnly(true);
-            cookie.setSecure(DOMAIN_SERVER.contains("colux.site"));
-            cookie.setPath(DOMAIN_SERVER);
-            response.addCookie(cookie);
-        });
+        Cookie cookie = new Cookie(cookieName, "");
+        cookie.setMaxAge(0);
+        cookie.setPath("/");
+        cookie.setHttpOnly(true);
+        cookie.setSecure(DOMAIN_SERVER.contains("colux.site"));
+        cookie.setDomain(DOMAIN_SERVER);
+        response.addCookie(cookie);
     }
 }
 

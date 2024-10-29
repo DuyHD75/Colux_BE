@@ -82,33 +82,33 @@ services:
 #      KAFKA_CLUSTERS_BOOTSTRAPSERVERS: broker:29092
 ##      KAFKA_CLUSTERS_SCHEMAREGISTRY: http://schema-registry:8081
 #      DYNAMIC_CONFIG_ENABLED: 'true'
-  config-service:
-    image: coluxalpha/mmv3-spring-cloud-config-server:0.0.1-SNAPSHOT
-    container_name: config-service
-    hostname: config-server
-    restart: on-failure
-    ports:
-      - "8888:8888"
-    expose:
-      - "8888"
-    networks:
-      - colux-network
-
-  apigateway:
-    image: coluxalpha/mmv3-api-gateway:0.0.3-SNAPSHOT
-    container_name: apigateway
-    hostname: apigateway
-    restart: on-failure
-    depends_on:
-      - identity-service
-      - config-service
-    environment:
-      - CONFIG_SERVER_URL=http://config-service:8888
-      - IDENTITY_SERVICE_URL=http://identity-service:8100
-      - SPRING_MAIN_WEB-APPLICATION-TYPE=reactive
-      - ROUTER_IDENTITY_SERVICE_URL=http://identity-service:8100
-      - ROUTER_PRODUCT_SERVICE_URL=http://product-service:8081
-      - ROUTER_ORDER_SERVICE_URL=http://order-service:8082
+#  config-service:
+#    image: coluxalpha/mmv3-spring-cloud-config-server:0.0.1-SNAPSHOT
+#    container_name: config-service
+#    hostname: config-server
+#    restart: on-failure
+#    ports:
+#      - "8888:8888"
+#    expose:
+#      - "8888"
+#    networks:
+#      - colux-network
+#
+#  apigateway:
+#    image: coluxalpha/mmv3-api-gateway:0.0.3-SNAPSHOT
+#    container_name: apigateway
+#    hostname: apigateway
+#    restart: on-failure
+#    depends_on:
+#      - identity-service
+#      - config-service
+#    environment:
+#      - CONFIG_SERVER_URL=http://config-service:8888
+#      - IDENTITY_SERVICE_URL=http://identity-service:8100
+#      - SPRING_MAIN_WEB-APPLICATION-TYPE=reactive
+#      - ROUTER_IDENTITY_SERVICE_URL=http://identity-service:8100
+#      - ROUTER_PRODUCT_SERVICE_URL=http://product-service:8081
+#      - ROUTER_ORDER_SERVICE_URL=http://order-service:8082
 #      - API_GATEWAY_HOST=http://config-service:8888
 #      - SPRING_CONFIG_URI=http://spring-cloud-config-service:8888
 #      - IDENTITY_SERVICE_URL=http://identity-service:8081
@@ -117,44 +117,44 @@ services:
 #
 # ============= Services ==================
 
-  identity-service:
-    image: coluxalpha/mmv3-identity-service:0.0.9-SNAPSHOT
-    container_name: identity-service
-    hostname: identity-service
-    restart: on-failure
-    depends_on:
-      - colux-db
-      - config-service
-    ports:
-      - "8100:8100"
-    expose:
-      - "8100"
-    environment:
-      - API_GATEWAY_HOST=apigateway
-      - CONFIG_SERVER_URL=http://config-service:8888
-      - SPRING_PROFILES_ACTIVE=dev
-      - MYSQL_HOST=colux-db
-    networks:
-      - colux-network
-    command: sh -c "sleep 20 && java -jar your-app.jar"
-
-  product-service:
-    image: coluxalpha/mmv3-product-service:0.0.12-SNAPSHOT
-    container_name: product-service
-    hostname: product-service
-    restart: on-failure
-    depends_on:
-      - colux-db
-      - config-service
-    ports:
-      - "8081:8081"
-    environment:
-      - CONFIG_SERVER_URL=http://config-service:8888
-      - MYSQL_HOST=colux-db
-      - SPRING_PROFILES_ACTIVE=dev
-    networks:
-      - colux-network
-    command: sh -c "sleep 20 && java -jar your-app.jar"
+#  identity-service:
+#    image: coluxalpha/mmv3-identity-service:1.0.1-SNAPSHOT
+#    container_name: identity-service
+#    hostname: identity-service
+#    restart: on-failure
+#    depends_on:
+#      - colux-db
+#      - config-service
+#    ports:
+#      - "8100:8100"
+#    expose:
+#      - "8100"
+#    environment:
+#      - API_GATEWAY_HOST=apigateway
+#      - CONFIG_SERVER_URL=http://config-service:8888
+#      - SPRING_PROFILES_ACTIVE=dev
+#      - MYSQL_HOST=colux-db
+#    networks:
+#      - colux-network
+#    command: sh -c "sleep 20 && java -jar your-app.jar"
+#
+#  product-service:
+#    image: coluxalpha/mmv3-product-service:0.0.12-SNAPSHOT
+#    container_name: product-service
+#    hostname: product-service
+#    restart: on-failure
+#    depends_on:
+#      - colux-db
+#      - config-service
+#    ports:
+#      - "8081:8081"
+#    environment:
+#      - CONFIG_SERVER_URL=http://config-service:8888
+#      - MYSQL_HOST=colux-db
+#      - SPRING_PROFILES_ACTIVE=dev
+#    networks:
+#      - colux-network
+#    command: sh -c "sleep 20 && java -jar your-app.jar"
 
 
 networks:

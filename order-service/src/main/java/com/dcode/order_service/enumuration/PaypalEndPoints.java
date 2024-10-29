@@ -11,6 +11,7 @@ public enum PaypalEndPoints {
     PaypalEndPoints(String path) {
         this.path = path;
     }
+
     public static String createURL(String baseURL, PaypalEndPoints endPoint) {
         return baseURL + endPoint.path;
     }

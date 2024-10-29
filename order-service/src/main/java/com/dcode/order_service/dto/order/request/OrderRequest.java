@@ -26,29 +26,17 @@ public class OrderRequest {
     private String toProvinceName;
     private String reference;
     @Nullable
-    private Long orderCancellationReasonId;
+    private String orderCancellationReasonId;
     @Nullable
     private String note;
 
-    @NotNull(message = "Customer should be present")
-    @NotEmpty(message = "Customer should not be empty")
-    @NotBlank(message = "Customer should not be blank")
     private String customerId;
 
     @NotNull(message = "You should at least purchase one product")
     private List<PurchaseRequest> purchaseProducts;
 
-    @Positive(message = "Total amount must be positive number")
-    private BigDecimal totalAmount;
-
-    @Positive(message = "Tax must be positive number")
-    private BigDecimal tax;
-
     @Positive(message = "Shipping cost must be positive number")
     private BigDecimal shippingCost;
-
-    @Positive(message = "Total pay must be positive number")
-    private BigDecimal totalPay;
 
     @NotNull(message = "Payment method type must not be precised")
     private PaymentMethod paymentMethod;

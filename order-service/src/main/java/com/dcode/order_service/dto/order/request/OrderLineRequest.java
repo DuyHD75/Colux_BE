@@ -1,10 +1,12 @@
 package com.dcode.order_service.dto.order.request;
 
+import java.math.BigDecimal;
+
 public record OrderLineRequest(
         String orderId,
         String productId,
-        Double quantity,
-        Double trackingPrice,
+        Integer quantity,
+        BigDecimal trackingPrice,
         String variantId,
         String paintId,
         String wallpaperId,

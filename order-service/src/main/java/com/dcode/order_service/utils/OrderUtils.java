@@ -4,39 +4,78 @@ import com.dcode.order_service.dto.order.Order;
 import com.dcode.order_service.dto.order.request.OrderLineRequest;
 import com.dcode.order_service.dto.order.request.OrderRequest;
 import com.dcode.order_service.dto.order.response.OrderLineResponse;
+import com.dcode.order_service.dto.product.PurchaseResponse;
 import com.dcode.order_service.entity.order.OrderLineEntity;
 import com.dcode.order_service.entity.order.OrderEntity;
+import com.dcode.order_service.repository.IOrderLineRepository;
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 import net.bytebuddy.utility.RandomString;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.util.List;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
+
+import static com.dcode.order_service.constant.Constants.AppConstants.DEFAULT_TAX;
 
 
 @Service
 public class OrderUtils {
 
-    public static OrderEntity createNewOrderEntity(OrderRequest request) {
-        // if the request have the to name field, we can use it to create the order if not we can use the customer name
+    public static OrderEntity mapToOrderEntity(OrderRequest request) {
+
         return OrderEntity.builder()
                 .orderId(UUID.randomUUID().toString())
+                .customerId(request.getCustomerId() != null ? request.getCustomerId() : null)
                 .code(RandomString.make(12).toUpperCase())
-                .status(1)
-                .toName("Nguyen Van Hoang")
-                .toPhone("090567665")
-                .toAddress("123/4/5")
-                .toWardName("Phuong 1")
-                .toDistrictName("Quan 1")
-                .toProvinceName("TP HCM")
-                .customerId(request.getCustomerId())
-                .totalAmount(request.getTotalAmount())
-                .tax(request.getTax())
-                .shippingCost(request.getShippingCost())
-                .totalPay(request.getTotalPay())
-                .paymentMethod(request.getPaymentMethod())
-                .paymentStatus(1)
+                .status(1) // Status 1: Đơn hàng mới
+                .toName(request.getToName())
+                .toPhone(request.getToPhone())
+                .toAddress(request.getToAddress())
+                .toWardName(request.getToWardName())
+                .toDistrictName(request.getToDistrictName())
+                .toProvinceName(request.getToProvinceName())
                 .note(request.getNote())
+                .shippingCost(request.getShippingCost())
+                .paymentMethod(request.getPaymentMethod())
+                .paymentStatus(request.getPaymentStatus())
                 .build();
+    }
+
+    public static Set<OrderLineEntity> mapToOrderLineEntities(OrderEntity orderEntity, List<PurchaseResponse> purchaseResponses) {
+        return purchaseResponses.stream()
+                .map(response -> {
+                    var orderLine = new OrderLineEntity();
+                    orderLine.setOrderLineId(UUID.randomUUID().toString());
+                    orderLine.setOrderEntity(orderEntity);
+                    orderLine.setProductId(response.getProductId());
+                    orderLine.setFloorId(response.getFloorId());
+                    orderLine.setPaintId(response.getPaintId());
+                    orderLine.setWallpaperId(response.getWallpaperId());
+                    orderLine.setVariantId(response.getVariantId());
+                    orderLine.setQuantity(response.getQuantity());
+                    orderLine.setTrackingPrice(response.getPrice());
+                    orderLine.setAmount(response.getPrice().multiply(BigDecimal.valueOf(response.getQuantity())));
+                    return orderLine;
+                })
+                .collect(Collectors.toSet());
+    }
+
+    public static BigDecimal calculateTotalAmount(Set<OrderLineEntity> orderLines) {
+        return BigDecimal.valueOf(orderLines.stream()
+                .mapToDouble(line -> line.getAmount().doubleValue())
+                .sum());
+    }
+
+    public static BigDecimal calculateTotalPay(BigDecimal totalAmount, BigDecimal shippingCost) {
+        return totalAmount
+                .add(totalAmount.multiply(BigDecimal.valueOf(DEFAULT_TAX)).setScale(0, RoundingMode.HALF_UP))
+                .add(shippingCost);
     }
 
     public static Order fromOrderEntity(OrderEntity orderEntity) {

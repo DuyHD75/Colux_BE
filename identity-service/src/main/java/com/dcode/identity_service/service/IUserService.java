@@ -35,7 +35,6 @@ public interface IUserService {
 
     void resetPassword(ResetPasswordRequest data);
 
-
     User updateUserProfile(String email, UpdateProfileRequest data);
 
     List<User> getUserReviewInfo(@Valid List<UserReviewRequest> userReviewRequest);

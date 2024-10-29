@@ -15,6 +15,7 @@ public enum PaymentMethod {
     public String getValue() {
         return value;
     }
+
     public static PaymentMethod fromValue(String value) {
         return Stream.of(PaymentMethod.values())
                 .filter(c -> c.getValue().equals(value))

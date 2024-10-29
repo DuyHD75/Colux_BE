@@ -12,7 +12,5 @@ public record PurchaseRequest(
         String variantId,
         @Positive(message = "Quantity must be greater than zero")
         double quantity
-
-
 ) {
 }

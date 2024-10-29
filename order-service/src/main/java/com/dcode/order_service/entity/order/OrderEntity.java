@@ -11,7 +11,9 @@ import org.hibernate.annotations.NaturalId;
 import org.springframework.lang.Nullable;
 
 import java.math.BigDecimal;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 
 @AllArgsConstructor
@@ -60,14 +62,15 @@ public class OrderEntity extends Auditable {
     @Nullable
     private String note;
 
-    @OneToMany(mappedBy = "orderEntity")
-    private List<OrderLineEntity> orderLines;
+    @OneToMany(mappedBy = "orderEntity", cascade = CascadeType.ALL)
+    private Set<OrderLineEntity> orderLines = new HashSet<>(); // (1) Một đơn hàng có nhiều sản phẩm
 
     @Column(name = "total_amount", nullable = false, columnDefinition = "DECIMAL(15,5)")
     private BigDecimal totalAmount;
-    @Column(name = "tax", nullable = false, columnDefinition = "DECIMAL(15,5)")
 
+    @Column(name = "tax", nullable = false, columnDefinition = "DECIMAL(15,5)")
     private BigDecimal tax;
+
     @Column(name = "shipping_cost", nullable = false, columnDefinition = "DECIMAL(15,5)")
     private BigDecimal shippingCost;
 
@@ -79,7 +82,10 @@ public class OrderEntity extends Auditable {
     private PaymentMethod paymentMethod;
 
     @Column(name = "paypal_order_id")
-    private String paypalOrderId;
+    private String paypalOrderId; // (2) ID của đơn hàng trên paypal
+
+    @Column(name = "paypal_order_status")
+    private String paypalOrderStatus;
 
     @Column(name= "payment_status") /* (1) Chưa thanh toán, (2) Đã thanh toán */
     private Integer paymentStatus;
