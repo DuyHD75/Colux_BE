@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 import org.springframework.lang.Nullable;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 // Reference: https://api.ghn.vn/home/docs/detail?id=122
@@ -58,5 +59,8 @@ public class GhnCreateOrderRequest {
         @JsonProperty("price")
         @Nullable
         private Integer price;
+
+        public void setPrice(BigDecimal trackingPrice) {
+        }
     }
 }

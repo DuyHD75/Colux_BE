@@ -2,7 +2,7 @@ package com.dcode.product_service.controller;
 
 import com.dcode.product_service.domain.ArrayResponse;
 import com.dcode.product_service.domain.Response;
-import com.dcode.product_service.dto.CartDto;
+import com.dcode.product_service.dto.CartDtoBase;
 import com.dcode.product_service.dtoRequest.*;
 import com.dcode.product_service.dtoResponse.ProductOrderResponse;
 import com.dcode.product_service.exception.ApiException;
@@ -80,10 +80,27 @@ public class ProductController {
     @PostMapping("/getProductByVariant")
     public ResponseEntity<Response> cartVariant(@RequestBody @Valid List<ProductOrderRequest> productOrderRequestList, HttpServletRequest request, HttpServletResponse response) {
         try {
-            List<CartDto> productCartResponses = productService.checkStockAvailability(productOrderRequestList);
+            List<CartDtoBase> productCartResponses = productService.checkStockAvailability(productOrderRequestList, false);
             return ResponseEntity.created(getUri()).body(
                     getResponse(request, Map.of("products", productCartResponses),
-                            "Product created successfully!", CREATED)
+                            "Retrieve products successfully!", CREATED)
+            );
+        } catch (ApiException ex) {
+            return ResponseEntity.status(BAD_REQUEST)
+                    .body(getErrorResponse(request, response, ex, BAD_REQUEST));
+        } catch (Exception exception) {
+            return ResponseEntity.status(INTERNAL_SERVER_ERROR)
+                    .body(getErrorResponse(request, response, new ApiException("An unexpected error occurred."), INTERNAL_SERVER_ERROR));
+        }
+
+    }
+    @PostMapping("/getInfo")
+    public ResponseEntity<Response> getInfoForBuildNameGHN(@RequestBody @Valid List<ProductOrderRequest> productOrderRequestList, HttpServletRequest request, HttpServletResponse response) {
+        try {
+            List<CartDtoBase> productCartResponses = productService.checkStockAvailability(productOrderRequestList, true);
+            return ResponseEntity.created(getUri()).body(
+                    getResponse(request, Map.of("products", productCartResponses),
+                            "Retrieve products successfully!", CREATED)
             );
         } catch (ApiException ex) {
             return ResponseEntity.status(BAD_REQUEST)

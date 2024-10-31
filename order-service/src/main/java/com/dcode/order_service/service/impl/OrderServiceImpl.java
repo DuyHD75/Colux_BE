@@ -3,17 +3,14 @@ package com.dcode.order_service.service.impl;
 import com.dcode.order_service.config.PaypalConfig;
 import com.dcode.order_service.config.PaypalHttpClient;
 import com.dcode.order_service.dto.order.Order;
+import com.dcode.order_service.dto.order.request.GhnCalculateFeeRequest;
 import com.dcode.order_service.dto.order.request.OrderRequest;
 import com.dcode.order_service.dto.order.response.ConfirmedOrderResponse;
-import com.dcode.order_service.dto.payment.PaypalRequest;
-import com.dcode.order_service.dto.payment.PaypalResponse;
+import com.dcode.order_service.dto.order.response.GhnCalculateFeeResponse;
 import com.dcode.order_service.dto.product.PurchaseResponse;
-import com.dcode.order_service.entity.order.OrderEntity;
 import com.dcode.order_service.entity.order.OrderLineEntity;
 import com.dcode.order_service.enumuration.OrderStatus;
 import com.dcode.order_service.enumuration.PaymentMethod;
-import com.dcode.order_service.enumuration.payment.OrderIntent;
-import com.dcode.order_service.enumuration.payment.PaymentLandingPage;
 import com.dcode.order_service.exception.BusinessException;
 
 import com.dcode.order_service.exception.ResourceNotFoundException;
@@ -29,11 +26,15 @@ import com.paypal.api.payments.Payment;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.util.List;
 
 import static com.dcode.order_service.constant.Constants.AppConstants.*;
@@ -54,6 +55,13 @@ public class OrderServiceImpl implements IOrderService {
     private final ICartRepository cartRepository;
     private final KafkaTemplate<String, String> kafkaTemplate;
     private final PaypalHttpClient paypalHttpClient;
+
+    @Value("${spring.shipping.ghnToken}")
+    private String ghnToken;
+    @Value("${spring.shipping.ghnShopId}")
+    private String ghnShopId;
+    @Value("${spring.shipping.ghnApiPath}")
+    private String ghnApiPath;
 
 //    private final OrderProducer orderProducer;
 
@@ -206,4 +214,23 @@ public class OrderServiceImpl implements IOrderService {
     public boolean hasCustomerPurchasedProduct(String customerId, String productId) {
         return orderLineRepository.existsByOrderEntity_customerIdAndProductId(customerId, productId);
     }
+
+    @Override
+    public GhnCalculateFeeResponse calculateFee(GhnCalculateFeeRequest ghnCalculateFeeRequestRequest) {
+        String createGhnOrderApiPath = ghnApiPath + "/shipping-order/fee";
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setAccept(List.of(MediaType.APPLICATION_JSON));
+        headers.add("Token", ghnToken);
+
+        RestTemplate restTemplate = new RestTemplate();
+
+        var request = new HttpEntity<>(ghnCalculateFeeRequestRequest, headers);
+        var response = restTemplate.postForEntity(createGhnOrderApiPath, request, GhnCalculateFeeResponse.class);
+
+        return null;
+    }
+
+
 }

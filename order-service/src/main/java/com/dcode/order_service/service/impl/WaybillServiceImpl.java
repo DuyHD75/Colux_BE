@@ -1,5 +1,7 @@
 package com.dcode.order_service.service.impl;
 
+import com.dcode.order_service.domain.Response;
+import com.dcode.order_service.dto.cart.request.CartVariantRequest;
 import com.dcode.order_service.dto.order.request.GhnCallbackOrderRequest;
 import com.dcode.order_service.dto.order.request.GhnCreateOrderRequest;
 import com.dcode.order_service.dto.order.request.WaybillRequest;
@@ -12,13 +14,19 @@ import com.dcode.order_service.entity.waybill.WaybillLog;
 import com.dcode.order_service.enumuration.PaymentMethod;
 import com.dcode.order_service.enumuration.WaybillCallbackConstants;
 import com.dcode.order_service.exception.BusinessException;
+import com.dcode.order_service.proxy.ICustomerClientProxy;
+import com.dcode.order_service.proxy.IProductClientProxy;
 import com.dcode.order_service.repository.IOrderRepository;
 import com.dcode.order_service.repository.IWaybillLogRepository;
 import com.dcode.order_service.repository.IWaybillRepository;
 import com.dcode.order_service.service.WaybillService;
 import com.dcode.order_service.utils.WaybillUtils;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.common.errors.ResourceNotFoundException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -30,9 +38,11 @@ import org.springframework.web.client.RestTemplate;
 
 import java.math.BigDecimal;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class WaybillServiceImpl implements WaybillService {
 
     @Value("${spring.shipping.ghnToken}")
@@ -45,6 +55,10 @@ public class WaybillServiceImpl implements WaybillService {
     private final IWaybillRepository waybillRepository;
     private final IOrderRepository orderRepository;
     private final IWaybillLogRepository waybillLogRepository;
+    private final IProductClientProxy IProductClientProxy;
+
+    @Autowired
+    private ObjectMapper objectMapper;
 
     @Override
     public void callbackStatusWaybillFromGHN(GhnCallbackOrderRequest ghnCallbackOrderRequest) {
@@ -129,7 +143,7 @@ public class WaybillServiceImpl implements WaybillService {
     @Override
     public WaybillResponse createAWaybill(WaybillRequest waybillRequest) {
         var waybillOpt = waybillRepository.findByOrder_OrderId(waybillRequest.getOrderId());
-        if (waybillOpt.isPresent()){
+        if (waybillOpt.isPresent()) {
             throw new BusinessException("This order already had a waybill. Please choose another order!");
         }
 
@@ -221,7 +235,6 @@ public class WaybillServiceImpl implements WaybillService {
             }
 
 
-
         } else {
             throw new BusinessException("Cannot create a new waybill. Order already had a waybill or was cancelled before.");
         }
@@ -253,47 +266,65 @@ public class WaybillServiceImpl implements WaybillService {
         ghnCreateOrderRequest.setPickupTime(waybillRequest.getShippingDate().getEpochSecond());
 
         List<GhnCreateOrderRequest.Item> items = new ArrayList<>();
-        for (OrderLineEntity orderLineEntity : order.getOrderLines()) {
-            var item = new GhnCreateOrderRequest.Item();
-            item.setName(buildGhnProductName(orderLineEntity.getProductId(),
-                    orderLineEntity.getVariantId()));
-            item.setQuantity((int) orderLineEntity.getQuantity());
-            item.setPrice((int) orderLineEntity.getTrackingPrice());
-            items.add(item);
+
+        List<CartVariantRequest> productOrderRequests = order.getOrderLines().stream()
+                .map(orderLine -> new CartVariantRequest(orderLine.getProductId(), orderLine.getVariantId(),
+                        orderLine.getPaintId(), orderLine.getWallpaperId(),
+                        orderLine.getFloorId()))
+                .collect(Collectors.toList());
+
+        Optional<Response> response = IProductClientProxy.findProductInfo(productOrderRequests);
+        log.info("Response from product service: {}", response);
+        if (response.isPresent() && response.get().data() != null) {
+            List<Map<String, Object>> products = objectMapper.convertValue(response.get().data().get("products"), new TypeReference<List<Map<String, Object>>>() {});
+            for (OrderLineEntity orderLineEntity : order.getOrderLines()) {
+                var item = new GhnCreateOrderRequest.Item();
+                Map<String, Object> productInfo = products.stream()
+                        .filter(info -> {
+                            Object variantResponseObj = info.get("variantResponse");
+                            if (variantResponseObj instanceof Map) {
+                                Map<String, Object> variantResponse = (Map<String, Object>) variantResponseObj;
+                                return variantResponse.get("variantId") != null && variantResponse.get("variantId").equals(orderLineEntity.getVariantId());
+                            }
+                            return false;
+                        })
+                        .findFirst()
+                        .orElse(null);
+                if (productInfo != null) {
+                    item.setName(buildGhnProductName(productInfo));
+                    item.setQuantity(orderLineEntity.getQuantity());
+                    item.setPrice(orderLineEntity.getTrackingPrice());
+                    items.add(item);
+                }
+            }
         }
         ghnCreateOrderRequest.setItems(items);
 
         return ghnCreateOrderRequest;
     }
+
     private int chooseGhnPaymentTypeId(PaymentMethod paymentMethodType) {
         return paymentMethodType == PaymentMethod.CASH
                 ? 2 // Thanh toán tiền mặt, người nhận trả tiền vận chuyển và tiền thu hộ
                 : 1; // Thanh toán PayPal, Người gửi trả tiền vận chuyển
     }
-    @SuppressWarnings("unchecked")
-    private String buildGhnProductName(String productName, @Nullable String variantProperties) {
-//        ObjectMapper mapper = new ObjectMapper();
-//
-//        CollectionWrapper<LinkedHashMap<String, Object>> variantPropertiesObj;
-//
-//        try {
-//            variantPropertiesObj = mapper.readValue(variantProperties, CollectionWrapper.class);
-//        } catch (JsonProcessingException e) {
-//            throw new RuntimeException("Cannot build product name for GHN order");
-//        }
-//
-//        if (variantPropertiesObj == null) {
-//            return productName;
-//        }
-//
-//        StringJoiner joiner = new StringJoiner(", ", "(", ")");
-//
-//        for (var variantProperty : variantPropertiesObj.getContent()) {
-//            joiner.add(String.format("%s: %s", variantProperty.get("name"), variantProperty.get("value")));
-//        }
-//
-//        return String.format("%s %s", productName, joiner);
-        return productName;
+
+    private String buildGhnProductName(Map<String, Object> productInfo) {
+        Map<String, Object> productDetails = objectMapper.convertValue(productInfo.get("productDetails"), new TypeReference<Map<String, Object>>() {});
+        Map<String, Object> variantResponse = objectMapper.convertValue(productInfo.get("variantResponse"), new TypeReference<Map<String, Object>>() {});
+        Map<String, Object> paintDetails = productDetails != null ? objectMapper.convertValue(productDetails.get("paintDetails"), new TypeReference<Map<String, Object>>() {}) : null;
+
+        String productName = productDetails != null ? (String) productDetails.get("productName") : "";
+        String sizeName = variantResponse != null ? (String) variantResponse.get("sizeName") : "";
+        String hex = paintDetails != null ? (String) paintDetails.get("hex") : null;
+
+        StringJoiner joiner = new StringJoiner(", ", "(", ")");
+        joiner.add("Size: " + sizeName);
+        if (hex != null) {
+            joiner.add("Color: " + hex);
+        }
+
+        return String.format("%s %s", productName, joiner);
     }
 
 

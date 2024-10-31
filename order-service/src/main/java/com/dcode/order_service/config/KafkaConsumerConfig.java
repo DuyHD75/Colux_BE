@@ -8,6 +8,7 @@ import org.springframework.kafka.annotation.EnableKafka;
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
+import org.springframework.kafka.listener.ContainerProperties;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -26,7 +27,7 @@ public class KafkaConsumerConfig {
         props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest"); // Cấu hình offset
         props.put(ConsumerConfig.SESSION_TIMEOUT_MS_CONFIG, 30000); // Thời gian timeout session
         props.put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, "10"); // Số lượng bản ghi tối đa trong mỗi lần poll
-//        props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, false); // Tắt tự động commit
+        props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, false); // Tắt tự động commit
 
         return new DefaultKafkaConsumerFactory<>(props);
     }
@@ -37,6 +38,7 @@ public class KafkaConsumerConfig {
         factory.setConsumerFactory(consumerFactory());
         factory.setConcurrency(3); // Số lượng luồng xử lý đồng thời
         factory.getContainerProperties().setPollTimeout(3000); // Thời gian chờ poll dữ liệu từ Kafka
+        factory.getContainerProperties().setAckMode(ContainerProperties.AckMode.MANUAL_IMMEDIATE); // Cấu hình commit offset thủ công
         return factory;
     }
 }

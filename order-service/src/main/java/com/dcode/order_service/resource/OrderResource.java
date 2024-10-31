@@ -2,9 +2,9 @@ package com.dcode.order_service.resource;
 
 
 import com.dcode.order_service.domain.Response;
+import com.dcode.order_service.dto.order.request.GhnCalculateFeeRequest;
 import com.dcode.order_service.dto.order.request.OrderRequest;
 import com.dcode.order_service.dto.order.response.ConfirmedOrderResponse;
-import com.dcode.order_service.entity.order.OrderEntity;
 import com.dcode.order_service.exception.BusinessException;
 import com.dcode.order_service.exception.ResourceNotFoundException;
 import com.dcode.order_service.repository.IOrderRepository;
@@ -17,7 +17,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.view.RedirectView;
 
-import static com.dcode.order_service.constant.Constants.AppConstants.FRONTEND_HOST;
 import static java.util.Collections.emptyMap;
 
 import java.net.URI;
@@ -96,7 +95,15 @@ public class OrderResource {
         return redirectView;
     }
 
+    @PostMapping("/calculateFee")
+    public ResponseEntity<Response> calculateFee(@RequestBody GhnCalculateFeeRequest ghnCalculateFeeRequestRequest, HttpServletRequest request) {
+        var fee = orderService.calculateFee(ghnCalculateFeeRequestRequest);
+        return ResponseEntity.ok().body(
+                getResponse(request, "Fee calculated successfully!", OK, Map.of("fee", fee))
+        );
+    }
+
     private URI getUri() {
-        return URI.create("/api/v1/orders");
+        return URI.create("/a   pi/v1/orders");
     }
 }
