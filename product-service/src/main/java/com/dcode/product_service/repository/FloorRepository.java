@@ -7,5 +7,6 @@ import java.util.Optional;
 
 public interface FloorRepository extends JpaRepository<Floor, Long> {
     Optional<Floor> findByFloorId(String floorId);
+    Optional<Floor> findByFloorIdAndStatus(String floorId, Integer status);
 
 }

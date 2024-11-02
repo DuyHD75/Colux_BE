@@ -25,6 +25,7 @@ public class WallpaperUtils {
         Wallpaper wallpaper = Wallpaper.builder()
                 .wallpaperId(UUID.randomUUID().toString())
                 .product(product)
+                .status(1)
                 .wallpaperVariants(wallpaperVariants)
                 .build();
 
@@ -49,6 +50,7 @@ public class WallpaperUtils {
 
         return WallpaperResponse.builder()
                 .wallpaperId(wallpaper.getWallpaperId())
+                .status(wallpaper.getStatus())
                 .variants(convertVariantToVResponse(wallpaper.getWallpaperVariants()))
                 .product(fromProductEntitySimple(wallpaper.getProduct()))
                 .build();

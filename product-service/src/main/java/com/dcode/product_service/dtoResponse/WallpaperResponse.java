@@ -14,6 +14,7 @@ public class WallpaperResponse {
     @JsonProperty("id")
     private String wallpaperId;
     private String area;
+    private Integer status;
     private List<VariantResponse> variants;
     @JsonBackReference
     private ProductResponse product;

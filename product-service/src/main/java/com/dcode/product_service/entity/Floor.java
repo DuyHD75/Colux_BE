@@ -26,11 +26,12 @@ public class Floor extends Auditable{
     @Column(nullable = false, updatable = false, unique = true)
     private String floorId;
     private Double foamThickness; // Xốp: 2mm
-//    private String accessoryType; // Len tường hoặc chỉ nẹp
 //
-//    private String packagingMaterial; // Giấy cứng
     private Integer numberOfPiecesPerBox; // Số tấm trong 1 hộp: 12 Tấm
-//    private Double areaPerBox; // Diện tích 1 hộp: 2.888 m² => should be in variant
+
+
+    @Column(name = "status", nullable = false, columnDefinition = "TINYINT")
+    private Integer status;
 
     @ManyToOne
     private Product product;

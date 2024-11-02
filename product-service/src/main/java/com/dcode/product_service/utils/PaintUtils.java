@@ -26,6 +26,7 @@ public class PaintUtils {
                 .paintId(paint.getPaintId())
                 .color(simpleColorResponse(paint.getColor()))
                 .variants(convertVariantToVResponse(paint.getPaintVariants()))
+                .status(paint.getStatus())
                 .product(fromProductEntitySimple(paint.getProduct()))
                 .build();
     }
@@ -89,6 +90,7 @@ public class PaintUtils {
                 .paintId(UUID.randomUUID().toString())
                 .product(product)
                 .color(color)
+                .status(1)
                 .paintVariants(paintVariant)
                 .build();
 
@@ -108,6 +110,7 @@ public class PaintUtils {
         }
         return paint;
     }
+
 
     public static Paint fromPaintEntity(String color, Map<Variant, Pair<Integer, Double>> variantRequestSet, Paint paint) {
 //        paint.setColor(color);

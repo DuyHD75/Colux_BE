@@ -15,6 +15,7 @@ public class FloorResponse {
     private String foamThickness;
     private String numberOfPiecesPerBox;
     private String areaPerBox;
+    private Integer status;
     private List<VariantResponse> variants;
     @JsonBackReference
     private ProductResponse product;

@@ -22,20 +22,20 @@ import com.dcode.order_service.repository.IOrderRepository;
 import com.dcode.order_service.service.IOrderLineService;
 import com.dcode.order_service.service.IOrderService;
 import com.dcode.order_service.utils.OrderUtils;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.paypal.api.payments.Payment;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
+import org.springframework.http.*;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 
 import static com.dcode.order_service.constant.Constants.AppConstants.*;
 import static com.dcode.order_service.utils.OrderUtils.*;
@@ -46,14 +46,10 @@ import static com.dcode.order_service.utils.OrderUtils.*;
 @Transactional
 public class OrderServiceImpl implements IOrderService {
 
-    private final ICustomerClientProxy clientProxy;
     private final ProductClientProxy productClientProxy;
     private final IOrderRepository orderRepository;
     private final IOrderLineRepository orderLineRepository;
-    private final IOrderLineService orderLineService;
     private final PaypalConfig paypalConfig;
-    private final ICartRepository cartRepository;
-    private final KafkaTemplate<String, String> kafkaTemplate;
     private final PaypalHttpClient paypalHttpClient;
 
     @Value("${spring.shipping.ghnToken}")
@@ -70,19 +66,18 @@ public class OrderServiceImpl implements IOrderService {
         var order = orderRepository.findByCode(code)
                 .orElseThrow(() -> new BusinessException("Order not found"));
 
-       if(order.getStatus() < 3) {
-           order.setStatus(OrderStatus.CANCELLED.getValue());
-           orderRepository.save(order);
+        if (order.getStatus() < 3) {
+            order.setStatus(OrderStatus.CANCELLED.getValue());
+            orderRepository.save(order);
 
-           // Status 1 và 2 đang hàng đang được xử lý, có thể hủy
-           // Thực hiện hủy đơn hàng trên GHN API
-
-
-           // Publisher event
+            // Status 1 và 2 đang hàng đang được xử lý, có thể hủy
+            // Thực hiện hủy đơn hàng trên GHN API
 
 
+            // Publisher event
 
-       }
+
+        }
 
 
         // Send notification
@@ -217,7 +212,7 @@ public class OrderServiceImpl implements IOrderService {
 
     @Override
     public GhnCalculateFeeResponse calculateFee(GhnCalculateFeeRequest ghnCalculateFeeRequestRequest) {
-        String createGhnOrderApiPath = ghnApiPath + "/shipping-order/fee";
+        String calculateFeePath = ghnApiPath + "/v2/shipping-order/fee";
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
@@ -226,10 +221,61 @@ public class OrderServiceImpl implements IOrderService {
 
         RestTemplate restTemplate = new RestTemplate();
 
-        var request = new HttpEntity<>(ghnCalculateFeeRequestRequest, headers);
-        var response = restTemplate.postForEntity(createGhnOrderApiPath, request, GhnCalculateFeeResponse.class);
+        HttpEntity<GhnCalculateFeeRequest> request = new HttpEntity<>(ghnCalculateFeeRequestRequest, headers);
+        ResponseEntity<GhnCalculateFeeResponse> response = restTemplate.postForEntity(calculateFeePath, request, GhnCalculateFeeResponse.class);
 
-        return null;
+        return response.getBody();
+    }
+
+    @Override
+    public Map getProvinces() {
+        String GHNProvincePath = ghnApiPath + "/master-data/province";
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setAccept(List.of(MediaType.APPLICATION_JSON));
+        headers.add("Token", ghnToken);
+
+        RestTemplate restTemplate = new RestTemplate();
+
+        HttpEntity<String> request = new HttpEntity<>(headers);
+        ResponseEntity<Map> response = restTemplate.exchange(GHNProvincePath, HttpMethod.GET, request, Map.class);
+
+        return response.getBody();
+    }
+
+    @Override
+    public Map<String, Object> getDistrict(JsonNode districtId) {
+        String GHNDistrictPath = ghnApiPath + "/master-data/district";
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setAccept(List.of(MediaType.APPLICATION_JSON));
+        headers.add("Token", ghnToken);
+
+        RestTemplate restTemplate = new RestTemplate();
+
+        HttpEntity<JsonNode> request = new HttpEntity<>(districtId, headers);
+        ResponseEntity<Map> response = restTemplate.postForEntity(GHNDistrictPath, request, Map.class);
+
+        return response.getBody();
+    }
+
+    @Override
+    public Map<String, Object> getWard(JsonNode wardId) {
+        String GHNWardPath = ghnApiPath + "/master-data/ward?district_id";
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setAccept(List.of(MediaType.APPLICATION_JSON));
+        headers.add("Token", ghnToken);
+
+        RestTemplate restTemplate = new RestTemplate();
+
+        HttpEntity<JsonNode> request = new HttpEntity<>(wardId, headers);
+        ResponseEntity<Map> response = restTemplate.postForEntity(GHNWardPath, request, Map.class);
+
+        return response.getBody();
     }
 
 

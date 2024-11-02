@@ -41,7 +41,7 @@ public class CartResource {
         );
     }
 
-    @GetMapping("/{customer-id}")
+    @GetMapping("/getCart/{customer-id}")
     public ResponseEntity<Response> getCart(@PathVariable("customer-id") String customer_id, HttpServletRequest request) {
         var carts = cartService.getCart(customer_id);
         return ResponseEntity.ok().body(
