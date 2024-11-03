@@ -1,3 +1,4 @@
+/*
 package com.dcode.order_service.config;
 
 
@@ -13,4 +14,4 @@ public class KafkaTopicConfig {
     public NewTopic newsTopic() {
         return TopicBuilder.name("order-check-status").build();
     }
-}
+}*/

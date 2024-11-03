@@ -1,3 +1,4 @@
+/*
 package com.dcode.order_service.config;
 
 import org.apache.kafka.clients.consumer.ConsumerConfig;
@@ -40,3 +41,4 @@ public class KafkaConsumerConfig {
         return factory;
     }
 }
+*/

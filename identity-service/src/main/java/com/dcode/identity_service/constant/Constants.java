@@ -31,8 +31,8 @@ public class Constants {
     }
 
     public class EmailSubjectConstant {
-        public static final String NEW_USER_ACCOUNT_VERIFICATION = "NEW USER ACCOUNT VERIFICATION";
-        public static final String PASSWORD_RESET_REQUEST = "PASSWORD RESET REQUEST";
+        public static final String NEW_USER_ACCOUNT_VERIFICATION = "[Colux Alpha] - NEW USER ACCOUNT VERIFICATION";
+        public static final String PASSWORD_RESET_REQUEST = "[Colux Alpha] - PASSWORD RESET REQUEST";
     }
 
 }

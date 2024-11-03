@@ -1,20 +1,25 @@
 package com.dcode.order_service.event.listener;
 
+import com.dcode.order_service.event.OrderEvent;
+import com.dcode.order_service.service.impl.EmailServiceImpl;
 import lombok.AllArgsConstructor;
 import org.springframework.context.event.EventListener;
+import org.springframework.stereotype.Component;
 
+@Component
 @AllArgsConstructor
 public class OrderEventListener {
+    private final EmailServiceImpl emailServiceImpl;
 
     @EventListener
     public void onOrderEvent(OrderEvent event) {
         switch (event.getEventType()) {
             case ORDER_CREATED ->
-                    System.out.println("Order Placed");
+                    emailServiceImpl.sendOrderPlacedEmail(event.getOrderEntity(), event.getProductLines(), event.getData());
             case ORDER_CANCELLED ->
-                    System.out.println("Order Cancelled");
+                    emailServiceImpl.sendOrderCancelledEmail(event.getOrderEntity(), event.getProductLines(), event.getData());
             case ORDER_COMPLETED ->
-                    System.out.println("Order Completed");
+                    emailServiceImpl.sendOrderCompletedEmail(event.getOrderEntity(), event.getProductLines(), event.getData());
             default -> {
             }
         }

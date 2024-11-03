@@ -1,3 +1,4 @@
+/*
 package com.dcode.order_service.service;
 
 import com.dcode.order_service.entity.order.OrderEntity;
@@ -78,4 +79,4 @@ public class OrderStatusConsumer {
         // Create message with product list and quantity for ProductService to handle
         return "Restore items for order ID: " + order.getId();
     }
-}
+}*/

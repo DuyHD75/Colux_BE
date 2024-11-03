@@ -1,3 +1,4 @@
+/*
 package com.dcode.order_service.config;
 
 import org.apache.kafka.clients.producer.ProducerConfig;
@@ -23,7 +24,6 @@ public class KafkaProducerConfig {
         props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
         props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
         props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
-
         return props;
     }
 
@@ -36,4 +36,4 @@ public class KafkaProducerConfig {
     public KafkaTemplate<String, String> kafkaTemplate() {
         return new KafkaTemplate<>(producerFactory());
     }
-}
+}*/

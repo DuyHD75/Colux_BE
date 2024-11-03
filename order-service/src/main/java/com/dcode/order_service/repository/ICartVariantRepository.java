@@ -7,5 +7,5 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import java.util.List;
 
 public interface ICartVariantRepository extends JpaRepository<CartVariantEntity, Long>, JpaSpecificationExecutor<CartVariantEntity> {
-        void deleteByCart_CartIdAndVariantIdIn(String cartId, List<String> variantIds);
+        void deleteByCart_CartIdAndVariantIdAndProductIdIn(String cartId, String variantId, List<String> productIDs);
 }

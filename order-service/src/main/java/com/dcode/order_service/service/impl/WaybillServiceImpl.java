@@ -18,7 +18,7 @@ import com.dcode.order_service.repository.IWaybillRepository;
 import com.dcode.order_service.service.WaybillService;
 import com.dcode.order_service.utils.WaybillUtils;
 import lombok.RequiredArgsConstructor;
-import org.apache.kafka.common.errors.ResourceNotFoundException;
+//import org.apache.kafka.common.errors.ResourceNotFoundException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -257,8 +257,8 @@ public class WaybillServiceImpl implements WaybillService {
             var item = new GhnCreateOrderRequest.Item();
             item.setName(buildGhnProductName(orderLineEntity.getProductId(),
                     orderLineEntity.getVariantId()));
-            item.setQuantity((int) orderLineEntity.getQuantity());
-            item.setPrice((int) orderLineEntity.getTrackingPrice());
+            item.setQuantity(orderLineEntity.getQuantity());
+            item.setPrice(orderLineEntity.getTrackingPrice().intValue());
             items.add(item);
         }
         ghnCreateOrderRequest.setItems(items);

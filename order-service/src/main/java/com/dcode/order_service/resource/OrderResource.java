@@ -29,71 +29,99 @@ import static org.springframework.http.HttpStatus.*;
 @RestController
 @RequestMapping("/api/v1/orders")
 @AllArgsConstructor
+@CrossOrigin(FRONTEND_HOST)
 public class OrderResource {
     private final IOrderService orderService;
     private final IOrderRepository orderRepository;
 
+
     @GetMapping("/test")
     public String test(HttpServletRequest request) {
-        return "Order service is up and running!";
+        try {
+            return "Order service is up and running!";
+        } catch (Exception ex) {
+            return "Error: " + ex.getMessage();
+        }
     }
 
     @PostMapping("/create")
-    public ResponseEntity<?> createNewOrder(@RequestBody @Valid OrderRequest orderRequest, HttpServletRequest request) {
+    public ResponseEntity<Response> createNewOrder(@RequestBody @Valid OrderRequest orderRequest, HttpServletRequest request) {
         try {
             ConfirmedOrderResponse response = orderService.createClientOrder(orderRequest);
             return ResponseEntity.created(getUri()).body(
                     getResponse(request, "Order created successfully!", CREATED, Map.of("data", response))
             );
         } catch (BusinessException ex) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getData());
+            return ResponseEntity.internalServerError().body(getResponse(request, "Error: " + ex.getMessage(), INTERNAL_SERVER_ERROR, Map.of("errorData", ex.getData())));
+        } catch (Exception ex) {
+            return ResponseEntity.internalServerError().body(getResponse(request, "Error: " + ex.getMessage(), INTERNAL_SERVER_ERROR, emptyMap()));
         }
     }
 
     @PutMapping("/cancel/{code}")
     public ResponseEntity<Response> cancelOrder(@PathVariable("code") String code, HttpServletRequest request) {
-        orderService.cancelOrder(code);
-        return ResponseEntity.ok().body(
-                getResponse(request, "Order cancelled successfully!", OK, emptyMap())
-        );
+        try {
+            orderService.cancelOrder(code);
+            return ResponseEntity.ok().body(
+                    getResponse(request, "Order cancelled successfully!", OK, emptyMap())
+            );
+        }
+        catch (BusinessException ex) {
+            return ResponseEntity.internalServerError().body(getResponse(request, "Error: " + ex.getMessage(), INTERNAL_SERVER_ERROR, Map.of("errorData", ex.getData())));
+        }
+        catch (Exception ex) {
+            return ResponseEntity.internalServerError().body(getResponse(request, "Error: " + ex.getMessage(), INTERNAL_SERVER_ERROR, emptyMap()));
+        }
     }
-
-
-    @ExceptionHandler(BusinessException.class)
-    public ResponseEntity<Object> handleBusinessException(BusinessException ex) {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getData());
-    }
-
 
     @GetMapping()
     public ResponseEntity<Response> getAllOrders(HttpServletRequest request) {
-        var orders = orderService.getAllOrders();
-        return ResponseEntity.ok().body(
-                getResponse(request, "Orders retrieved successfully!", OK, Map.of("orders", orders))
-        );
+        try {
+            var orders = orderService.getAllOrders();
+            return ResponseEntity.ok().body(
+                    getResponse(request, "Orders retrieved successfully!", OK, Map.of("orders", orders))
+            );
+        } catch (Exception ex) {
+            return ResponseEntity.internalServerError().body(getResponse(request, "Error: " + ex.getMessage(), INTERNAL_SERVER_ERROR, emptyMap()));
+        }
     }
 
     @GetMapping("/{customer-id}/{product-id}")
     public boolean hasCustomerPurchasedProduct(@PathVariable("customer-id") String customerId, @PathVariable("product-id") String productId) {
-        return orderService.hasCustomerPurchasedProduct(customerId, productId);
-    }
-
-    @GetMapping("/payment/success")
-    public RedirectView captureTransactionPaypal(@RequestParam("paymentId") String paymentId, @RequestParam("PayerID") String payerId, HttpServletRequest request) throws ResourceNotFoundException {
         try {
-            orderService.captureTransactionPaypal(paymentId, payerId);
-            return new RedirectView("https://colux.vercel.app/", true);
-//            return new RedirectView(FRONTEND_HOST + "/payment/success", true);
-        } catch (ResourceNotFoundException ex) {
-            return new RedirectView("https://www.youtube.com/watch?v=_eTcseS410E&t=1552s", true);
+            return orderService.hasCustomerPurchasedProduct(customerId, productId);
+        } catch (Exception ex) {
+            return false;
         }
     }
 
-    @GetMapping("/payment/cancel")
-    public RedirectView cancelTransactionPaypal(@RequestParam("token") String token, HttpServletRequest request) {
-        RedirectView redirectView = new RedirectView();
-        redirectView.setUrl("https://colux.vercel.app/");
-        return redirectView;
+    @GetMapping("/payment/success")
+    public ResponseEntity<Void> captureTransactionPaypal(@RequestParam("paymentId") String paymentId, @RequestParam("PayerID") String payerId, HttpServletRequest request) {
+        try {
+            orderService.captureTransactionPaypal(paymentId, payerId);
+            return ResponseEntity.status(HttpStatus.FOUND).location(URI.create("https://colux.vercel.app/")).build();
+        } catch (ResourceNotFoundException ex) {
+            return ResponseEntity.status(HttpStatus.FOUND).location(URI.create("https://www.youtube.com/watch?v=_eTcseS410E&t=1552s")).build();
+        } catch (Exception ex) {
+            return ResponseEntity.status(HttpStatus.FOUND).location(URI.create("https://colux.vercel.app/")).build();
+        }
+    }
+
+    @GetMapping(value = "/payment/cancel")
+    public RedirectView paymentCancel(HttpServletRequest request) {
+       try {
+           String paypalOrderId = request.getParameter("token");
+//           OrderEntity order = orderRepository.findByPaypalOrderId(paypalOrderId)
+//                   .orElseThrow(() -> new ResourceNotFoundException("Order", "paypal_order_id", paypalOrderId));
+
+           RedirectView redirectView = new RedirectView();
+           redirectView.setUrl("https://colux.vercel.app/colors/color-family/Red/240cdf5e-2ffe-4122-814e-a7221f26fda6");
+           return redirectView;
+       }catch (Exception ex){
+           RedirectView redirectView = new RedirectView();
+           redirectView.setUrl(FRONTEND_HOST + "/payment/cancel");
+           return redirectView;
+       }
     }
 
     private URI getUri() {
