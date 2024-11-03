@@ -116,7 +116,14 @@ public class ReviewServiceImpl implements IReviewService {
 
     @Override
     public PageResponse<ReviewResponse> getReviewsByProductId(String productId, Pageable pageable) {
+        Optional<Product> product = productRepository.findByProductId(productId);
+        if (product.isEmpty()) {
+            throw new BusinessException("Product not found");
+        }
         Page<Review> reviewsPage = reviewRepository.findAllByProduct_ProductId(productId, pageable);
+        if (reviewsPage.isEmpty()) {
+            throw new BusinessException("No comments found for the product");
+        }
         List<Review> reviews = reviewsPage.getContent();
         List<Review> rootReviews = reviews.stream()
                 .filter(review -> review.getParent() == null)
@@ -140,6 +147,7 @@ public class ReviewServiceImpl implements IReviewService {
                 reviewResponse.setUserInfo(userResponse);
             } else {
                 log.warn("No user information found for customerId: {}", reviewResponse.getCustomerId());
+                throw new BusinessException("No user information found for customerId: {}", reviewResponse.getCustomerId());
             }
         });
 

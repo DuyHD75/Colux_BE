@@ -40,5 +40,4 @@ public class KafkaConsumerConfig {
         factory.getContainerProperties().setPollTimeout(3000); // Thời gian chờ poll dữ liệu từ Kafka
         return factory;
     }
-}
-*/
+}*/

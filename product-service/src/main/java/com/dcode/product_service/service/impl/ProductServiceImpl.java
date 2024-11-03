@@ -1,17 +1,22 @@
 package com.dcode.product_service.service.impl;
 
+import com.dcode.product_service.dto.BuildNameGHN;
 import com.dcode.product_service.dto.CartDto;
+import com.dcode.product_service.dto.CartDtoBase;
 import com.dcode.product_service.dtoRequest.ProductOrderRequest;
 import com.dcode.product_service.dtoRequest.ProductRequest;
 import com.dcode.product_service.dtoRequest.order_service.OrderLineDTO;
 import com.dcode.product_service.dtoResponse.ProductOrderResponse;
 import com.dcode.product_service.dtoResponse.ProductResponse;
+import com.dcode.product_service.dtoResponse.VariantResponse;
 import com.dcode.product_service.entity.*;
 import com.dcode.product_service.enumeration.CategoryType;
 import com.dcode.product_service.exception.ApiException;
 import com.dcode.product_service.repository.*;
 import com.dcode.product_service.service.IProductService;
+import com.dcode.product_service.utils.PaintUtils;
 import com.dcode.product_service.utils.ProductUtils;
+import com.dcode.product_service.utils.VariantUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -20,13 +25,11 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
+import static com.dcode.product_service.utils.PaintUtils.convertVariantToVResponse;
 import static com.dcode.product_service.utils.ProductUtils.createNewProductEntity;
 import static com.dcode.product_service.utils.ProductUtils.fromProductEntity;
 
@@ -135,12 +138,22 @@ public class ProductServiceImpl implements IProductService {
         return fromProductEntity(product);
     }
 
-    public List<CartDto> checkStockAvailability(List<ProductOrderRequest> productOrderRequestList) {
-        List<CartDto> cartDtos = new ArrayList<>();
+    @Override
+    public List<CartDtoBase> checkStockAvailability(List<ProductOrderRequest> productOrderRequestList, boolean isBuildNameGHN) {
+        List<CartDtoBase> cartDtoBases = new ArrayList<>();
 
         for (ProductOrderRequest productOrderRequest : productOrderRequestList) {
-            CartDto cartDto = new CartDto();
-            cartDto.setVariantId(productOrderRequest.getVariantId());
+            CartDtoBase cartDto;
+            if (isBuildNameGHN) {
+                BuildNameGHN buildNameGHN = new BuildNameGHN();
+                Optional<VariantResponse> variantResponseOpt = convertVariantToVResponse(getVariants(productOrderRequest)).stream().findFirst();
+                variantResponseOpt.ifPresent(buildNameGHN::setVariantResponse);
+                cartDto = buildNameGHN;
+            } else {
+                CartDto oldCartDto = new CartDto();
+                oldCartDto.setVariantId(productOrderRequest.getVariantId());
+                cartDto = oldCartDto;
+            }
 
             if (productOrderRequest.getPaintId() != null) {
                 Optional<PaintVariant> variantOpt = paintVariantRepository.findByPaint_paintIdAndVariant_variantId(
@@ -153,13 +166,13 @@ public class ProductServiceImpl implements IProductService {
                     cartDto.setVariantInventory(variant.getQuantity());
                     cartDto.setPriceSell(variant.getPrice());
 
-                    CartDto.ClientProductResponse clientProductResponse = new CartDto.ClientProductResponse();
+                    CartDtoBase.ClientProductResponse clientProductResponse = new CartDtoBase.ClientProductResponse();
                     clientProductResponse.setProductId(variant.getPaint().getProduct().getProductId());
                     clientProductResponse.setProductName(variant.getPaint().getProduct().getProductName());
                     clientProductResponse.setProductImage(variant.getPaint().getProduct().getImages().isEmpty() ? null : variant.getPaint().getProduct().getImages().get(0).getUrl());
                     clientProductResponse.setCode(variant.getPaint().getProduct().getCode());
 
-                    CartDto.PaintDetailsDto paintDetailsDto = new CartDto.PaintDetailsDto();
+                    CartDtoBase.PaintDetailsDto paintDetailsDto = new CartDtoBase.PaintDetailsDto();
                     paintDetailsDto.setPaintId(variant.getPaint().getPaintId());
                     paintDetailsDto.setColorId(variant.getPaint().getColor().getColorId());
                     paintDetailsDto.setHex(variant.getPaint().getColor().getHex());
@@ -180,13 +193,13 @@ public class ProductServiceImpl implements IProductService {
                     cartDto.setVariantInventory(variant.getQuantity());
                     cartDto.setPriceSell(variant.getPrice());
 
-                    CartDto.ClientProductResponse clientProductResponse = new CartDto.ClientProductResponse();
+                    CartDtoBase.ClientProductResponse clientProductResponse = new CartDtoBase.ClientProductResponse();
                     clientProductResponse.setProductId(variant.getFloor().getProduct().getProductId());
                     clientProductResponse.setProductName(variant.getFloor().getProduct().getProductName());
                     clientProductResponse.setProductImage(variant.getFloor().getProduct().getImages().isEmpty() ? null : variant.getFloor().getProduct().getImages().get(0).getUrl());
                     clientProductResponse.setCode(variant.getFloor().getProduct().getCode());
 
-                    CartDto.FloorDetailsDto floorDetailsDto = new CartDto.FloorDetailsDto();
+                    CartDtoBase.FloorDetailsDto floorDetailsDto = new CartDtoBase.FloorDetailsDto();
                     floorDetailsDto.setFloorId(variant.getFloor().getFloorId());
                     cartDto.setProductDetails(clientProductResponse);
                     clientProductResponse.setFloorDetails(floorDetailsDto);
@@ -204,13 +217,13 @@ public class ProductServiceImpl implements IProductService {
                     cartDto.setVariantInventory(variant.getQuantity());
                     cartDto.setPriceSell(variant.getPrice());
 
-                    CartDto.ClientProductResponse clientProductResponse = new CartDto.ClientProductResponse();
+                    CartDtoBase.ClientProductResponse clientProductResponse = new CartDtoBase.ClientProductResponse();
                     clientProductResponse.setProductId(variant.getWallpaper().getProduct().getProductId());
                     clientProductResponse.setProductName(variant.getWallpaper().getProduct().getProductName());
                     clientProductResponse.setProductImage(variant.getWallpaper().getProduct().getImages().isEmpty() ? null : variant.getWallpaper().getProduct().getImages().get(0).getUrl());
                     clientProductResponse.setCode(variant.getWallpaper().getProduct().getCode());
 
-                    CartDto.WallpaperDetailsDto wallpaperDetailsDto = new CartDto.WallpaperDetailsDto();
+                    CartDtoBase.WallpaperDetailsDto wallpaperDetailsDto = new CartDtoBase.WallpaperDetailsDto();
                     wallpaperDetailsDto.setWallpaperId(variant.getWallpaper().getWallpaperId());
                     clientProductResponse.setWallpaperDetails(wallpaperDetailsDto);
 
@@ -220,13 +233,29 @@ public class ProductServiceImpl implements IProductService {
                 }
             }
 
-            cartDtos.add(cartDto);
+            cartDtoBases.add(cartDto);
         }
 
-        return cartDtos;
+        return cartDtoBases;
     }
 
-
+    private Set<Object> getVariants(ProductOrderRequest productOrderRequest) {
+        Set<Object> variants = new HashSet<>();
+        if (productOrderRequest.getPaintId() != null) {
+            Optional<PaintVariant> variantOpt = paintVariantRepository.findByPaint_paintIdAndVariant_variantId(
+                    productOrderRequest.getPaintId(), productOrderRequest.getVariantId());
+            variantOpt.ifPresent(variants::add);
+        } else if (productOrderRequest.getFloorId() != null) {
+            Optional<FloorVariant> variantOpt = floorVariantRepository.findByFloor_floorIdAndVariant_VariantId(
+                    productOrderRequest.getFloorId(), productOrderRequest.getVariantId());
+            variantOpt.ifPresent(variants::add);
+        } else if (productOrderRequest.getWallpaperId() != null) {
+            Optional<WallpaperVariant> variantOpt = wallpaperVariantRepository.findByWallpaper_wallpaperIdAndVariant_variantId(
+                    productOrderRequest.getWallpaperId(), productOrderRequest.getVariantId());
+            variantOpt.ifPresent(variants::add);
+        }
+        return variants;
+    }
 
 
     @Override

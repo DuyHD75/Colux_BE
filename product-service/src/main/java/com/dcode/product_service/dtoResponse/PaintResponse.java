@@ -21,6 +21,7 @@ public class PaintResponse {
     @JsonProperty("id")
     private String paintId;
     private ColorResponse color;
+    private Integer status;
     private List<VariantResponse> variants;
     @JsonBackReference
     private ProductResponse product;

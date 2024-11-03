@@ -6,8 +6,10 @@ import com.dcode.order_service.dto.cart.request.CartVariantKeyRequest;
 import com.dcode.order_service.dto.cart.request.CartVariantRequest;
 import com.dcode.order_service.dto.cart.response.CartVariantResponse;
 import com.dcode.order_service.dto.order.Order;
+import com.dcode.order_service.dto.order.request.GhnCalculateFeeRequest;
 import com.dcode.order_service.dto.order.request.OrderRequest;
 import com.dcode.order_service.dto.order.response.ConfirmedOrderResponse;
+import com.dcode.order_service.dto.order.response.GhnCalculateFeeResponse;
 import com.dcode.order_service.dto.payment.PaypalRequest;
 import com.dcode.order_service.dto.payment.PaypalResponse;
 import com.dcode.order_service.dto.product.PurchaseRequest;
@@ -17,7 +19,6 @@ import com.dcode.order_service.entity.cart.CartVariantEntity;
 import com.dcode.order_service.entity.order.OrderEntity;
 import com.dcode.order_service.entity.order.OrderLineEntity;
 import com.dcode.order_service.entity.waybill.Waybill;
-import com.dcode.order_service.entity.waybill.WaybillLog;
 import com.dcode.order_service.enumuration.EventType;
 import com.dcode.order_service.enumuration.OrderStatus;
 import com.dcode.order_service.enumuration.PaymentMethod;
@@ -34,10 +35,14 @@ import com.dcode.order_service.service.ICartService;
 import com.dcode.order_service.service.IOrderLineService;
 import com.dcode.order_service.service.IOrderService;
 import com.dcode.order_service.utils.OrderUtils;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.paypal.api.payments.Payment;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.*;
+import org.springframework.kafka.core.KafkaTemplate;
 //import org.apache.kafka.clients.producer.ProducerRecord;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpEntity;
@@ -53,6 +58,7 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+
 
 import static com.dcode.order_service.constant.Constants.AppConstants.*;
 import static com.dcode.order_service.utils.OrderUtils.*;
@@ -70,14 +76,23 @@ public class OrderServiceImpl implements IOrderService {
     private final ProductClientProxy productClientProxy;
     private final IOrderRepository orderRepository;
     private final IOrderLineRepository orderLineRepository;
+    private final IOrderLineService orderLineService;
     private final PaypalConfig paypalConfig;
     private final ICartRepository cartRepository;
-    private final ICartService cartService;
-    //    private final KafkaTemplate<String, String> kafkaTemplate;
+    private final KafkaTemplate<String, String> kafkaTemplate;
     private final PaypalHttpClient paypalHttpClient;
     private final IWaybillRepository waybillRepository;
     private final ApplicationEventPublisher publisher;
+    private final ICartService cartService;
 
+
+
+    @Value("${spring.shipping.ghnToken}")
+    private String ghnToken;
+    @Value("${spring.shipping.ghnShopId}")
+    private String ghnShopId;
+    @Value("${spring.shipping.ghnApiPath}")
+    private String ghnApiPath;
 
 //    private final OrderProducer orderProducer;
 
@@ -321,5 +336,74 @@ public class OrderServiceImpl implements IOrderService {
     public boolean hasCustomerPurchasedProduct(String customerId, String productId) {
         return orderLineRepository.existsByOrderEntity_customerIdAndProductId(customerId, productId);
     }
+
+    @Override
+    public GhnCalculateFeeResponse calculateFee(GhnCalculateFeeRequest ghnCalculateFeeRequestRequest) {
+        String calculateFeePath = ghnApiPath + "/v2/shipping-order/fee";
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setAccept(List.of(MediaType.APPLICATION_JSON));
+        headers.add("Token", ghnToken);
+
+        RestTemplate restTemplate = new RestTemplate();
+
+        HttpEntity<GhnCalculateFeeRequest> request = new HttpEntity<>(ghnCalculateFeeRequestRequest, headers);
+        ResponseEntity<GhnCalculateFeeResponse> response = restTemplate.postForEntity(calculateFeePath, request, GhnCalculateFeeResponse.class);
+
+        return response.getBody();
+    }
+
+    @Override
+    public Map getProvinces() {
+        String GHNProvincePath = ghnApiPath + "/master-data/province";
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setAccept(List.of(MediaType.APPLICATION_JSON));
+        headers.add("Token", ghnToken);
+
+        RestTemplate restTemplate = new RestTemplate();
+
+        HttpEntity<String> request = new HttpEntity<>(headers);
+        ResponseEntity<Map> response = restTemplate.exchange(GHNProvincePath, HttpMethod.GET, request, Map.class);
+
+        return response.getBody();
+    }
+
+    @Override
+    public Map<String, Object> getDistrict(JsonNode districtId) {
+        String GHNDistrictPath = ghnApiPath + "/master-data/district";
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setAccept(List.of(MediaType.APPLICATION_JSON));
+        headers.add("Token", ghnToken);
+
+        RestTemplate restTemplate = new RestTemplate();
+
+        HttpEntity<JsonNode> request = new HttpEntity<>(districtId, headers);
+        ResponseEntity<Map> response = restTemplate.postForEntity(GHNDistrictPath, request, Map.class);
+
+        return response.getBody();
+    }
+
+    @Override
+    public Map<String, Object> getWard(JsonNode wardId) {
+        String GHNWardPath = ghnApiPath + "/master-data/ward?district_id";
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setAccept(List.of(MediaType.APPLICATION_JSON));
+        headers.add("Token", ghnToken);
+
+        RestTemplate restTemplate = new RestTemplate();
+
+        HttpEntity<JsonNode> request = new HttpEntity<>(wardId, headers);
+        ResponseEntity<Map> response = restTemplate.postForEntity(GHNWardPath, request, Map.class);
+
+        return response.getBody();
+    }
+
 
 }

@@ -46,6 +46,7 @@ public class FloorUtils {
                 .foamThickness(floor.getFoamThickness().toString())
                 .numberOfPiecesPerBox(floor.getNumberOfPiecesPerBox().toString())
                 .variants(convertVariantToVResponse(floor.getFloorVariants()))
+                .status(floor.getStatus())
                 .build();
     }
     public static Floor fromFloorEntity(FloorRequest floorRequest, Map<Variant, Pair<Integer, Double>> variantRequestSet, Floor floor){

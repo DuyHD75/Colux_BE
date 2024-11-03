@@ -60,7 +60,7 @@ public class ReviewController {
             Pageable pageable = PageRequest.of(page, size);
             var reviews = reviewService.getReviewsByProductId(productId, pageable);
             return ResponseEntity.ok().body(
-                    getResponse(request, Map.of("Review", reviews), "Review created successfully!", OK)
+                    getResponse(request, Map.of("Review", reviews), "Review retrieve successfully!", OK)
             );
         } catch (ApiException ex) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)

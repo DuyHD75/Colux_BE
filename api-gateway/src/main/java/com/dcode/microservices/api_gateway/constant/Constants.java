@@ -5,6 +5,7 @@ public class Constants {
         public static final String[] ALLOWED_PATHS = {
                 "/identity-service/api/v1/users/.*",
                 "/product-service/api/v1/products/.*",
+                "/order-service/api/v1/orders/shipping/.*",
         };
     }
 }

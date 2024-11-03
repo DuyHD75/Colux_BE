@@ -25,6 +25,9 @@ public class Paint extends Auditable{
     @JoinColumn(nullable = false, updatable = false, unique = true)
     private String paintId;
 
+    @Column(name = "status", nullable = false, columnDefinition = "TINYINT")
+    private Integer status;
+
     @ManyToOne
     @JsonIgnore 
     private Product product;

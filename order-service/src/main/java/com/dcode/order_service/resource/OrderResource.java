@@ -2,6 +2,7 @@ package com.dcode.order_service.resource;
 
 
 import com.dcode.order_service.domain.Response;
+import com.dcode.order_service.dto.order.request.GhnCalculateFeeRequest;
 import com.dcode.order_service.dto.order.request.OrderRequest;
 import com.dcode.order_service.dto.order.response.ConfirmedOrderResponse;
 import com.dcode.order_service.entity.order.OrderEntity;
@@ -9,6 +10,7 @@ import com.dcode.order_service.exception.BusinessException;
 import com.dcode.order_service.exception.ResourceNotFoundException;
 import com.dcode.order_service.repository.IOrderRepository;
 import com.dcode.order_service.service.IOrderService;
+import com.fasterxml.jackson.databind.JsonNode;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
@@ -73,6 +75,12 @@ public class OrderResource {
             return ResponseEntity.internalServerError().body(getResponse(request, "Error: " + ex.getMessage(), INTERNAL_SERVER_ERROR, emptyMap()));
         }
     }
+
+    @ExceptionHandler(BusinessException.class)
+    public ResponseEntity<Object> handleBusinessException(BusinessException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getData());
+    }
+
 
     @GetMapping()
     public ResponseEntity<Response> getAllOrders(HttpServletRequest request) {
