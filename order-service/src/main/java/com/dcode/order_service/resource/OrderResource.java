@@ -5,6 +5,7 @@ import com.dcode.order_service.domain.Response;
 import com.dcode.order_service.dto.order.request.GhnCalculateFeeRequest;
 import com.dcode.order_service.dto.order.request.OrderRequest;
 import com.dcode.order_service.dto.order.response.ConfirmedOrderResponse;
+import com.dcode.order_service.entity.order.OrderEntity;
 import com.dcode.order_service.exception.BusinessException;
 import com.dcode.order_service.exception.ResourceNotFoundException;
 import com.dcode.order_service.repository.IOrderRepository;
@@ -18,6 +19,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.view.RedirectView;
 
+import static com.dcode.order_service.constant.Constants.AppConstants.FRONTEND_HOST;
 import static java.util.Collections.emptyMap;
 
 import java.net.URI;
@@ -35,47 +37,58 @@ public class OrderResource {
 
     @GetMapping("/test")
     public String test(HttpServletRequest request) {
-        return "Order service is up and running!";
+        try {
+            return "Order service is up and running!";
+        } catch (Exception ex) {
+            return "Error: " + ex.getMessage();
+        }
     }
 
     @PostMapping("/create")
-    public ResponseEntity<?> createNewOrder(@RequestBody @Valid OrderRequest orderRequest, HttpServletRequest request) {
+    public ResponseEntity<Response> createNewOrder(@RequestBody @Valid OrderRequest orderRequest, HttpServletRequest request) {
         try {
             ConfirmedOrderResponse response = orderService.createClientOrder(orderRequest);
             return ResponseEntity.created(getUri()).body(
                     getResponse(request, "Order created successfully!", CREATED, Map.of("data", response))
             );
         } catch (BusinessException ex) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getData());
+            return ResponseEntity.internalServerError().body(getResponse(request, "Error: " + ex.getMessage(), INTERNAL_SERVER_ERROR, emptyMap()));
+        } catch (Exception ex) {
+            return ResponseEntity.internalServerError().body(getResponse(request, "Error: " + ex.getMessage(), INTERNAL_SERVER_ERROR, emptyMap()));
         }
     }
 
     @PutMapping("/cancel/{code}")
     public ResponseEntity<Response> cancelOrder(@PathVariable("code") String code, HttpServletRequest request) {
-        orderService.cancelOrder(code);
-        return ResponseEntity.ok().body(
-                getResponse(request, "Order cancelled successfully!", OK, emptyMap())
-        );
+        try {
+            orderService.cancelOrder(code);
+            return ResponseEntity.ok().body(
+                    getResponse(request, "Order cancelled successfully!", OK, emptyMap())
+            );
+        } catch (Exception ex) {
+            return ResponseEntity.internalServerError().body(getResponse(request, "Error: " + ex.getMessage(), INTERNAL_SERVER_ERROR, emptyMap()));
+        }
     }
-
-
-    @ExceptionHandler(BusinessException.class)
-    public ResponseEntity<Object> handleBusinessException(BusinessException ex) {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getData());
-    }
-
 
     @GetMapping()
     public ResponseEntity<Response> getAllOrders(HttpServletRequest request) {
-        var orders = orderService.getAllOrders();
-        return ResponseEntity.ok().body(
-                getResponse(request, "Orders retrieved successfully!", OK, Map.of("orders", orders))
-        );
+        try {
+            var orders = orderService.getAllOrders();
+            return ResponseEntity.ok().body(
+                    getResponse(request, "Orders retrieved successfully!", OK, Map.of("orders", orders))
+            );
+        } catch (Exception ex) {
+            return ResponseEntity.internalServerError().body(getResponse(request, "Error: " + ex.getMessage(), INTERNAL_SERVER_ERROR, emptyMap()));
+        }
     }
 
     @GetMapping("/{customer-id}/{product-id}")
     public boolean hasCustomerPurchasedProduct(@PathVariable("customer-id") String customerId, @PathVariable("product-id") String productId) {
-        return orderService.hasCustomerPurchasedProduct(customerId, productId);
+        try {
+            return orderService.hasCustomerPurchasedProduct(customerId, productId);
+        } catch (Exception ex) {
+            return false;
+        }
     }
 
     @GetMapping("/payment/success")
@@ -83,17 +96,24 @@ public class OrderResource {
         try {
             orderService.captureTransactionPaypal(paymentId, payerId);
             return new RedirectView("https://colux.vercel.app/", true);
-//            return new RedirectView(FRONTEND_HOST + "/payment/success", true);
         } catch (ResourceNotFoundException ex) {
             return new RedirectView("https://www.youtube.com/watch?v=_eTcseS410E&t=1552s", true);
+        } catch (Exception ex) {
+            return new RedirectView("https://colux.vercel.app/error", true);
         }
     }
 
     @GetMapping("/payment/cancel")
     public RedirectView cancelTransactionPaypal(@RequestParam("token") String token, HttpServletRequest request) {
-        RedirectView redirectView = new RedirectView();
-        redirectView.setUrl("https://colux.vercel.app/");
-        return redirectView;
+        try {
+            RedirectView redirectView = new RedirectView();
+            redirectView.setUrl("https://colux.vercel.app/");
+            return redirectView;
+        } catch (Exception ex) {
+            RedirectView redirectView = new RedirectView();
+            redirectView.setUrl("https://colux.vercel.app/error");
+            return redirectView;
+        }
     }
 
     @PostMapping("/shipping/calculateFee")
@@ -103,7 +123,6 @@ public class OrderResource {
                 getResponse(request, "Fee calculated successfully!", OK, Map.of("fee", fee))
         );
     }
-
     @GetMapping("/shipping/province")
     public ResponseEntity<Response> getProvinces(HttpServletRequest request) {
         var provinces = orderService.getProvinces();

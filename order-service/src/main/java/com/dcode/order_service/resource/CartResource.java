@@ -16,8 +16,7 @@ import java.util.Map;
 
 import static com.dcode.order_service.utils.RequestUtils.getResponse;
 import static java.util.Collections.emptyMap;
-import static org.springframework.http.HttpStatus.CREATED;
-import static org.springframework.http.HttpStatus.OK;
+import static org.springframework.http.HttpStatus.*;
 
 @RestController
 @RequestMapping("/api/v1/carts")
@@ -35,29 +34,39 @@ public class CartResource {
     public ResponseEntity<Response> createNewCart(
             @RequestBody @Valid CartRequest cartRequest, HttpServletRequest request
     ) {
-        ClientCartResponse response =  cartService.saveClientCart(cartRequest);
-        return ResponseEntity.created(getUri()).body(
-                getResponse(request, "Cart created successfully!", CREATED, Map.of("cart", response))
-        );
+        try {
+            ClientCartResponse response = cartService.saveClientCart(cartRequest);
+            return ResponseEntity.created(getUri()).body(
+                    getResponse(request, "Cart created successfully!", CREATED, Map.of("cart", response))
+            );
+        } catch (Exception ex) {
+            return ResponseEntity.internalServerError().body(getResponse(request, "Error: " + ex.getMessage(), INTERNAL_SERVER_ERROR, emptyMap()));
+        }
     }
 
-    @GetMapping("/getCart/{customer-id}")
+    @GetMapping("/{customer-id}")
     public ResponseEntity<Response> getCart(@PathVariable("customer-id") String customer_id, HttpServletRequest request) {
-        var carts = cartService.getCart(customer_id);
-        return ResponseEntity.ok().body(
-                getResponse(request, "Carts retrieved successfully!", OK, Map.of("carts", carts))
-        );
+        try {
+            var carts = cartService.getCart(customer_id);
+            return ResponseEntity.ok().body(
+                    getResponse(request, "Carts retrieved successfully!", OK, Map.of("carts", carts))
+            );
+        } catch (Exception ex) {
+            return ResponseEntity.internalServerError().body(getResponse(request, "Error: " + ex.getMessage(), INTERNAL_SERVER_ERROR, emptyMap()));
+        }
     }
 
     @DeleteMapping("/delete-cart-item")
     public ResponseEntity<Response> deleteCartItem(@RequestBody CartVariantKeyRequest idRequests, HttpServletRequest request) {
-        cartService.deleteCartItem(idRequests);
-        return ResponseEntity.ok().body(
-                getResponse(request, "Cart item deleted successfully!", OK, emptyMap())
-        );
+        try {
+            cartService.deleteCartItem(idRequests);
+            return ResponseEntity.ok().body(
+                    getResponse(request, "Cart item deleted successfully!", OK, emptyMap())
+            );
+        } catch (Exception ex) {
+            return ResponseEntity.internalServerError().body(getResponse(request, "Error: " + ex.getMessage(), INTERNAL_SERVER_ERROR, emptyMap()));
+        }
     }
-
-
 
     private URI getUri() {
         return URI.create("/api/v1/carts");
