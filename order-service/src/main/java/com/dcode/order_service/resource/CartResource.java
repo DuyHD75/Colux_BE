@@ -4,6 +4,7 @@ import com.dcode.order_service.domain.Response;
 import com.dcode.order_service.dto.cart.request.CartRequest;
 import com.dcode.order_service.dto.cart.request.CartVariantKeyRequest;
 import com.dcode.order_service.dto.cart.response.ClientCartResponse;
+import com.dcode.order_service.exception.BusinessException;
 import com.dcode.order_service.service.ICartService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
@@ -39,7 +40,10 @@ public class CartResource {
             return ResponseEntity.created(getUri()).body(
                     getResponse(request, "Cart created successfully!", CREATED, Map.of("cart", response))
             );
-        } catch (Exception ex) {
+        } catch (BusinessException ex) {
+            return ResponseEntity.internalServerError().body(getResponse(request, "Error: " + ex.getMessage(), INTERNAL_SERVER_ERROR, Map.of("errorData", ex.getData())));
+        }
+        catch (Exception ex) {
             return ResponseEntity.internalServerError().body(getResponse(request, "Error: " + ex.getMessage(), INTERNAL_SERVER_ERROR, emptyMap()));
         }
     }

@@ -21,6 +21,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 
@@ -61,12 +62,11 @@ public class CartServiceImpl implements ICartService {
 
         for (CartVariantEntity cartVariant : cartBeforeSave.getCartVariants()) {
             for (var variant : variantResponses) {
-
                 if (isVariantMatching(cartVariant, variant)) {
                     if (isQuantityExceedingInventory(cartVariant.getQuantity(), variant.getVariantInventory())) {
-                        throw new BusinessException(String.format("Sorry, you can only purchase a maximum of %s products of this %s.",
+                        throw new BusinessException(String.format("Sorry, you can only purchase a maximum of %s products of this .",
                                 variant.getVariantInventory(),
-                                variant.getVariantId()));
+                                variant.getProductDetails().getProductName()), variant);
                     }
                 }
             }
@@ -92,7 +92,7 @@ public class CartServiceImpl implements ICartService {
                 variant.getProductDetails().getWallpaperDetails().getWallpaperId().equals(cartVariant.getWallpaperId());
 
         boolean isFloorMatch = cartVariant.getFloorId() != null &&
-                variant.getProductDetails().getFloorDetails()!= null &&
+                variant.getProductDetails().getFloorDetails() != null &&
                 variant.getProductDetails().getFloorDetails().getFloorId().equals(cartVariant.getFloorId());
 
         return isPaintMatch || isWallpaperMatch || isFloorMatch;
@@ -132,19 +132,22 @@ public class CartServiceImpl implements ICartService {
 
     @Override
     public void deleteCartItem(CartVariantKeyRequest idRequests) {
-
         if (idRequests.getCartId().isEmpty() || idRequests.getCartId().isBlank()) {
             throw new BusinessException("Cannot delete cart item :: Cart ID is empty");
         }
 
-        if (idRequests.getVariantIds().isEmpty()) {
+        if (idRequests.getItemDeleteRequests().isEmpty()) {
             throw new BusinessException("Cannot delete cart item :: Variant ID is empty");
         }
 
         var cart = cartRepository.findByCartId(idRequests.getCartId())
                 .orElseThrow(() -> new BusinessException("Cannot delete cart item :: No cart found with ID: " + idRequests.getCartId()));
 
-        cartVariantRepository.deleteByCart_CartIdAndVariantIdIn(cart.getCartId(), idRequests.getVariantIds());
+        for (Map.Entry<String, List<String>> entry : idRequests.getItemDeleteRequests().entrySet()) {
+            String variantId = entry.getKey();
+            List<String> productIDs = entry.getValue();
+            cartVariantRepository.deleteByCart_CartIdAndVariantIdAndProductIdIn(cart.getCartId(), variantId, productIDs);
+        }
     }
 
 }

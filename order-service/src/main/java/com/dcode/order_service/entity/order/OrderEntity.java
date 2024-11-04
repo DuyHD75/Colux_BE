@@ -47,6 +47,9 @@ public class OrderEntity extends Auditable {
     @Column(name = "to_phone", nullable = false)
     private String toPhone;
 
+    @Column(name = "to_email", nullable = false)
+    private String toEmail;
+
     @Column(name = "to_address", nullable = false)
     private String toAddress;
 
@@ -74,6 +77,9 @@ public class OrderEntity extends Auditable {
     @Column(name = "shipping_cost", nullable = false, columnDefinition = "DECIMAL(15,5)")
     private BigDecimal shippingCost;
 
+    @Column(name = "advance_payment", columnDefinition = "DECIMAL(15,5)")
+    private BigDecimal advancePayment; // (3) Số tiền đã đặt cọc
+
     @Column(name ="total_pay", nullable = false, columnDefinition = "DECIMAL(15,5)")
     private BigDecimal totalPay;
 
@@ -87,6 +93,6 @@ public class OrderEntity extends Auditable {
     @Column(name = "paypal_order_status")
     private String paypalOrderStatus;
 
-    @Column(name= "payment_status") /* (1) Chưa thanh toán, (2) Đã thanh toán */
+    @Column(name= "payment_status") /* (1) Chưa thanh toán, (2) Đã thanh toán  (3) Đã đặt cọc*/
     private Integer paymentStatus;
 }

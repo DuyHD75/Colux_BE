@@ -13,11 +13,7 @@ public interface ICartRepository extends JpaRepository<CartEntity, Long>, JpaSpe
 
     Optional<CartEntity> findByCartId(String cartId);
 
-
     @Query("SELECT c FROM CartEntity c WHERE c.customerId = :customerId")
     Optional<CartEntity> findByCustomerId(String customerId);
-
-
-
 
 }

@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -27,15 +28,15 @@ import static com.dcode.order_service.constant.Constants.AppConstants.DEFAULT_TA
 @Service
 public class OrderUtils {
 
-    public static OrderEntity mapToOrderEntity(OrderRequest request) {
-
+    public static OrderEntity mapToOrderEntity(OrderRequest request, Map<? , ?> data) {
         return OrderEntity.builder()
                 .orderId(UUID.randomUUID().toString())
-                .customerId(request.getCustomerId() != null ? request.getCustomerId() : null)
+                .customerId(data != null ? data.get("userId").toString() : UUID.randomUUID().toString())
                 .code(RandomString.make(12).toUpperCase())
                 .status(1) // Status 1: Đơn hàng mới
                 .toName(request.getToName())
                 .toPhone(request.getToPhone())
+                .toEmail(request.getToEmail())
                 .toAddress(request.getToAddress())
                 .toWardName(request.getToWardName())
                 .toDistrictName(request.getToDistrictName())

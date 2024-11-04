@@ -31,9 +31,11 @@ import static org.springframework.http.HttpStatus.*;
 @RestController
 @RequestMapping("/api/v1/orders")
 @AllArgsConstructor
+@CrossOrigin(FRONTEND_HOST)
 public class OrderResource {
     private final IOrderService orderService;
     private final IOrderRepository orderRepository;
+
 
     @GetMapping("/test")
     public String test(HttpServletRequest request) {
@@ -52,7 +54,7 @@ public class OrderResource {
                     getResponse(request, "Order created successfully!", CREATED, Map.of("data", response))
             );
         } catch (BusinessException ex) {
-            return ResponseEntity.internalServerError().body(getResponse(request, "Error: " + ex.getMessage(), INTERNAL_SERVER_ERROR, emptyMap()));
+            return ResponseEntity.internalServerError().body(getResponse(request, "Error: " + ex.getMessage(), INTERNAL_SERVER_ERROR, Map.of("errorData", ex.getData())));
         } catch (Exception ex) {
             return ResponseEntity.internalServerError().body(getResponse(request, "Error: " + ex.getMessage(), INTERNAL_SERVER_ERROR, emptyMap()));
         }
@@ -65,10 +67,20 @@ public class OrderResource {
             return ResponseEntity.ok().body(
                     getResponse(request, "Order cancelled successfully!", OK, emptyMap())
             );
-        } catch (Exception ex) {
+        }
+        catch (BusinessException ex) {
+            return ResponseEntity.internalServerError().body(getResponse(request, "Error: " + ex.getMessage(), INTERNAL_SERVER_ERROR, Map.of("errorData", ex.getData())));
+        }
+        catch (Exception ex) {
             return ResponseEntity.internalServerError().body(getResponse(request, "Error: " + ex.getMessage(), INTERNAL_SERVER_ERROR, emptyMap()));
         }
     }
+
+    @ExceptionHandler(BusinessException.class)
+    public ResponseEntity<Object> handleBusinessException(BusinessException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getData());
+    }
+
 
     @GetMapping()
     public ResponseEntity<Response> getAllOrders(HttpServletRequest request) {
@@ -92,59 +104,32 @@ public class OrderResource {
     }
 
     @GetMapping("/payment/success")
-    public RedirectView captureTransactionPaypal(@RequestParam("paymentId") String paymentId, @RequestParam("PayerID") String payerId, HttpServletRequest request) throws ResourceNotFoundException {
+    public ResponseEntity<Void> captureTransactionPaypal(@RequestParam("paymentId") String paymentId, @RequestParam("PayerID") String payerId, HttpServletRequest request) {
         try {
             orderService.captureTransactionPaypal(paymentId, payerId);
-            return new RedirectView("https://colux.vercel.app/", true);
+            return ResponseEntity.status(HttpStatus.FOUND).location(URI.create("https://colux.vercel.app/")).build();
         } catch (ResourceNotFoundException ex) {
-            return new RedirectView("https://www.youtube.com/watch?v=_eTcseS410E&t=1552s", true);
+            return ResponseEntity.status(HttpStatus.FOUND).location(URI.create("https://www.youtube.com/watch?v=_eTcseS410E&t=1552s")).build();
         } catch (Exception ex) {
-            return new RedirectView("https://colux.vercel.app/error", true);
+            return ResponseEntity.status(HttpStatus.FOUND).location(URI.create("https://colux.vercel.app/")).build();
         }
     }
 
-    @GetMapping("/payment/cancel")
-    public RedirectView cancelTransactionPaypal(@RequestParam("token") String token, HttpServletRequest request) {
-        try {
-            RedirectView redirectView = new RedirectView();
-            redirectView.setUrl("https://colux.vercel.app/");
-            return redirectView;
-        } catch (Exception ex) {
-            RedirectView redirectView = new RedirectView();
-            redirectView.setUrl("https://colux.vercel.app/error");
-            return redirectView;
-        }
-    }
+    @GetMapping(value = "/payment/cancel")
+    public RedirectView paymentCancel(HttpServletRequest request) {
+       try {
+           String paypalOrderId = request.getParameter("token");
+//           OrderEntity order = orderRepository.findByPaypalOrderId(paypalOrderId)
+//                   .orElseThrow(() -> new ResourceNotFoundException("Order", "paypal_order_id", paypalOrderId));
 
-    @PostMapping("/shipping/calculateFee")
-    public ResponseEntity<Response> calculateFee(@RequestBody GhnCalculateFeeRequest ghnCalculateFeeRequestRequest, HttpServletRequest request) {
-        var fee = orderService.calculateFee(ghnCalculateFeeRequestRequest);
-        return ResponseEntity.ok().body(
-                getResponse(request, "Fee calculated successfully!", OK, Map.of("fee", fee))
-        );
-    }
-    @GetMapping("/shipping/province")
-    public ResponseEntity<Response> getProvinces(HttpServletRequest request) {
-        var provinces = orderService.getProvinces();
-
-        return ResponseEntity.ok().body(
-                getResponse(request, "Province list retrieved successfully!", HttpStatus.OK, Map.of("provinces", provinces))
-        );
-    }
-
-    @PostMapping("/shipping/district")
-    public ResponseEntity<Response> getDistrict(@RequestBody JsonNode districtId, HttpServletRequest request) {
-        var fee = orderService.getDistrict(districtId);
-        return ResponseEntity.ok().body(
-                getResponse(request, "Districts retrieved successfully!", OK, Map.of("fee", fee))
-        );
-    }
-    @PostMapping("/shipping/ward")
-    public ResponseEntity<Response> getWard(@RequestBody JsonNode wardId, HttpServletRequest request) {
-        var fee = orderService.getWard(wardId);
-        return ResponseEntity.ok().body(
-                getResponse(request, "Wards retrieved successfully!", OK, Map.of("fee", fee))
-        );
+           RedirectView redirectView = new RedirectView();
+           redirectView.setUrl("https://colux.vercel.app/colors/color-family/Red/240cdf5e-2ffe-4122-814e-a7221f26fda6");
+           return redirectView;
+       }catch (Exception ex){
+           RedirectView redirectView = new RedirectView();
+           redirectView.setUrl(FRONTEND_HOST + "/payment/cancel");
+           return redirectView;
+       }
     }
 
     private URI getUri() {
