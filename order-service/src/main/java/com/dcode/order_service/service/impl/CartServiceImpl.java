@@ -146,7 +146,11 @@ public class CartServiceImpl implements ICartService {
         for (Map.Entry<String, List<String>> entry : idRequests.getItemDeleteRequests().entrySet()) {
             String variantId = entry.getKey();
             List<String> productIDs = entry.getValue();
-            cartVariantRepository.deleteByCart_CartIdAndVariantIdAndProductIdIn(cart.getCartId(), variantId, productIDs);
+            List<String> paintIds = entry.getValue();
+            List<String> floorIds = entry.getValue();
+            List<String> wallpaperIds = entry.getValue();
+            cartVariantRepository.deleteByCart_CartIdAndVariantIdAndProductIdInOrPaintIdInOrFloorIdInOrWallpaperIdIn(
+                    cart.getCartId(), variantId, productIDs, paintIds, floorIds, wallpaperIds);
         }
     }
 
