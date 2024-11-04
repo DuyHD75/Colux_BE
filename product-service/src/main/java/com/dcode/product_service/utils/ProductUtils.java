@@ -1,14 +1,17 @@
 package com.dcode.product_service.utils;
 
-import com.dcode.product_service.dto.ProductBrandDTO;
-import com.dcode.product_service.dto.ProductCategoryDTO;
 import com.dcode.product_service.dtoRequest.ProductRequest;
+import com.dcode.product_service.dtoResponse.BrandResponse;
+import com.dcode.product_service.dtoResponse.CategoryResponse;
 import com.dcode.product_service.dtoResponse.ProductResponse;
 import com.dcode.product_service.entity.*;
+import com.dcode.product_service.exception.BusinessException;
 
+import java.util.Collections;
 import java.util.Set;
 import java.util.UUID;
 
+import static com.dcode.product_service.utils.BrandUtils.fromEntityToResponse;
 import static com.dcode.product_service.utils.FeatureValueUtils.fromFeatureValueEntity;
 import static com.dcode.product_service.utils.PaintUtils.fromPaintEntity;
 import static com.dcode.product_service.utils.PropertyValueUtils.fromPropertyValueEntity;
@@ -38,6 +41,7 @@ public class ProductUtils {
                 .productId(product.getProductId())
                 .productName(product.getProductName())
                 .description(product.getDescription())
+                .brand(fromEntityToResponse(Collections.singleton(product.getBrand())).stream().findFirst().orElseThrow(() -> new BusinessException("Brand not found")))
                 .ratingAverage(product.getRatingAverage())
                 .code(product.getCode())
                 .placeOfOrigin(product.getPlaceOfOrigin())
@@ -69,22 +73,22 @@ public class ProductUtils {
                 .build();
     }
 
-    private static ProductCategoryDTO mapToProductCategoryDTO(Category category) {
+    private static CategoryResponse mapToProductCategoryDTO(Category category) {
         if (category == null) {
             return null;
         }
-        return ProductCategoryDTO.builder()
+        return CategoryResponse.builder()
                 .categoryId(category.getCategoryId())
                 .name(category.getName())
                 .thumbnail(category.getThumbnail())
                 .build();
     }
 
-    private static ProductBrandDTO mapToProductBrandDTO(Brand brand) {
+    private static BrandResponse mapToProductBrandDTO(Brand brand) {
         if (brand == null) {
             return null;
         }
-        return ProductBrandDTO.builder()
+        return BrandResponse.builder()
                 .brandId(brand.getBrandId())
                 .name(brand.getName())
                 .code(brand.getCode())

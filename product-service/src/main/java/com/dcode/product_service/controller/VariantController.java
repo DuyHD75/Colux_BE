@@ -12,10 +12,7 @@ import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
 import java.util.Map;
@@ -33,18 +30,18 @@ public class VariantController {
 
     private final VariantServiceImpl variantService;
 
-//    @RequestMapping("/paints")
+    //    @RequestMapping("/paints")
 //    public ResponseEntity<Response> getAllPaintVariant(HttpServletRequest request){
 //       Set<VariantResponse> variantResponseSet = variantService.getAllPaintVariant();
 //        return ResponseEntity.ok().body(getResponse(request, Map.of("variants", variantResponseSet),"Retrieve Paint Variant successfully!", OK));
 //    }
     @PostMapping
-    public ResponseEntity<Response> createAVariant(@RequestBody @Valid VariantAttributeRequest variantRequest, HttpServletRequest request, HttpServletResponse response){
+    public ResponseEntity<Response> createAVariant(@RequestBody @Valid VariantAttributeRequest variantRequest, HttpServletRequest request, HttpServletResponse response) {
         try {
-        variantService.createAVariant(variantRequest.getSizeName(), variantRequest.getCategoryName(), variantRequest.getPackageType());
-        return ResponseEntity.created(getUri()).body(
-                getResponse(request, emptyMap(), "Variant created successfully!", CREATED));
-        }catch (ApiException ex) {
+            variantService.createAVariant(variantRequest.getSizeName(), variantRequest.getCategoryName(), variantRequest.getPackageType());
+            return ResponseEntity.created(getUri()).body(
+                    getResponse(request, emptyMap(), "Variant created successfully!", CREATED));
+        } catch (ApiException ex) {
             return ResponseEntity.status(BAD_REQUEST)
                     .body(getErrorResponse(request, response, ex, BAD_REQUEST));
         } catch (Exception exception) {
@@ -53,6 +50,22 @@ public class VariantController {
         }
 
     }
+
+    @GetMapping
+    public ResponseEntity<Response> getAllVariant(HttpServletRequest request, HttpServletResponse response) {
+        try {
+            Set<VariantResponse> variantResponseSet = variantService.getAllVariant();
+            return ResponseEntity.ok().body(getResponse(request, Map.of("variants", variantResponseSet), "Retrieve Variant successfully!", OK));
+        } catch (ApiException ex) {
+            return ResponseEntity.status(BAD_REQUEST)
+                    .body(getErrorResponse(request, response, ex, BAD_REQUEST));
+        } catch (Exception exception) {
+            return ResponseEntity.status(INTERNAL_SERVER_ERROR)
+                    .body(getErrorResponse(request, response, new ApiException("An unexpected error occurred."), INTERNAL_SERVER_ERROR));
+        }
+    }
+
+
     private URI getUri() {
         return URI.create("");
     }

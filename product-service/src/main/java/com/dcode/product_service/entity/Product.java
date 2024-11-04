@@ -1,10 +1,8 @@
 package com.dcode.product_service.entity;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.Size;
 import lombok.*;
 import org.hibernate.annotations.NaturalId;
 
@@ -73,13 +71,13 @@ public class Product extends Auditable{
     private List<Floor> floors;
 
     @OneToMany(mappedBy = "product")
-    private List<Image> images;
+    private Set<Image> images;
 
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL)
     private List<Review> review;
 
     @OneToOne(mappedBy = "product", cascade = CascadeType.ALL)
-    private Supplier supplier;
+    private ProductSupplier productSupplier;
 
     @ManyToOne
     @JoinColumn(name = "wish_list_id", referencedColumnName = "id")

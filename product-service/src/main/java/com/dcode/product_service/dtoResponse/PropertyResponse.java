@@ -10,5 +10,5 @@ public class PropertyResponse {
     private String propertyId;
     private String name;
     private String description;
-    private Set<String> propertyValues;
+    private Set<PropertyValueResponse> propertyValues;
 }

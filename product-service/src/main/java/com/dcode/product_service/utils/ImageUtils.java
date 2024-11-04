@@ -12,10 +12,6 @@ public class ImageUtils {
         return Image.builder()
                 .imageId(UUID.randomUUID().toString())
                 .url(imageRequest.getUrl())
-                .imageName(imageRequest.getImageName())
-                .caption(imageRequest.getCaption())
-                .altText(imageRequest.getAltText())
-                .type(imageRequest.getImageType())
                 .product(product)
                 .build();
     }
@@ -23,10 +19,6 @@ public class ImageUtils {
         return ImageResponse.builder()
                 .imageId(image.getImageId())
                 .url(image.getUrl())
-                .altText(image.getAltText())
-                .caption(image.getCaption())
-                .imageName(image.getImageName())
-                .type(image.getType())
                 .build();
     }
 

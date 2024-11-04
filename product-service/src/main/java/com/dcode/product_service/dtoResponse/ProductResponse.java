@@ -1,10 +1,5 @@
 package com.dcode.product_service.dtoResponse;
 
-import com.dcode.product_service.dto.ProductBrandDTO;
-import com.dcode.product_service.dto.ProductCategoryDTO;
-import com.dcode.product_service.entity.Brand;
-import com.dcode.product_service.entity.Category;
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.Builder;
@@ -30,8 +25,8 @@ public class ProductResponse {
     private String code;
     private String warranty;
     private String applicableSurface;
-    private ProductCategoryDTO category;
-    private ProductBrandDTO brand;
+    private CategoryResponse category;
+    private BrandResponse brand;
     private List<ImageResponse> images;
     private Set<FeatureValueResponse> features;
     private Set<PropertyValueResponse> properties;

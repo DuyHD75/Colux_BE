@@ -5,18 +5,15 @@ import com.dcode.product_service.dto.CartDto;
 import com.dcode.product_service.dto.CartDtoBase;
 import com.dcode.product_service.dtoRequest.ProductOrderRequest;
 import com.dcode.product_service.dtoRequest.ProductRequest;
+import com.dcode.product_service.dtoRequest.ProductUpdateRequest;
 import com.dcode.product_service.dtoRequest.order_service.OrderLineDTO;
-import com.dcode.product_service.dtoResponse.ProductOrderResponse;
-import com.dcode.product_service.dtoResponse.ProductResponse;
-import com.dcode.product_service.dtoResponse.VariantResponse;
+import com.dcode.product_service.dtoResponse.*;
 import com.dcode.product_service.entity.*;
 import com.dcode.product_service.enumeration.CategoryType;
 import com.dcode.product_service.exception.ApiException;
 import com.dcode.product_service.repository.*;
 import com.dcode.product_service.service.IProductService;
-import com.dcode.product_service.utils.PaintUtils;
 import com.dcode.product_service.utils.ProductUtils;
-import com.dcode.product_service.utils.VariantUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -27,6 +24,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.BiConsumer;
+import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import static com.dcode.product_service.utils.PaintUtils.convertVariantToVResponse;
@@ -48,6 +48,11 @@ public class ProductServiceImpl implements IProductService {
     private final WallpaperVariantRepository wallpaperVariantRepository;
     private final FeatureValueRepository featureValueRepository;
     private final PropertyValueRepository propertyValueRepository;
+    private final ImageRepository imageRepository;
+    private final ColorRepository colorRepository;
+    private final WallpaperRepository wallpaperRepository;
+    private final FloorRepository floorRepository;
+    private final VariantRepository variantRepository;
 
 
     @Override
@@ -70,7 +75,7 @@ public class ProductServiceImpl implements IProductService {
     private Set<Product> createNewProducts(Set<ProductRequest> productRequests) {
         return productRequests.stream().map(
                 this::createNewProduct
-         ).collect(Collectors.toSet());
+        ).collect(Collectors.toSet());
     }
 
     private Set<PropertyValue> getPropertyValueByPropertyValueIds(Set<String> propertyValueIds) {
@@ -134,6 +139,7 @@ public class ProductServiceImpl implements IProductService {
         }
         throw new IllegalArgumentException("Invalid category name: " + name);
     }
+
     public ProductResponse mapToProductResponse(Product product) {
         return fromProductEntity(product);
     }
@@ -169,7 +175,7 @@ public class ProductServiceImpl implements IProductService {
                     CartDtoBase.ClientProductResponse clientProductResponse = new CartDtoBase.ClientProductResponse();
                     clientProductResponse.setProductId(variant.getPaint().getProduct().getProductId());
                     clientProductResponse.setProductName(variant.getPaint().getProduct().getProductName());
-                    clientProductResponse.setProductImage(variant.getPaint().getProduct().getImages().isEmpty() ? null : variant.getPaint().getProduct().getImages().get(0).getUrl());
+                    clientProductResponse.setProductImage(variant.getPaint().getProduct().getImages().isEmpty() ? null : variant.getPaint().getProduct().getImages().iterator().next().getUrl());
                     clientProductResponse.setCode(variant.getPaint().getProduct().getCode());
 
                     CartDtoBase.PaintDetailsDto paintDetailsDto = new CartDtoBase.PaintDetailsDto();
@@ -196,7 +202,7 @@ public class ProductServiceImpl implements IProductService {
                     CartDtoBase.ClientProductResponse clientProductResponse = new CartDtoBase.ClientProductResponse();
                     clientProductResponse.setProductId(variant.getFloor().getProduct().getProductId());
                     clientProductResponse.setProductName(variant.getFloor().getProduct().getProductName());
-                    clientProductResponse.setProductImage(variant.getFloor().getProduct().getImages().isEmpty() ? null : variant.getFloor().getProduct().getImages().get(0).getUrl());
+                    clientProductResponse.setProductImage(variant.getFloor().getProduct().getImages().isEmpty() ? null : variant.getFloor().getProduct().getImages().iterator().next().getUrl());
                     clientProductResponse.setCode(variant.getFloor().getProduct().getCode());
 
                     CartDtoBase.FloorDetailsDto floorDetailsDto = new CartDtoBase.FloorDetailsDto();
@@ -220,7 +226,7 @@ public class ProductServiceImpl implements IProductService {
                     CartDtoBase.ClientProductResponse clientProductResponse = new CartDtoBase.ClientProductResponse();
                     clientProductResponse.setProductId(variant.getWallpaper().getProduct().getProductId());
                     clientProductResponse.setProductName(variant.getWallpaper().getProduct().getProductName());
-                    clientProductResponse.setProductImage(variant.getWallpaper().getProduct().getImages().isEmpty() ? null : variant.getWallpaper().getProduct().getImages().get(0).getUrl());
+                    clientProductResponse.setProductImage(variant.getWallpaper().getProduct().getImages().isEmpty() ? null : variant.getWallpaper().getProduct().getImages().iterator().next().getUrl());
                     clientProductResponse.setCode(variant.getWallpaper().getProduct().getCode());
 
                     CartDtoBase.WallpaperDetailsDto wallpaperDetailsDto = new CartDtoBase.WallpaperDetailsDto();
@@ -255,6 +261,349 @@ public class ProductServiceImpl implements IProductService {
             variantOpt.ifPresent(variants::add);
         }
         return variants;
+    }
+
+    @Override
+    public void updateProduct(ProductUpdateRequest productRequest) {
+        Product product = productRepository.findByProductId(productRequest.getProductId())
+                .orElseThrow(() -> new ApiException("Product not found!"));
+
+        // Cập nhật thông tin sản phẩm
+        product.setProductName(productRequest.getProductName());
+        product.setDescription(productRequest.getDescription());
+        product.setPlaceOfOrigin(productRequest.getPlaceOfOrigin());
+        product.setRatingAverage(productRequest.getRatingAverage());
+        product.setCode(productRequest.getCode());
+        product.setWarranty(productRequest.getWarranty());
+        product.setApplicableSurface(productRequest.getApplicableSurface());
+        product.setCategory(categoryRepository.findCategoryByCategoryId(productRequest.getCategory().getCategoryId())
+                .orElseThrow(() -> new ApiException("Category not found!")));
+        product.setBrand(brandRepository.findBrandByBrandId(productRequest.getBrand().getBrandId())
+                .orElseThrow(() -> new ApiException("Brand not found!")));
+
+        // Xử lý hình ảnh
+        Set<String> updatedImageIds = productRequest.getImages().stream()
+                .map(ImageResponse::getImageId)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+
+        product.getImages().removeIf(image -> {
+            boolean shouldRemove = !updatedImageIds.contains(image.getImageId());
+            if (shouldRemove) {
+                imageRepository.delete(image); // Xóa khỏi bảng image
+            }
+            return shouldRemove;
+        });
+
+        for (ImageResponse image : productRequest.getImages()) {
+            if (image.getImageId() != null) {
+                Image existingImage = imageRepository.findByImageId(image.getImageId())
+                        .orElseThrow(() -> new ApiException("Image not found: " + image.getImageId()));
+                existingImage.setUrl(image.getUrl());
+                imageRepository.save(existingImage);
+            } else {
+                Image newImage = Image.builder()
+                        .imageId(UUID.randomUUID().toString())
+                        .product(product)
+                        .url(image.getUrl())
+                        .build();
+                imageRepository.save(newImage);
+                product.getImages().add(newImage);
+            }
+        }
+
+        // Cập nhật các featureValues từ request
+        Set<String> updatedFeatureIds = productRequest.getFeatures().stream()
+                .map(FeatureValueResponse::getFeatureValueId)
+                .collect(Collectors.toSet());
+
+        // Xóa các feature không còn trong request
+        product.getFeatureValues().removeIf(featureValue -> {
+            return !updatedFeatureIds.contains(featureValue.getFeatureValueId());
+        });
+
+        // Thêm các feature mới từ request
+        for (FeatureValueResponse featureValue : productRequest.getFeatures()) {
+            if (featureValue.getFeatureValueId() != null) {
+                FeatureValue existingFeatureValue = featureValueRepository.findByFeatureValueId(featureValue.getFeatureValueId())
+                        .orElseThrow(() -> new ApiException("Feature value not found: " + featureValue.getFeatureValueId()));
+                product.getFeatureValues().add(existingFeatureValue);
+            }
+        }
+
+        // Cập nhật các propertyValues từ request
+        Set<String> updatedPropertyIds = productRequest.getProperties().stream()
+                .map(PropertyValueResponse::getPropertyValueId)
+                .collect(Collectors.toSet());
+
+        // Xóa các property không còn trong request
+        product.getPropertyValues().removeIf(propertyValue -> {
+            return !updatedPropertyIds.contains(propertyValue.getPropertyValueId());
+        });
+
+        // Thêm các property mới từ request
+        for (PropertyValueResponse propertyValue : productRequest.getProperties()) {
+            if (propertyValue.getPropertyValueId() != null) {
+                PropertyValue existingPropertyValue = propertyValueRepository.findByPropertyValueId(propertyValue.getPropertyValueId())
+                        .orElseThrow(() -> new ApiException("Property value not found: " + propertyValue.getPropertyValueId()));
+                product.getPropertyValues().add(existingPropertyValue);
+            }
+        }
+
+
+        // Cập nhật paint, wallpaper, và floor
+//        if (productRequest.getPaints() != null ) {
+//            updatePaints(productRequest.getPaints(), product);
+//        } else if (productRequest.getWallpapers() != null) {
+//            updateWallpapers(productRequest.getWallpapers(), product);
+//        } else if (productRequest.getFloors() != null) {
+//            updateFloors(productRequest.getFloors(), product);
+//        }
+        updatePaints(productRequest.getPaints(), product);
+        updateWallpapers(productRequest.getWallpapers(), product);
+        updateFloors(productRequest.getFloors(), product);
+
+
+        productRepository.save(product);
+    }
+
+    private void updatePaints(Set<PaintResponse> paintRequests, Product product) {
+        Set<Paint> existingPaints = new HashSet<>(product.getPaints());
+
+        if (paintRequests == null) {
+            for (Paint paint : existingPaints) {
+                Set<PaintVariant> variants = paint.getPaintVariants();
+                paintVariantRepository.deleteAll(variants);
+                paintRepository.delete(paint);
+            }
+            return;
+        }
+        // Tạo tập hợp chứa các PaintId từ yêu cầu cập nhật
+        Set<String> requestedPaintIds = paintRequests.stream()
+                .map(PaintResponse::getPaintId)
+                .collect(Collectors.toSet());
+
+        // Xóa các Paint không có trong yêu cầu
+        for (Paint paint : existingPaints) {
+            if (!requestedPaintIds.contains(paint.getPaintId())) {
+                // Xóa các PaintVariant liên kết với Paint trước khi xóa Paint
+                Set<PaintVariant> variants = paint.getPaintVariants();
+                paintVariantRepository.deleteAll(variants);
+                paintRepository.delete(paint);
+            }
+        }
+
+        for (PaintResponse paintRequest : paintRequests) {
+            if (paintRequest.getPaintId() == null) {
+                // Thêm mới paint
+                Paint newPaint = Paint.builder()
+                        .product(product)
+                        .paintId(UUID.randomUUID().toString())
+                        .status(paintRequest.getStatus())
+                        .color(colorRepository.findByColorId(paintRequest.getColor().getColorId()) // Giả định bạn có phương thức này
+                                .orElseThrow(() -> new ApiException("Color not found: " + paintRequest.getColor().getColorId())))
+                        .paintVariants(new HashSet<>())
+                        .build();
+                product.getPaints().add(newPaint);
+                // Lưu mới paint
+                paintRepository.save(newPaint);
+                updatePaintVariants(paintRequest.getVariants(), newPaint);
+            } else {
+                // Cập nhật paint hiện có
+                Paint existingPaint = paintRepository.findByPaintId(paintRequest.getPaintId())
+                        .orElseThrow(() -> new ApiException("Paint not found: " + paintRequest.getPaintId()));
+                existingPaint.setStatus(paintRequest.getStatus());
+                existingPaint.setColor(colorRepository.findByColorId(paintRequest.getColor().getColorId())
+                        .orElseThrow(() -> new ApiException("Color not found: " + paintRequest.getColor().getColorId())));
+                // Cập nhật các PaintVariant
+                paintRepository.save(existingPaint);
+                updatePaintVariants(paintRequest.getVariants(), existingPaint);
+            }
+        }
+
+
+
+
+    }
+
+
+    private void updatePaintVariants(List<VariantResponse> paintVariantRequests, Paint paint) {
+        // Tạo tập hợp chứa các ID của PaintVariant hiện có
+        Set<String> existingVariantIds = paint.getPaintVariants().stream()
+                .map(PaintVariant::getPaintVariantId)
+                .collect(Collectors.toSet());
+
+        for (VariantResponse variantRequest : paintVariantRequests) {
+            // Chỉ cập nhật những PaintVariant đã tồn tại trong DB
+            if (variantRequest.getVariantId() != null) {
+                PaintVariant existingVariant = paintVariantRepository.findByPaint_paintIdAndVariant_variantId(paint.getPaintId(), variantRequest.getVariantId()).orElse(
+                        PaintVariant.builder()
+                                .paintVariantId(UUID.randomUUID().toString())
+                                .paint(paint)
+                                .variant(variantRepository.findByVariantId(variantRequest.getVariantId())
+                                        .orElseThrow(() -> new ApiException("Variant not found: " + variantRequest.getVariantId())))
+                                .build()
+                );
+
+                // Cập nhật các thuộc tính của PaintVariant
+                existingVariant.setQuantity(variantRequest.getQuantity());
+                existingVariant.setPrice(variantRequest.getPrice());
+
+                // Lưu PaintVariant đã cập nhật
+                paintVariantRepository.save(existingVariant);
+            }
+        }
+
+        // Xóa PaintVariant không còn trong request
+        paint.getPaintVariants().removeIf(variant -> !existingVariantIds.contains(variant.getPaintVariantId()));
+    }
+
+    private void updateWallpapers(Set<WallpaperResponse> wallpaperRequests, Product product) {
+        Set<Wallpaper> existingWallpapers = new HashSet<>(product.getWallpapers());
+
+        if (wallpaperRequests == null) {
+            for (Wallpaper wallpaper : existingWallpapers) {
+                Set<WallpaperVariant> variants = wallpaper.getWallpaperVariants();
+                wallpaperVariantRepository.deleteAll(variants);
+                wallpaperRepository.delete(wallpaper);
+            }
+            return;
+        }
+
+        // Tạo tập hợp chứa các WallpaperId từ yêu cầu cập nhật
+        Set<String> requestedWallpaperIds = wallpaperRequests.stream()
+                .map(WallpaperResponse::getWallpaperId)
+                .collect(Collectors.toSet());
+
+        // Xóa các Wallpaper không có trong yêu cầu
+        for (Wallpaper wallpaper : existingWallpapers) {
+            if (!requestedWallpaperIds.contains(wallpaper.getWallpaperId())) {
+                // Xóa các WallpaperVariant liên kết với Wallpaper trước khi xóa Wallpaper
+                Set<WallpaperVariant> variants = wallpaper.getWallpaperVariants();
+                wallpaperVariantRepository.deleteAll(variants);
+                wallpaperRepository.delete(wallpaper);
+            }
+        }
+
+        for (WallpaperResponse wallpaperRequest : wallpaperRequests) {
+            if (wallpaperRequest.getWallpaperId() == null) {
+                // Thêm mới wallpaper
+                Wallpaper newWallpaper = Wallpaper.builder()
+                        .wallpaperId(UUID.randomUUID().toString())
+                        .product(product)
+                        .status(wallpaperRequest.getStatus())
+                        .wallpaperVariants(new HashSet<>())
+                        .build();
+                product.getWallpapers().add(newWallpaper);
+                wallpaperRepository.save(newWallpaper);
+                updateWallpaperVariants(wallpaperRequest.getVariants(), newWallpaper);
+            } else {
+                // Cập nhật wallpaper hiện có
+                Wallpaper existingWallpaper = wallpaperRepository.findByWallpaperId(wallpaperRequest.getWallpaperId())
+                        .orElseThrow(() -> new ApiException("Wallpaper not found: " + wallpaperRequest.getWallpaperId()));
+                existingWallpaper.setStatus(wallpaperRequest.getStatus());
+                wallpaperRepository.save(existingWallpaper);
+                updateWallpaperVariants(wallpaperRequest.getVariants(), existingWallpaper);
+            }
+        }
+    }
+
+    private void updateWallpaperVariants(List<VariantResponse> wallpaperVariantRequests, Wallpaper wallpaper) {
+        // Tạo tập hợp chứa các ID của WallpaperVariant hiện có
+        Set<String> existingVariantIds = wallpaper.getWallpaperVariants().stream()
+                .map(WallpaperVariant::getWallpaperVariantId)
+                .collect(Collectors.toSet());
+
+        for (VariantResponse variantRequest : wallpaperVariantRequests) {
+            if (variantRequest.getVariantId() != null) {
+                WallpaperVariant existingVariant = wallpaperVariantRepository.findByWallpaper_wallpaperIdAndVariant_variantId(wallpaper.getWallpaperId(), variantRequest.getVariantId())
+                                .orElse(WallpaperVariant.builder()
+                                        .wallpaperVariantId(UUID.randomUUID().toString())
+                                        .wallpaper(wallpaper)
+                                        .variant(variantRepository.findByVariantId(variantRequest.getVariantId())
+                                                .orElseThrow(() -> new ApiException("Variant not found: " + variantRequest.getVariantId())))
+                                        .build());
+
+                existingVariant.setQuantity(variantRequest.getQuantity());
+                existingVariant.setPrice(variantRequest.getPrice());
+
+                wallpaperVariantRepository.save(existingVariant);
+            }
+        }
+
+        wallpaper.getWallpaperVariants().removeIf(variant -> !existingVariantIds.contains(variant.getWallpaperVariantId()));
+    }
+
+    private void updateFloors(Set<FloorResponse> floorRequests, Product product) {
+        Set<Floor> existingFloors = new HashSet<>(product.getFloors());
+
+        if (floorRequests == null) {
+            for (Floor floor : existingFloors) {
+                Set<FloorVariant> variants = floor.getFloorVariants();
+                floorVariantRepository.deleteAll(variants);
+                floorRepository.delete(floor);
+            }
+            return;
+        }
+
+        Set<String> requestedFloorIds = floorRequests.stream()
+                .map(FloorResponse::getFloorId)
+                .collect(Collectors.toSet());
+
+        for (Floor floor : existingFloors) {
+            if (!requestedFloorIds.contains(floor.getFloorId())) {
+                Set<FloorVariant> variants = floor.getFloorVariants();
+                floorVariantRepository.deleteAll(variants);
+                floorRepository.delete(floor);
+            }
+        }
+
+        for (FloorResponse floorRequest : floorRequests) {
+            if (floorRequest.getFloorId() == null) {
+                Floor newFloor = Floor.builder()
+                        .floorId(UUID.randomUUID().toString())
+                        .product(product)
+                        .foamThickness(floorRequest.getFoamThickness())
+                        .numberOfPiecesPerBox(floorRequest.getNumberOfPiecesPerBox())
+                        .status(floorRequest.getStatus())
+                        .floorVariants(new HashSet<>())
+                        .build();
+                product.getFloors().add(newFloor);
+                floorRepository.save(newFloor);
+                updateFloorVariants(floorRequest.getVariants(), newFloor);
+            } else {
+                Floor existingFloor = floorRepository.findByFloorId(floorRequest.getFloorId())
+                        .orElseThrow(() -> new ApiException("Floor not found: " + floorRequest.getFloorId()));
+                existingFloor.setStatus(floorRequest.getStatus());
+                floorRepository.save(existingFloor);
+                updateFloorVariants(floorRequest.getVariants(), existingFloor);
+            }
+        }
+    }
+
+    private void updateFloorVariants(List<VariantResponse> floorVariantRequests, Floor floor) {
+        Set<String> existingVariantIds = floor.getFloorVariants().stream()
+                .map(FloorVariant::getFloorVariantId)
+                .collect(Collectors.toSet());
+
+        for (VariantResponse variantRequest : floorVariantRequests) {
+            if (variantRequest.getVariantId() != null) {
+                FloorVariant existingVariant = floorVariantRepository.findByFloor_floorIdAndVariant_VariantId(floor.getFloorId(), variantRequest.getVariantId())
+                        .orElse(FloorVariant.builder()
+                                .floorVariantId(UUID.randomUUID().toString())
+                                .floor(floor)
+                                .variant(variantRepository.findByVariantId(variantRequest.getVariantId())
+                                        .orElseThrow(() -> new ApiException("Variant not found: " + variantRequest.getVariantId()))
+                                ).build());
+
+                existingVariant.setQuantity(variantRequest.getQuantity());
+                existingVariant.setPrice(variantRequest.getPrice());
+
+                floorVariantRepository.save(existingVariant);
+            }
+        }
+
+        floor.getFloorVariants().removeIf(variant -> !existingVariantIds.contains(variant.getFloorVariantId()));
     }
 
 

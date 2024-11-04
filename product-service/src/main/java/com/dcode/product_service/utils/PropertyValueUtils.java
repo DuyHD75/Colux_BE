@@ -10,16 +10,14 @@ import static com.dcode.product_service.utils.PropertyUtils.fromPropertyEntity;
 
 public class PropertyValueUtils {
     public static Set<PropertyValueResponse> fromPropertyValueEntity(Set<PropertyValue> propertyValues){
-        Set<PropertyValueResponse> propertyValueSet = propertyValues.stream()
+        return propertyValues.stream()
                         .map(propertyValue -> {
-                            PropertyValueResponse response =  PropertyValueResponse.builder()
+                            return PropertyValueResponse.builder()
                                     .propertyValueId(propertyValue.getPropertyValueId())
                                     .value(propertyValue.getValue())
-                                    .property(fromPropertyEntity(propertyValue.getProperty()))
+//                                    .property(fromPropertyEntity(propertyValue.getProperty()))
                                     .build();
-                            return response;
                         }).collect(Collectors.toSet());
-        return propertyValueSet;
 
     }
 }
