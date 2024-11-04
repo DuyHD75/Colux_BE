@@ -57,7 +57,9 @@ import org.springframework.web.client.RestTemplate;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 
 import static com.dcode.order_service.constant.Constants.AppConstants.*;
@@ -68,8 +70,6 @@ import static com.dcode.order_service.utils.OrderUtils.*;
 @Slf4j
 @Transactional
 public class OrderServiceImpl implements IOrderService {
-
-
 
 
     private final ICustomerClientProxy clientProxy;
@@ -84,7 +84,6 @@ public class OrderServiceImpl implements IOrderService {
     private final IWaybillRepository waybillRepository;
     private final ApplicationEventPublisher publisher;
     private final ICartService cartService;
-
 
 
     @Value("${spring.shipping.ghnToken}")
@@ -254,16 +253,21 @@ public class OrderServiceImpl implements IOrderService {
             CartVariantKeyRequest cartVariantKeyRequest = new CartVariantKeyRequest();
 
             cartVariantKeyRequest.setCartId(cartEntity.getCartId());
+
             Map<String, List<String>> itemDeleteRequests = request.getPurchaseProducts().stream()
                     .collect(Collectors.groupingBy(PurchaseRequest::variantId,
-                            Collectors.mapping(PurchaseRequest::productId, Collectors.toList())));
+                            Collectors.flatMapping(purchaseRequest -> Stream.of(
+                                    purchaseRequest.productId(),
+                                    purchaseRequest.paintId(),
+                                    purchaseRequest.floorId(),
+                                    purchaseRequest.wallpaperId()
+                            ).filter(Objects::nonNull), Collectors.toList())));
 
             cartVariantKeyRequest.setItemDeleteRequests(itemDeleteRequests);
 
             cartService.deleteCartItem(cartVariantKeyRequest);
         }
     }
-
 
     public List<OrderLineEntity> returnOrderToProductService(String orderId) {
         var orderLines = orderLineRepository.findByOrderEntity_orderId(orderId);
