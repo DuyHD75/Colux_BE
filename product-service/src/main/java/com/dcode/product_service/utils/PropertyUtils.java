@@ -10,6 +10,8 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import static com.dcode.product_service.utils.PropertyValueUtils.fromPropertyValueEntity;
+
 public class PropertyUtils {
     public static Property createNewPropertyEntity(RequestProperty requestProperty) {
         Property property = Property.builder()
@@ -32,12 +34,22 @@ public class PropertyUtils {
                 }).collect(Collectors.toSet());
     }
     public static PropertyResponse fromPropertyEntity(Property property){
-        PropertyResponse propertyResponse = new PropertyResponse();
+        PropertyResponse propertyResponse = PropertyResponse.builder().build();
         BeanUtils.copyProperties(property, propertyResponse);
 
-        propertyResponse.setPropertyValues(property.getPropertyValues().stream()
-                .map(PropertyValue::getValue)
-                .collect(Collectors.toSet()));
+        propertyResponse.setPropertyValues(fromPropertyValueEntity(property.getPropertyValues()));
+        // This is the original code
+//        propertyResponse.setPropertyValues(property.getPropertyValues().stream()
+//                .map(PropertyValue::getValue)
+//                .collect(Collectors.toSet()));
         return propertyResponse;
+    }
+
+    public static PropertyResponse buildPropertyResponse(Property property){
+        return PropertyResponse.builder()
+                .propertyId(property.getPropertyId())
+                .name(property.getName())
+                .description(property.getDescription())
+                .build();
     }
 }

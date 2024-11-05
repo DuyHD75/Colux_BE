@@ -15,7 +15,7 @@ import lombok.Setter;
 @AllArgsConstructor
 @Entity
 @Table(name = "suppliers")
-public class Supplier extends Auditable{
+public class ProductSupplier extends Auditable{
     private String name;
     private String code;
     private String phone;

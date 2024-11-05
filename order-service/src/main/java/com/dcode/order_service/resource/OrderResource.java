@@ -21,7 +21,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.view.RedirectView;
 
-import static com.dcode.order_service.constant.Constants.AppConstants.FRONTEND_HOST;
 import static java.util.Collections.emptyMap;
 
 import java.net.URI;
@@ -34,6 +33,10 @@ import static org.springframework.http.HttpStatus.*;
 @RequestMapping("/api/v1/orders")
 @RequiredArgsConstructor
 public class OrderResource {
+
+    @Value("${application.host.frontend}")
+    private String FRONTEND_HOST;
+
     private final IOrderService orderService;
     private final IOrderRepository orderRepository;
 
@@ -145,7 +148,6 @@ public class OrderResource {
     @GetMapping("/shipping/province")
     public ResponseEntity<Response> getProvinces(HttpServletRequest request) {
         var provinces = orderService.getProvinces();
-
         return ResponseEntity.ok().body(
                 getResponse(request, "Province list retrieved successfully!", HttpStatus.OK, Map.of("provinces", provinces))
         );
@@ -165,9 +167,7 @@ public class OrderResource {
                 getResponse(request, "Wards retrieved successfully!", OK, Map.of("fee", fee))
         );
     }
-
-
-
+    
     private URI getUri() {
         return URI.create("/api/v1/orders");
     }

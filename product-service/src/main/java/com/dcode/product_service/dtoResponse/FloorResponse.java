@@ -12,8 +12,8 @@ import java.util.List;
 public class FloorResponse {
     @JsonProperty("id")
     private String floorId;
-    private String foamThickness;
-    private String numberOfPiecesPerBox;
+    private Double foamThickness;
+    private Integer numberOfPiecesPerBox;
     private String areaPerBox;
     private Integer status;
     private List<VariantResponse> variants;

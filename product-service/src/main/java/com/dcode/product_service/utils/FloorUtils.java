@@ -43,8 +43,8 @@ public class FloorUtils {
     public static FloorResponse fromFloorEntity(Floor floor){
         return FloorResponse.builder()
                 .floorId(floor.getFloorId())
-                .foamThickness(floor.getFoamThickness().toString())
-                .numberOfPiecesPerBox(floor.getNumberOfPiecesPerBox().toString())
+                .foamThickness(floor.getFoamThickness())
+                .numberOfPiecesPerBox(floor.getNumberOfPiecesPerBox())
                 .variants(convertVariantToVResponse(floor.getFloorVariants()))
                 .status(floor.getStatus())
                 .build();

@@ -16,6 +16,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -94,6 +95,7 @@ public class ProductController {
         }
 
     }
+
     @PostMapping("/getInfo")
     public ResponseEntity<Response> getInfoForBuildNameGHN(@RequestBody @Valid List<ProductOrderRequest> productOrderRequestList, HttpServletRequest request, HttpServletResponse response) {
         try {
@@ -171,6 +173,20 @@ public class ProductController {
             var products = productService.getAllProduct(pageable);
 
             return ResponseEntity.ok().body(getResponse(request, Map.of("products", products), "Product retrieve successfully!", OK));
+        } catch (ApiException ex) {
+            return ResponseEntity.status(BAD_REQUEST)
+                    .body(getErrorResponse(request, response, ex, BAD_REQUEST));
+        } catch (Exception exception) {
+            return ResponseEntity.status(INTERNAL_SERVER_ERROR)
+                    .body(getErrorResponse(request, response, new ApiException("An unexpected error occurred."), INTERNAL_SERVER_ERROR));
+        }
+    }
+
+    @PutMapping(value = "/product")
+    public ResponseEntity<Response> updateProduct(@RequestBody ProductUpdateRequest productRequest, HttpServletRequest request, HttpServletResponse response) {
+        try {
+            productService.updateProduct(productRequest);
+            return ResponseEntity.ok().body(getResponse(request, emptyMap(), "Product updated successfully!", OK));
         } catch (ApiException ex) {
             return ResponseEntity.status(BAD_REQUEST)
                     .body(getErrorResponse(request, response, ex, BAD_REQUEST));

@@ -17,12 +17,6 @@ public class Image extends Auditable{
     @NaturalId
     private String imageId;
     private String url;
-    private String imageName;
-    private String caption;
-    private String altText;
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private ImageType type;
 
     @ManyToOne
     @JoinColumn(name = "product_id")

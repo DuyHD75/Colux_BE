@@ -11,7 +11,7 @@
     <groupId>com.dcode.microservices</groupId>
     <artifactId>api-gateway</artifactId>
 
-    <version>0.0.12-SNAPSHOT</version>
+    <version>0.0.14-SNAPSHOT</version>
 
     <name>api-gateway</name>
     <description>Implement Api-Gateway For Colux Application</description>

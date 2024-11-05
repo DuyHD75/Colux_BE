@@ -40,21 +40,21 @@ public class PaintUtils {
                                 .sizeName(v.getVariant().getSizeName())
                                 .categoryName(v.getVariant().getCategoryName())
                                 .packageType(v.getVariant().getPackageType())
-                                .quantity(v.getQuantity().toString())
+                                .quantity(v.getQuantity())
                                 .price(v.getPrice());
                     } else if (variant instanceof WallpaperVariant v) {
                         builder.variantId(v.getVariant().getVariantId())
                                 .sizeName(v.getVariant().getSizeName())
                                 .categoryName(v.getVariant().getCategoryName())
                                 .packageType(v.getVariant().getPackageType())
-                                .quantity(v.getQuantity().toString())
+                                .quantity(v.getQuantity())
                                 .price(v.getPrice());
                     } else if (variant instanceof FloorVariant v) {
                         builder.variantId(v.getVariant().getVariantId())
                                 .sizeName(v.getVariant().getSizeName())
                                 .categoryName(v.getVariant().getCategoryName())
                                 .packageType(v.getVariant().getPackageType())
-                                .quantity(v.getQuantity().toString())
+                                .quantity(v.getQuantity())
                                 .price(v.getPrice());
                     }
                     return builder.build();

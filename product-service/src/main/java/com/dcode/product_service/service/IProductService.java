@@ -3,6 +3,7 @@ package com.dcode.product_service.service;
 import com.dcode.product_service.dto.CartDtoBase;
 import com.dcode.product_service.dtoRequest.ProductOrderRequest;
 import com.dcode.product_service.dtoRequest.ProductRequest;
+import com.dcode.product_service.dtoRequest.ProductUpdateRequest;
 import com.dcode.product_service.dtoResponse.ProductOrderResponse;
 import com.dcode.product_service.dtoResponse.ProductResponse;
 import com.dcode.product_service.entity.PageResponse;
@@ -22,6 +23,8 @@ public interface IProductService {
     PageResponse<ProductResponse> getAllProduct(Pageable pageable);
 
     List<CartDtoBase> checkStockAvailability(List<ProductOrderRequest> productOrderRequestList, boolean isBuildNameGHN);
+
+    void updateProduct(ProductUpdateRequest productRequest);
 
 //    void createProduct(ProductRequest productRequest);
 }

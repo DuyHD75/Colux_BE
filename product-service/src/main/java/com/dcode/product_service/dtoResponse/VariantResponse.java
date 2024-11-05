@@ -10,6 +10,6 @@ public class VariantResponse {
     private String sizeName;
     private String categoryName;
     private String packageType;
-    private String quantity;
+    private Integer quantity;
     private Double price;
 }
