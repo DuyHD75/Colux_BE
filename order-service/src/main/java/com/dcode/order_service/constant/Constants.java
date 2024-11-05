@@ -29,7 +29,7 @@ public class Constants {
         public static final double DEFAULT_TAX = 0.1;
         public static final int VND_TO_USD = 23_000;
         public static final String BRAND_NAME = "COLUX ALPHA";
-        public static final String FRONTEND_HOST = "https://colux.vercel.app";
+//        public static final String FRONTEND_HOST = "https://colux.vercel.app";
         public static final String SERVICE_NAME = "order-service";
 
     }

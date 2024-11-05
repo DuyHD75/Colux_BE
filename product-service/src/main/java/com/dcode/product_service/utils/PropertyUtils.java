@@ -34,7 +34,7 @@ public class PropertyUtils {
                 }).collect(Collectors.toSet());
     }
     public static PropertyResponse fromPropertyEntity(Property property){
-        PropertyResponse propertyResponse = new PropertyResponse();
+        PropertyResponse propertyResponse = PropertyResponse.builder().build();
         BeanUtils.copyProperties(property, propertyResponse);
 
         propertyResponse.setPropertyValues(fromPropertyValueEntity(property.getPropertyValues()));
@@ -43,5 +43,13 @@ public class PropertyUtils {
 //                .map(PropertyValue::getValue)
 //                .collect(Collectors.toSet()));
         return propertyResponse;
+    }
+
+    public static PropertyResponse buildPropertyResponse(Property property){
+        return PropertyResponse.builder()
+                .propertyId(property.getPropertyId())
+                .name(property.getName())
+                .description(property.getDescription())
+                .build();
     }
 }
