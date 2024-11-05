@@ -14,6 +14,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -30,11 +32,12 @@ import static org.springframework.http.HttpStatus.*;
 
 @RestController
 @RequestMapping("/api/v1/orders")
-@AllArgsConstructor
-@CrossOrigin(FRONTEND_HOST)
+@RequiredArgsConstructor
 public class OrderResource {
     private final IOrderService orderService;
     private final IOrderRepository orderRepository;
+
+
 
 
     @GetMapping("/test")
@@ -131,6 +134,39 @@ public class OrderResource {
            return redirectView;
        }
     }
+
+    @PostMapping("/shipping/calculateFee")
+    public ResponseEntity<Response> calculateFee(@RequestBody GhnCalculateFeeRequest ghnCalculateFeeRequestRequest, HttpServletRequest request) {
+        var fee = orderService.calculateFee(ghnCalculateFeeRequestRequest);
+        return ResponseEntity.ok().body(
+                getResponse(request, "Fee calculated successfully!", OK, Map.of("fee", fee))
+        );
+    }
+    @GetMapping("/shipping/province")
+    public ResponseEntity<Response> getProvinces(HttpServletRequest request) {
+        var provinces = orderService.getProvinces();
+
+        return ResponseEntity.ok().body(
+                getResponse(request, "Province list retrieved successfully!", HttpStatus.OK, Map.of("provinces", provinces))
+        );
+    }
+
+    @PostMapping("/shipping/district")
+    public ResponseEntity<Response> getDistrict(@RequestBody JsonNode districtId, HttpServletRequest request) {
+        var fee = orderService.getDistrict(districtId);
+        return ResponseEntity.ok().body(
+                getResponse(request, "Districts retrieved successfully!", OK, Map.of("fee", fee))
+        );
+    }
+    @PostMapping("/shipping/ward")
+    public ResponseEntity<Response> getWard(@RequestBody JsonNode wardId, HttpServletRequest request) {
+        var fee = orderService.getWard(wardId);
+        return ResponseEntity.ok().body(
+                getResponse(request, "Wards retrieved successfully!", OK, Map.of("fee", fee))
+        );
+    }
+
+
 
     private URI getUri() {
         return URI.create("/api/v1/orders");

@@ -22,7 +22,6 @@ import static org.springframework.http.HttpStatus.*;
 @RestController
 @RequestMapping("/api/v1/waybills")
 @AllArgsConstructor
-@CrossOrigin("http://localhost:3000")
 public class WaybillResource {
 
     private WaybillService waybillService;

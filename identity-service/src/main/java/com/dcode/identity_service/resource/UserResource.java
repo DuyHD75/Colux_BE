@@ -31,7 +31,6 @@ import static com.dcode.identity_service.utils.RequestUtils.getResponse;
 import static java.util.Collections.emptyMap;
 import static org.springframework.http.HttpStatus.*;
 
-//@CrossOrigin(origins = "", allowCredentials = "true")
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/users")
