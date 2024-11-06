@@ -6,6 +6,7 @@ public class Constants {
                 "/identity-service/api/v1/users/.*",
                 "/product-service/api/v1/products/.*",
                 "/order-service/api/v1/orders/shipping/.*",
+                "/product-service/api/v1/upload/.*",
         };
     }
 }
