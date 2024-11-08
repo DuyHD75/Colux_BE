@@ -32,6 +32,9 @@ public class OrderEntity extends Auditable {
     @NaturalId
     private String orderId;
 
+    @Version
+    private Long version; // Trường version cho Optimistic Locking
+
     @Column(name = "customer_id", nullable = false)
     private String customerId;
 

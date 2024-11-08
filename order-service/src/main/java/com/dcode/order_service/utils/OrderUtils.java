@@ -4,6 +4,7 @@ import com.dcode.order_service.dto.order.Order;
 import com.dcode.order_service.dto.order.request.OrderLineRequest;
 import com.dcode.order_service.dto.order.request.OrderRequest;
 import com.dcode.order_service.dto.order.response.OrderLineResponse;
+import com.dcode.order_service.dto.product.OrderLineDTO;
 import com.dcode.order_service.dto.product.PurchaseResponse;
 import com.dcode.order_service.entity.order.OrderLineEntity;
 import com.dcode.order_service.entity.order.OrderEntity;
@@ -109,6 +110,18 @@ public class OrderUtils {
                 orderLine.getFloorId(),
                 orderLine.getQuantity()
         );
+    }
+
+    public static OrderLineDTO fromOrderLineEntityToDTO(OrderLineEntity orderLine) {
+        return OrderLineDTO.builder()
+                .id(orderLine.getId())
+                .productId(orderLine.getProductId())
+                .quantity(orderLine.getQuantity())
+                .variantId(orderLine.getVariantId())
+                .paintId(orderLine.getPaintId())
+                .wallpaperId(orderLine.getWallpaperId())
+                .floorId(orderLine.getFloorId())
+                .build();
     }
 
 

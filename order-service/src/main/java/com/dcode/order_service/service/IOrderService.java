@@ -30,4 +30,6 @@ public interface IOrderService {
     Map<String, Object> getDistrict(JsonNode districtId);
 
     Map<String, Object> getWard(JsonNode wardId);
+
+    Map<String, Object> getServices(JsonNode serviceRequest);
 }

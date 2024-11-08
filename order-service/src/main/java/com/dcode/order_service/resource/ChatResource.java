@@ -15,8 +15,8 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/v1/chat")
 @AllArgsConstructor
 public class ChatResource {
-    private SimpMessagingTemplate simpMessagingTemplate;
-    private MessageService messageService;
+//    private SimpMessagingTemplate simpMessagingTemplate;
+//    private MessageService messageService;
 
 //    @MessageMapping("/{roomId}")
 //    public void sendMessage(@DestinationVariable String roomId, @Payload MessageRequest message) {

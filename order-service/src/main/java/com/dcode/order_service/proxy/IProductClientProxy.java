@@ -3,6 +3,7 @@ package com.dcode.order_service.proxy;
 import com.dcode.order_service.config.AuthenticationRequestInterceptor;
 import com.dcode.order_service.domain.Response;
 import com.dcode.order_service.dto.cart.request.CartVariantRequest;
+import com.dcode.order_service.dto.product.OrderLineDTO;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -19,4 +20,7 @@ import java.util.Optional;
 public interface IProductClientProxy {
     @GetMapping("/getInfo")
     Optional<Response> findProductInfo(@RequestBody List<CartVariantRequest> productOrderRequests);
+
+    @GetMapping("/reduceProduct")
+    Optional<Response> reduceProductQuantity(@RequestBody List<OrderLineDTO> productOrderRequests);
 }

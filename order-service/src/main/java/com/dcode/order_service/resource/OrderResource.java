@@ -12,6 +12,7 @@ import com.dcode.order_service.repository.IOrderRepository;
 import com.dcode.order_service.service.IOrderService;
 import com.fasterxml.jackson.databind.JsonNode;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
@@ -21,6 +22,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.view.RedirectView;
 
+import static com.dcode.order_service.utils.RequestUtils.getErrorResponse;
 import static java.util.Collections.emptyMap;
 
 import java.net.URI;
@@ -39,8 +41,6 @@ public class OrderResource {
 
     private final IOrderService orderService;
     private final IOrderRepository orderRepository;
-
-
 
 
     @GetMapping("/test")
@@ -139,33 +139,71 @@ public class OrderResource {
     }
 
     @PostMapping("/shipping/calculateFee")
-    public ResponseEntity<Response> calculateFee(@RequestBody GhnCalculateFeeRequest ghnCalculateFeeRequestRequest, HttpServletRequest request) {
+    public ResponseEntity<Response> calculateFee(@RequestBody GhnCalculateFeeRequest ghnCalculateFeeRequestRequest, HttpServletRequest request, HttpServletResponse response) {
+        try {
         var fee = orderService.calculateFee(ghnCalculateFeeRequestRequest);
         return ResponseEntity.ok().body(
                 getResponse(request, "Fee calculated successfully!", OK, Map.of("fee", fee))
         );
+        }catch(BusinessException e){
+            return ResponseEntity.status(BAD_REQUEST).body(getErrorResponse(request, response, e, BAD_REQUEST));
+        }catch (Exception e){
+            return ResponseEntity.status(INTERNAL_SERVER_ERROR).body(getErrorResponse(request, response, new BusinessException("An unexpected error occurred."), INTERNAL_SERVER_ERROR));
+        }
     }
     @GetMapping("/shipping/province")
-    public ResponseEntity<Response> getProvinces(HttpServletRequest request) {
+    public ResponseEntity<Response> getProvinces(HttpServletRequest request, HttpServletResponse response) {
+        try{
         var provinces = orderService.getProvinces();
         return ResponseEntity.ok().body(
                 getResponse(request, "Province list retrieved successfully!", HttpStatus.OK, Map.of("provinces", provinces))
         );
+        }catch(BusinessException e){
+            return ResponseEntity.status(BAD_REQUEST).body(getErrorResponse(request, response, e, BAD_REQUEST));
+        }catch (Exception e){
+            return ResponseEntity.status(INTERNAL_SERVER_ERROR).body(getErrorResponse(request, response, new BusinessException("An unexpected error occurred."), INTERNAL_SERVER_ERROR));
+        }
     }
 
     @PostMapping("/shipping/district")
-    public ResponseEntity<Response> getDistrict(@RequestBody JsonNode districtId, HttpServletRequest request) {
+    public ResponseEntity<Response> getDistrict(@RequestBody JsonNode districtId, HttpServletRequest request, HttpServletResponse response) {
+        try {
         var fee = orderService.getDistrict(districtId);
         return ResponseEntity.ok().body(
                 getResponse(request, "Districts retrieved successfully!", OK, Map.of("fee", fee))
         );
+        }catch(BusinessException e){
+            return ResponseEntity.status(BAD_REQUEST).body(getErrorResponse(request, response, e, BAD_REQUEST));
+        }catch (Exception e){
+            return ResponseEntity.status(INTERNAL_SERVER_ERROR).body(getErrorResponse(request, response, new BusinessException("An unexpected error occurred."), INTERNAL_SERVER_ERROR));
+        }
     }
     @PostMapping("/shipping/ward")
-    public ResponseEntity<Response> getWard(@RequestBody JsonNode wardId, HttpServletRequest request) {
+    public ResponseEntity<Response> getWard(@RequestBody JsonNode wardId, HttpServletRequest request, HttpServletResponse response) {
+        try {
         var fee = orderService.getWard(wardId);
         return ResponseEntity.ok().body(
                 getResponse(request, "Wards retrieved successfully!", OK, Map.of("fee", fee))
         );
+        }catch(BusinessException e){
+            return ResponseEntity.status(BAD_REQUEST).body(getErrorResponse(request, response, e, BAD_REQUEST));
+        }catch (Exception e){
+            return ResponseEntity.status(INTERNAL_SERVER_ERROR).body(getErrorResponse(request, response, new BusinessException("An unexpected error occurred."), INTERNAL_SERVER_ERROR));
+        }
+    }
+
+    @PostMapping("/shipping/services")
+    public ResponseEntity<Response> getServices(@RequestBody JsonNode serviceRequest, HttpServletRequest request, HttpServletResponse response) {
+        try {
+        var services = orderService.getServices(serviceRequest);
+        return ResponseEntity.ok().body(
+                getResponse(request, "Services retrieved successfully!", OK, Map.of("services", services))
+        );
+        }catch(BusinessException e){
+            return ResponseEntity.status(BAD_REQUEST).body(getErrorResponse(request, response, e, BAD_REQUEST));
+        }catch (Exception e){
+            return ResponseEntity.status(INTERNAL_SERVER_ERROR).body(getErrorResponse(request, response, new BusinessException("An unexpected error occurred."), INTERNAL_SERVER_ERROR));
+        }
     }
     
     private URI getUri() {

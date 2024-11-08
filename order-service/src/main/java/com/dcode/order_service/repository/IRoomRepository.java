@@ -7,5 +7,5 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import java.util.Optional;
 
 public interface IRoomRepository extends JpaRepository<Room, Long>, JpaSpecificationExecutor<Room> {
-    Optional<Room> findByUserUsername(String username);
+//    Optional<Room> findByUserUsername(String username);
 }

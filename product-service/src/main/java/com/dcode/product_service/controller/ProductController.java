@@ -4,6 +4,7 @@ import com.dcode.product_service.domain.ArrayResponse;
 import com.dcode.product_service.domain.Response;
 import com.dcode.product_service.dto.CartDtoBase;
 import com.dcode.product_service.dtoRequest.*;
+import com.dcode.product_service.dtoRequest.order_service.OrderLineDTO;
 import com.dcode.product_service.dtoResponse.ProductOrderResponse;
 import com.dcode.product_service.exception.ApiException;
 import com.dcode.product_service.service.impl.ProductServiceImpl;
@@ -114,6 +115,23 @@ public class ProductController {
 
     }
 
+    @PostMapping("/reduceProduct")
+    public ResponseEntity<Response> reduceProduct(@RequestBody @Valid List<OrderLineDTO> orderLineDTOS, HttpServletRequest request, HttpServletResponse response) {
+        try {
+            String productCartResponses = productService.orderCancelRestore(orderLineDTOS);
+            return ResponseEntity.created(getUri()).body(
+                    getResponse(request, Map.of("products", productCartResponses),
+                            "Retrieve products successfully!", CREATED)
+            );
+        } catch (ApiException ex) {
+            return ResponseEntity.status(BAD_REQUEST)
+                    .body(getErrorResponse(request, response, ex, BAD_REQUEST));
+        } catch (Exception exception) {
+            return ResponseEntity.status(INTERNAL_SERVER_ERROR)
+                    .body(getErrorResponse(request, response, new ApiException("An unexpected error occurred."), INTERNAL_SERVER_ERROR));
+        }
+
+    }
     @PostMapping("/product")
     public ResponseEntity<Response> createProduct(@RequestBody @Valid ProductRequest productRequest, HttpServletRequest request, HttpServletResponse response) {
         try {
