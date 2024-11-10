@@ -52,30 +52,38 @@ public class OrderResource {
     }
 
     @PostMapping("/create")
-    public ResponseEntity<Response> createNewOrder(@RequestBody @Valid OrderRequest orderRequest, HttpServletRequest request) {
+    public ResponseEntity<Response> createNewOrder(@RequestBody @Valid OrderRequest orderRequest, HttpServletRequest request, HttpServletResponse response) {
         try {
-            ConfirmedOrderResponse response = orderService.createClientOrder(orderRequest);
+            ConfirmedOrderResponse orderResult = orderService.createClientOrder(orderRequest);
             return ResponseEntity.created(getUri()).body(
-                    getResponse(request, "Order created successfully!", CREATED, Map.of("data", response))
+                    getResponse(request, "Order created successfully!", CREATED, Map.of("data", orderResult))
             );
         } catch (BusinessException ex) {
-            return ResponseEntity.internalServerError().body(getResponse(request, "Error: " + ex.getMessage(), INTERNAL_SERVER_ERROR, Map.of("errorData", ex.getData())));
+            return ResponseEntity.internalServerError().body(
+                    getErrorResponse(request, response, ex, INTERNAL_SERVER_ERROR, Map.of("errorData", ex.getData()))
+            );
         } catch (Exception ex) {
-            return ResponseEntity.internalServerError().body(getResponse(request, "Error: " + ex.getMessage(), INTERNAL_SERVER_ERROR, emptyMap()));
+            return ResponseEntity.internalServerError().body(
+                    getErrorResponse(request, response, ex, INTERNAL_SERVER_ERROR, emptyMap())
+            );
         }
     }
 
     @PutMapping("/cancel/{code}")
-    public ResponseEntity<Response> cancelOrder(@PathVariable("code") String code, HttpServletRequest request) {
+    public ResponseEntity<Response> cancelOrder(@PathVariable("code") String code, HttpServletRequest request, HttpServletResponse response) {
         try {
             orderService.cancelOrder(code);
             return ResponseEntity.ok().body(
                     getResponse(request, "Order cancelled successfully!", OK, emptyMap())
             );
         } catch (BusinessException ex) {
-            return ResponseEntity.internalServerError().body(getResponse(request, "Error: " + ex.getMessage(), INTERNAL_SERVER_ERROR, Map.of("errorData", ex.getData())));
+            return ResponseEntity.internalServerError().body(
+                    getErrorResponse(request, response, ex, INTERNAL_SERVER_ERROR, Map.of("errorData", ex.getData()))
+            );
         } catch (Exception ex) {
-            return ResponseEntity.internalServerError().body(getResponse(request, "Error: " + ex.getMessage(), INTERNAL_SERVER_ERROR, emptyMap()));
+            return ResponseEntity.internalServerError().body(
+                    getErrorResponse(request, response, ex, INTERNAL_SERVER_ERROR, emptyMap())
+            );
         }
     }
 
@@ -86,7 +94,7 @@ public class OrderResource {
 
 
     @GetMapping()
-    public ResponseEntity<Response> getAllOrders(HttpServletRequest request) {
+    public ResponseEntity<Response> getAllOrders(HttpServletRequest request, HttpServletResponse response) {
         try {
             var orders = orderService.getAllOrders();
             return ResponseEntity.ok().body(
@@ -94,7 +102,8 @@ public class OrderResource {
             );
         } catch (Exception ex) {
             return ResponseEntity.internalServerError().body(
-                    getResponse(request, "Error: " + ex.getMessage(), INTERNAL_SERVER_ERROR, emptyMap()));
+                    getErrorResponse(request, response, ex, INTERNAL_SERVER_ERROR, emptyMap())
+            );
         }
     }
 
@@ -146,10 +155,14 @@ public class OrderResource {
             return ResponseEntity.ok().body(
                     getResponse(request, "Fee calculated successfully!", OK, Map.of("fee", fee))
             );
-        } catch (BusinessException e) {
-            return ResponseEntity.status(BAD_REQUEST).body(getErrorResponse(request, response, e, BAD_REQUEST));
-        } catch (Exception e) {
-            return ResponseEntity.status(INTERNAL_SERVER_ERROR).body(getErrorResponse(request, response, new BusinessException("An unexpected error occurred."), INTERNAL_SERVER_ERROR));
+        } catch (BusinessException ex) {
+            return ResponseEntity.internalServerError().body(
+                    getErrorResponse(request, response, ex, INTERNAL_SERVER_ERROR, Map.of("errorData", ex.getData()))
+            );
+        } catch (Exception ex) {
+            return ResponseEntity.internalServerError().body(
+                    getErrorResponse(request, response, ex, INTERNAL_SERVER_ERROR, emptyMap())
+            );
         }
     }
 
@@ -160,14 +173,13 @@ public class OrderResource {
             return ResponseEntity.ok().body(
                     getResponse(request, "Province list retrieved successfully!", HttpStatus.OK, Map.of("provinces", provinces))
             );
-        } catch (BusinessException e) {
+        } catch (BusinessException ex) {
             return ResponseEntity.status(BAD_REQUEST).body(
-                    getErrorResponse(request, response, e, BAD_REQUEST)
+                    getErrorResponse(request, response, ex, BAD_REQUEST, emptyMap())
             );
-        } catch (Exception e) {
+        } catch (Exception ex) {
             return ResponseEntity.status(INTERNAL_SERVER_ERROR).body(
-                    getErrorResponse(request, response,
-                            new BusinessException("An unexpected error occurred."), INTERNAL_SERVER_ERROR)
+                    getErrorResponse(request, response, ex, INTERNAL_SERVER_ERROR, emptyMap())
             );
         }
     }
@@ -179,14 +191,13 @@ public class OrderResource {
             return ResponseEntity.ok().body(
                     getResponse(request, "Districts retrieved successfully!", OK, Map.of("fee", fee))
             );
-        } catch (BusinessException e) {
+        } catch (BusinessException ex) {
             return ResponseEntity.status(BAD_REQUEST).body(
-                    getErrorResponse(request, response, e, BAD_REQUEST)
+                    getErrorResponse(request, response, ex, BAD_REQUEST, emptyMap())
             );
-        } catch (Exception e) {
+        } catch (Exception ex) {
             return ResponseEntity.status(INTERNAL_SERVER_ERROR).body(
-                    getErrorResponse(request, response,
-                            new BusinessException("An unexpected error occurred."), INTERNAL_SERVER_ERROR)
+                    getErrorResponse(request, response, ex, INTERNAL_SERVER_ERROR, emptyMap())
             );
         }
     }
@@ -198,13 +209,13 @@ public class OrderResource {
             return ResponseEntity.ok().body(
                     getResponse(request, "Wards retrieved successfully!", OK, Map.of("fee", fee))
             );
-        } catch (BusinessException e) {
+        } catch (BusinessException ex) {
             return ResponseEntity.status(BAD_REQUEST).body(
-                    getErrorResponse(request, response, e, BAD_REQUEST)
+                    getErrorResponse(request, response, ex, BAD_REQUEST, emptyMap())
             );
-        } catch (Exception e) {
+        } catch (Exception ex) {
             return ResponseEntity.status(INTERNAL_SERVER_ERROR).body(
-                    getErrorResponse(request, response, new BusinessException("An unexpected error occurred."), INTERNAL_SERVER_ERROR)
+                    getErrorResponse(request, response, ex, INTERNAL_SERVER_ERROR, emptyMap())
             );
         }
     }
@@ -216,13 +227,14 @@ public class OrderResource {
             return ResponseEntity.ok().body(
                     getResponse(request, "Services retrieved successfully!", OK, Map.of("services", services))
             );
-        } catch (BusinessException e) {
+        } catch (BusinessException ex) {
             return ResponseEntity.status(BAD_REQUEST).body(
-                    getErrorResponse(request, response, e, BAD_REQUEST)
+                    getErrorResponse(request, response, ex, BAD_REQUEST, emptyMap())
+
             );
-        } catch (Exception e) {
+        } catch (Exception ex) {
             return ResponseEntity.status(INTERNAL_SERVER_ERROR).body(
-                    getErrorResponse(request, response, new BusinessException("An unexpected error occurred."), INTERNAL_SERVER_ERROR)
+                    getErrorResponse(request, response, ex, INTERNAL_SERVER_ERROR, emptyMap())
             );
         }
     }

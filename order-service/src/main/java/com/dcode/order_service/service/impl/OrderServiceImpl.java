@@ -181,7 +181,8 @@ public class OrderServiceImpl implements IOrderService {
         if (customerId == null) return null;
 
         var customerFetch = clientProxy.findUserByUserId(customerId)
-                .orElseThrow(() -> new BusinessException("Cannot create order :: No customer found with ID: " + customerId));
+                .orElseThrow(() ->
+                        new BusinessException("Cannot create order :: No customer found with ID: " + customerId));
 
         return (Map<String, Object>) customerFetch.data().get("user");
     }
@@ -416,7 +417,7 @@ public class OrderServiceImpl implements IOrderService {
             ResponseEntity<GhnCalculateFeeResponse> response = restTemplate.postForEntity(calculateFeePath, request, GhnCalculateFeeResponse.class);
             return response.getBody();
         } catch (HttpClientErrorException e) {
-            throw new BusinessException(e.getMessage());
+            throw new BusinessException("ERROR CALCULATE FEE  :: "  + e.getMessage());
         }
     }
 
@@ -456,7 +457,7 @@ public class OrderServiceImpl implements IOrderService {
             ResponseEntity<Map> response = restTemplate.postForEntity(GHNDistrictPath, request, Map.class);
             return response.getBody();
         } catch (HttpClientErrorException e) {
-            throw new BusinessException(e.getMessage());
+            throw new BusinessException("ERROR GET DISTRICT  :: "  + e.getMessage());
         }
     }
 
@@ -476,7 +477,7 @@ public class OrderServiceImpl implements IOrderService {
             ResponseEntity<Map> response = restTemplate.postForEntity(GHNWardPath, request, Map.class);
             return response.getBody();
         } catch (HttpClientErrorException e) {
-            throw new BusinessException(e.getMessage());
+            throw new BusinessException("ERROR GET WARD  :: " + e.getMessage());
         }
 
     }
@@ -497,7 +498,7 @@ public class OrderServiceImpl implements IOrderService {
             ResponseEntity<Map> response = restTemplate.postForEntity(GHNServicesPath, request, Map.class);
             return response.getBody();
         } catch (HttpClientErrorException e) {
-            throw new BusinessException(e.getMessage());
+            throw new BusinessException("ERROR GET SERVICES  :: "  + e.getMessage());
         }
     }
 

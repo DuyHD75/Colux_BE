@@ -1,12 +1,10 @@
 package com.dcode.order_service.resource;
 
-import com.dcode.order_service.domain.Response;
 import com.dcode.order_service.dto.chat.ListResponse;
 import com.dcode.order_service.dto.chat.request.MessageRequest;
 import com.dcode.order_service.dto.chat.response.MessageResponse;
 import com.dcode.order_service.exception.ResourceNotFoundException;
 import com.dcode.order_service.service.IMessageService;
-import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

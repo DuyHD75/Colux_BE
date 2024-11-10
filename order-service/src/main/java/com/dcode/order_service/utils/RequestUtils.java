@@ -2,6 +2,8 @@ package com.dcode.order_service.utils;
 
 import com.dcode.order_service.domain.Response;
 import com.dcode.order_service.exception.ApiException;
+import com.dcode.order_service.exception.BusinessException;
+import com.dcode.order_service.exception.ResourceNotFoundException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -34,6 +36,10 @@ public class RequestUtils {
     private static final BiFunction<Exception, HttpStatus, String> errorReason = (exception, httpStatus) -> {
         if (exception instanceof ApiException) {
             return exception.getMessage();
+        } else if (exception instanceof BusinessException) {
+            return exception.getMessage();
+        } else if (exception instanceof ResourceNotFoundException) {
+            return exception.getMessage();
         } else return "An error occurred while processing your request. Please try again later";
     };
 
@@ -45,10 +51,11 @@ public class RequestUtils {
                 HttpStatus.valueOf(status.value()),
                 message,
                 EMPTY,
-                data);
+                data
+        );
     }
 
-    public static Response getErrorResponse(HttpServletRequest request, HttpServletResponse response, Exception exception, HttpStatus status) {
+    public static Response getErrorResponse(HttpServletRequest request, HttpServletResponse response, Exception exception, HttpStatus status, Map<? , ?> data) {
         response.setContentType(APPLICATION_JSON_VALUE);
         response.setStatus(status.value());
         return new Response(
@@ -57,7 +64,9 @@ public class RequestUtils {
                 request.getRequestURI(),
                 HttpStatus.valueOf(status.value()),
                 exception.getMessage(),
-                errorReason.apply(exception, status), emptyMap());
+                errorReason.apply(exception, status),
+                data
+        );
     }
 
 

@@ -15,6 +15,7 @@ import com.dcode.order_service.entity.waybill.Waybill;
 import com.dcode.order_service.entity.waybill.WaybillLog;
 import com.dcode.order_service.enumuration.PaymentMethod;
 import com.dcode.order_service.enumuration.WaybillCallbackConstants;
+import com.dcode.order_service.event.OrderEvent;
 import com.dcode.order_service.exception.BusinessException;
 import com.dcode.order_service.proxy.ICustomerClientProxy;
 import com.dcode.order_service.proxy.IProductClientProxy;
@@ -30,6 +31,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -37,10 +39,15 @@ import org.springframework.http.MediaType;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+import com.dcode.order_service.enumuration.EventType;
 
 import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
+
+import static com.dcode.order_service.enumuration.EventType.ORDER_COMPLETED;
+import static java.util.Collections.emptyList;
+import static java.util.Collections.emptyMap;
 
 @Service
 @Transactional
@@ -59,6 +66,8 @@ public class WaybillServiceImpl implements WaybillService {
     private final IOrderRepository orderRepository;
     private final IWaybillLogRepository waybillLogRepository;
     private final IProductClientProxy IProductClientProxy;
+    private final ApplicationEventPublisher publisher;
+
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -110,6 +119,7 @@ public class WaybillServiceImpl implements WaybillService {
                                 break;
                             case WaybillCallbackConstants.SUCCESS:
                                 // Gửi mail khi success
+                                publisher.publishEvent(new OrderEvent(order, ORDER_COMPLETED, emptyList(), emptyMap()));
                                 waybillLog.setCurrentStatus(3);
                                 waybill.setStatus(3);
                                 order.setStatus(4);

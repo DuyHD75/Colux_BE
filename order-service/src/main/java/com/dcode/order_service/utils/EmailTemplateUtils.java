@@ -6,6 +6,7 @@ import com.dcode.order_service.entity.order.OrderEntity;
 import com.dcode.order_service.entity.order.OrderLineEntity;
 
 import java.math.BigDecimal;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -41,7 +42,7 @@ public class EmailTemplateUtils {
                         "Thank you once again for shopping with Colux Alpha. We hope you enjoy your purchase!\n\n" +
                         "Best regards,\n" +
                         "Colux Alpha\n",
-                order.getCode(), order.getToName(), order.getCode(), order.getCreatedAt(),
+                order.getCode(), order.getToName(), order.getCode(), order.getCreatedAt().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")),
                 items, order.getTotalAmount(), order.getShippingCost(), order.getAdvancePayment(),
                 order.getTotalPay(), mapAddressToString(order)
         );
@@ -76,7 +77,7 @@ public class EmailTemplateUtils {
                         "Thank you for considering Colux Alpha. We hope to have the opportunity to serve you in the future.\n\n" +
                         "Best regards,\n" +
                         "Colux Alpha\n",
-                order.getCode(), order.getToName(), order.getCode(), order.getCreatedAt(),
+                order.getCode(), order.getToName(), order.getCode(), order.getCreatedAt().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")),
                 items, order.getTotalAmount(), order.getShippingCost(), order.getAdvancePayment(),
                 order.getTotalPay(), mapAddressToString(order)
         );
@@ -86,35 +87,27 @@ public class EmailTemplateUtils {
         String items = mapProductLineToString(productLines, order);
 
         return String.format(
-                "Subject: ✅ Order Completion %s - Your Order Has Shipped Successfully!\n\n" +
-                        "Hello %s,\n\n" +
-                        "We’re excited to let you know that your order with Colux Alpha has been successfully shipped! " +
-                        "Below are the details of your order and tracking information to help you monitor its journey:\n\n" +
-                        "---\n\n" +
+                "Subject: Order Confirmation - Order ID: %s\n\n" +
+                        "Dear %s,\n\n" +
+                        "Thank you for shopping with Colux Alpha.\n\n" +
+                        "We are pleased to inform you that your order has been successfully confirmed. Here are the details:\n\n" +
                         "Order Information:\n" +
-                        "- Order Code: %s\n" +
-                        "- Order Date: %s\n\n" +
-                        "Items Ordered:\n" +
-                        "%s\n" +
-                        "Subtotal: %s\n" +
-                        "Shipping Fee: %s\n" +
-                        "Advance Payment: %s\n" +
-                        "Total Amount: %s\n\n" +
-                        "---\n\n" +
+                        "- Order ID: %s\n" +
+                        "- Order Date: %s\n" +
+                        "- Total Amount: %s\n\n" +
+                        "Your order is being prepared and will soon be delivered to the following address:\n\n" +
                         "Shipping Address:\n%s\n\n" +
-                        "Tracking Information:\n" +
-                        "- Carrier: %s\n" +
-                        "- Tracking Number: %s\n" +
-                        "- Estimated Delivery Date: %s\n\n" +
-                        "---\n\n" +
-                        "Thank you for shopping with Colux Alpha! We hope you love your purchase. If you have any questions about your order, " +
-                        "please reach out to us at [coluxalpha@gmail.com]. Our team is always here to assist.\n\n" +
-                        "Best regards,\n" +
-                        "Colux Alpha\n",
-                order.getCode(), order.getToName(), order.getCode(), order.getCreatedAt(),
-                items, order.getTotalAmount(), order.getShippingCost(), order.getAdvancePayment(),
+                        "Payment Method: %s\n" +
+                        "Thank you for trusting and shopping with Colux Alpha. If you have any questions, please feel free to contact us via email or our hotline.\n\n" +
+                        "Best regards,\n\n" +
+                        "Customer Service Team\n" +
+                        "Colux Alpha\n" +
+                        "Email: coluxalpha@gmail.com\n" +
+                        "Hotline: [Phone Number]\n" +
+                        "Website: [Website URL]\n",
+                order.getCode(), order.getToName(), order.getCode(), order.getCreatedAt().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")),
                 order.getTotalPay(), mapAddressToString(order),
-                data.get("carrier"), data.get("trackingNumber"), data.get("estimatedDeliveryDate")
+                order.getPaymentMethod()
         );
     }
 
