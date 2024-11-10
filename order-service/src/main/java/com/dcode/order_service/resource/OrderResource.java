@@ -34,14 +34,7 @@ import static org.springframework.http.HttpStatus.*;
 @RequiredArgsConstructor
 public class OrderResource {
 
-    @Value("${application.host.frontend}")
-    private String FRONTEND_HOST;
-
     private final IOrderService orderService;
-    private final IOrderRepository orderRepository;
-
-
-
 
     @GetMapping("/test")
     public String test(HttpServletRequest request) {
@@ -113,7 +106,7 @@ public class OrderResource {
     public ResponseEntity<Void> captureTransactionPaypal(@RequestParam("paymentId") String paymentId, @RequestParam("PayerID") String payerId, HttpServletRequest request) {
         try {
             orderService.captureTransactionPaypal(paymentId, payerId);
-            return ResponseEntity.status(HttpStatus.FOUND).location(URI.create("https://colux.vercel.app/")).build();
+            return ResponseEntity.status(HttpStatus.FOUND).location(URI.create("https://colux.vercel.app/resultPayment?status=success")).build();
         } catch (ResourceNotFoundException ex) {
             return ResponseEntity.status(HttpStatus.FOUND).location(URI.create("https://www.youtube.com/watch?v=_eTcseS410E&t=1552s")).build();
         } catch (Exception ex) {
@@ -125,15 +118,15 @@ public class OrderResource {
     public RedirectView paymentCancel(HttpServletRequest request) {
        try {
            String paypalOrderId = request.getParameter("token");
-//           OrderEntity order = orderRepository.findByPaypalOrderId(paypalOrderId)
-//                   .orElseThrow(() -> new ResourceNotFoundException("Order", "paypal_order_id", paypalOrderId));
+/*           OrderEntity order = orderRepository.findByPaypalOrderId(paypalOrderId)
+                   .orElseThrow(() -> new ResourceNotFoundException("Order", "paypal_order_id", paypalOrderId));*/
 
            RedirectView redirectView = new RedirectView();
-           redirectView.setUrl("https://colux.vercel.app/colors/color-family/Red/240cdf5e-2ffe-4122-814e-a7221f26fda6");
+           redirectView.setUrl("https://colux.vercel.app/resultPayment?status=cancel");
            return redirectView;
        }catch (Exception ex){
            RedirectView redirectView = new RedirectView();
-           redirectView.setUrl(FRONTEND_HOST + "/payment/cancel");
+           redirectView.setUrl("https://colux.vercel.app" + "/payment/cancel");
            return redirectView;
        }
     }

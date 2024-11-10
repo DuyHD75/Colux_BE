@@ -3,10 +3,7 @@ package com.dcode.order_service.entity.chat;
 import com.dcode.order_service.entity.Auditable;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import lombok.experimental.Accessors;
 
 
@@ -16,6 +13,7 @@ import lombok.experimental.Accessors;
 @Setter
 @Accessors(chain = true)
 @Entity
+@Builder
 @Table(name = "message")
 public class Message extends Auditable {
     @Column(name = "content", nullable = false)
@@ -27,8 +25,17 @@ public class Message extends Auditable {
     @Column(name = "user_id", nullable = false)
     private String userId;
 
+    @Column(name = "fullName")
+    private String fullName;
+
+    @Column(name = "phoneNumber")
+    private String phoneNumber;
+
+    @Column(name = "email")
+    private String email;
+
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "room_id", nullable = false)
+    @JoinColumn(name = "room_id", referencedColumnName = "room_id", nullable = false)
     @JsonBackReference
     private Room room;
 

@@ -37,27 +37,21 @@ public class FileServiceImpl implements IFileService {
 
     @Override
     public String save(MultipartFile multipartFile, String folderName) throws IOException {
-        // Get the storage bucket
         Bucket bucket = StorageClient.getInstance().bucket();
 
-        // Generate the blob name including folder path and a UUID to avoid conflicts
         String blobString = folderName + "/" + UUID.randomUUID().toString() + "_" + multipartFile.getOriginalFilename();
 
-        // Create the blob in the bucket
         Blob blob = bucket.create(blobString, multipartFile.getInputStream(), multipartFile.getContentType());
 
-        // Generate a download token
         String downloadToken = UUID.randomUUID().toString();
 
-        // Update blob metadata to include a token
-        BlobId blobId = BlobId.of(bucket.getName(), blobString); // Ensure we use blobString here
+        BlobId blobId = BlobId.of(bucket.getName(), blobString);
         BlobInfo blobInfo = BlobInfo.newBuilder(blobId)
                 .setContentType(multipartFile.getContentType())
-                .setMetadata(Map.of("firebaseStorageDownloadTokens", downloadToken)) // Add token metadata
+                .setMetadata(Map.of("firebaseStorageDownloadTokens", downloadToken))
                 .build();
         bucket.getStorage().update(blobInfo); // Apply the update to set the download token
 
-        // Construct the download URL
         String downloadLink = String.format("https://firebasestorage.googleapis.com/v0/b/%s/o/%s?alt=media&token=%s",
                 bucket.getName(),
                 URLEncoder.encode(blob.getName(), StandardCharsets.UTF_8), // Encode the blob name

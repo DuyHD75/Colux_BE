@@ -38,6 +38,7 @@ import com.dcode.order_service.utils.OrderUtils;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.paypal.api.payments.Payment;
 import jakarta.transaction.Transactional;
+import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -157,7 +158,6 @@ public class OrderServiceImpl implements IOrderService {
         var orderEntity = mapToOrderEntity(request, customerData);
         List<PurchaseResponse> purchaseResponses = processProductPurchases(request.getPurchaseProducts());
 
-
         orderEntity.setOrderLines(mapToOrderLineEntities(orderEntity, purchaseResponses));
         setOrderTotals(orderEntity, request.getShippingCost(), request.getPaymentMethod());
 
@@ -220,7 +220,7 @@ public class OrderServiceImpl implements IOrderService {
             Payment payment = paypalConfig.createPayment(
                     advancePayment.doubleValue(),
                     "USD",
-                    paymentMethod.getValue(),
+                    "paypal",
                     "sale",
                     "Order payment",
                     HOST_URL + SERVICE_NAME + "/api/v1/orders/payment/cancel",
