@@ -26,5 +26,9 @@ public interface IProductService {
 
     void updateProduct(ProductUpdateRequest productRequest);
 
+    List<ProductResponse> getProductDashboard(List<ProductOrderRequest> productDashboardRequests);
+
+    Object getDashboardInfo();
+
 //    void createProduct(ProductRequest productRequest);
 }

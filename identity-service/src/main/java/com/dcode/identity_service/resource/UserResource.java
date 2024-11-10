@@ -214,6 +214,19 @@ public class UserResource {
         return ResponseEntity.ok().body(getResponse(request, Map.of("user", userReviewResponse), "Users info retrieve success!", OK));
     }
 
+    @GetMapping("/getTotalUser")
+    public ResponseEntity<Response> getTotalUser(HttpServletRequest request) {
+        var totalUser = userService.getTotalUser();
+        return ResponseEntity.ok().body(getResponse(request, Map.of("totalUser", totalUser), "Total user retrieved.", OK));
+    }
+
+    @GetMapping("/monthlyUser")
+    public ResponseEntity<Response> getMonthlyUserPageable(@RequestParam("monthBack") int monthBack,
+                                                           HttpServletRequest request) {
+        var monthlyUser = userService.getMonthlyUser(monthBack);
+        return ResponseEntity.ok().body(getResponse(request, Map.of("monthlyUser", monthlyUser), "Monthly user retrieved.", OK));
+    }
+
     private URI getUri() {
         return URI.create("");
     }

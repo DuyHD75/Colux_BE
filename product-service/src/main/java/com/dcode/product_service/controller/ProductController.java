@@ -4,7 +4,9 @@ import com.dcode.product_service.domain.ArrayResponse;
 import com.dcode.product_service.domain.Response;
 import com.dcode.product_service.dto.CartDtoBase;
 import com.dcode.product_service.dtoRequest.*;
+import com.dcode.product_service.dtoRequest.order_service.OrderLineDTO;
 import com.dcode.product_service.dtoResponse.ProductOrderResponse;
+import com.dcode.product_service.dtoResponse.ProductResponse;
 import com.dcode.product_service.exception.ApiException;
 import com.dcode.product_service.service.impl.ProductServiceImpl;
 import jakarta.servlet.http.HttpServletRequest;
@@ -111,9 +113,42 @@ public class ProductController {
             return ResponseEntity.status(INTERNAL_SERVER_ERROR)
                     .body(getErrorResponse(request, response, new ApiException("An unexpected error occurred."), INTERNAL_SERVER_ERROR));
         }
-
     }
 
+    @PostMapping("/getProductDashboard")
+    public ResponseEntity<Response> getProductDashboard(@RequestBody @Valid List<ProductOrderRequest> productDashboardRequests, HttpServletRequest request, HttpServletResponse response) {
+        try {
+            List<ProductResponse> productCartResponses = productService.getProductDashboard(productDashboardRequests);
+            return ResponseEntity.ok().body(
+                    getResponse(request, Map.of("products", productCartResponses),
+                            "Retrieve products successfully!", CREATED)
+            );
+        } catch (ApiException ex) {
+            return ResponseEntity.status(BAD_REQUEST)
+                    .body(getErrorResponse(request, response, ex, BAD_REQUEST));
+        } catch (Exception exception) {
+            return ResponseEntity.status(INTERNAL_SERVER_ERROR)
+                    .body(getErrorResponse(request, response, new ApiException("An unexpected error occurred."), INTERNAL_SERVER_ERROR));
+        }
+    }
+
+    @PostMapping("/reduceProduct")
+    public ResponseEntity<Response> reduceProduct(@RequestBody @Valid List<OrderLineDTO> orderLineDTOS, HttpServletRequest request, HttpServletResponse response) {
+        try {
+            String productCartResponses = productService.orderCancelRestore(orderLineDTOS);
+            return ResponseEntity.created(getUri()).body(
+                    getResponse(request, Map.of("products", productCartResponses),
+                            "Retrieve products successfully!", CREATED)
+            );
+        } catch (ApiException ex) {
+            return ResponseEntity.status(BAD_REQUEST)
+                    .body(getErrorResponse(request, response, ex, BAD_REQUEST));
+        } catch (Exception exception) {
+            return ResponseEntity.status(INTERNAL_SERVER_ERROR)
+                    .body(getErrorResponse(request, response, new ApiException("An unexpected error occurred."), INTERNAL_SERVER_ERROR));
+        }
+
+    }
     @PostMapping("/product")
     public ResponseEntity<Response> createProduct(@RequestBody @Valid ProductRequest productRequest, HttpServletRequest request, HttpServletResponse response) {
         try {
@@ -224,6 +259,19 @@ public class ProductController {
 
     }
 
+    @GetMapping("/getDashboardInfo")
+    public ResponseEntity<Response> getDashboardInfo(HttpServletRequest request, HttpServletResponse response) {
+        try {
+            var dashboardInfo = productService.getDashboardInfo();
+            return ResponseEntity.ok().body(getResponse(request, Map.of("dashboard", dashboardInfo), "Dashboard info retrieved", OK));
+        } catch (ApiException ex) {
+            return ResponseEntity.status(BAD_REQUEST)
+                    .body(getErrorResponse(request, response, ex, BAD_REQUEST));
+        } catch (Exception exception) {
+            return ResponseEntity.status(INTERNAL_SERVER_ERROR)
+                    .body(getErrorResponse(request, response, new ApiException("An unexpected error occurred."), INTERNAL_SERVER_ERROR));
+        }
+    }
 
     private URI getUri() {
         return URI.create("");

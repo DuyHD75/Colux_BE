@@ -24,9 +24,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.function.BiConsumer;
-import java.util.function.Function;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import static com.dcode.product_service.utils.PaintUtils.convertVariantToVResponse;
@@ -53,6 +50,8 @@ public class ProductServiceImpl implements IProductService {
     private final WallpaperRepository wallpaperRepository;
     private final FloorRepository floorRepository;
     private final VariantRepository variantRepository;
+    private final SupplierRepository supplierRepository;
+    private final ReviewRepository reviewRepository;
 
 
     @Override
@@ -142,6 +141,34 @@ public class ProductServiceImpl implements IProductService {
 
     public ProductResponse mapToProductResponse(Product product) {
         return fromProductEntity(product);
+    }
+
+    @Override
+    public List<ProductResponse> getProductDashboard(List<ProductOrderRequest> productDashboardRequests) {
+
+        List<Product> products = productRepository.findAllByProductIdIn (
+                productDashboardRequests.stream()
+                        .map(ProductOrderRequest::getProductId)
+                        .collect(Collectors.toList())
+        );
+        if (products.size() != productDashboardRequests.size()) {
+            throw new ApiException("One or more products not found!");
+        }
+        return products.stream().map(ProductUtils::fromProductEntitySimple).collect(Collectors.toList());
+    }
+
+    @Override
+    public List<Map<String, Long>> getDashboardInfo() {
+        List<Map<String, Long>> dashboardInfo = new ArrayList<>();
+        Long totalProduct = productRepository.count();
+        Long totalBrand = brandRepository.count();
+        Long totalSupplier = supplierRepository.count();
+        Long totalReview = reviewRepository.count();
+        dashboardInfo.add(Map.of("totalProduct", totalProduct));
+        dashboardInfo.add(Map.of("totalBrand", totalBrand));
+        dashboardInfo.add(Map.of("totalSupplier", totalSupplier));
+        dashboardInfo.add(Map.of("totalReview", totalReview));
+        return dashboardInfo;
     }
 
     @Override
@@ -366,6 +393,8 @@ public class ProductServiceImpl implements IProductService {
 
         productRepository.save(product);
     }
+
+
 
     private void updatePaints(Set<PaintResponse> paintRequests, Product product) {
         Set<Paint> existingPaints = new HashSet<>(product.getPaints());

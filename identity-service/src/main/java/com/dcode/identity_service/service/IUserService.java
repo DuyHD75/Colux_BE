@@ -10,6 +10,7 @@ import com.dcode.identity_service.enumeration.LoginType;
 import jakarta.validation.Valid;
 
 import java.util.List;
+import java.util.Map;
 
 
 public interface IUserService {
@@ -38,4 +39,8 @@ public interface IUserService {
     User updateUserProfile(String email, UpdateProfileRequest data);
 
     List<User> getUserReviewInfo(@Valid List<UserReviewRequest> userReviewRequest);
+
+    Object getTotalUser();
+
+    List<Map<String, Object>> getMonthlyUser(int months);
 }
