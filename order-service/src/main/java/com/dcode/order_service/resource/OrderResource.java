@@ -121,13 +121,13 @@ public class OrderResource {
         try {
             orderService.captureTransactionPaypal(paymentId, payerId);
             return ResponseEntity.status(HttpStatus.FOUND).location(
-                    URI.create("https://colux.vercel.app/resultPayment?status=success")).build();
+                    URI.create(FRONTEND_HOST + "/resultPayment?status=success")).build();
         } catch (ResourceNotFoundException ex) {
             return ResponseEntity.status(HttpStatus.FOUND).location(
-                    URI.create("https://www.youtube.com/watch?v=_eTcseS410E&t=1552s")).build();
+                    URI.create(FRONTEND_HOST + "/resultPayment?status=cancel")).build();
         } catch (Exception ex) {
             return ResponseEntity.status(HttpStatus.FOUND).location(
-                    URI.create("https://colux.vercel.app/")).build();
+                    URI.create(FRONTEND_HOST + "/resultPayment?status=cancel")).build();
         }
     }
 
@@ -139,11 +139,11 @@ public class OrderResource {
                    .orElseThrow(() -> new ResourceNotFoundException("Order", "paypal_order_id", paypalOrderId));*/
 
             RedirectView redirectView = new RedirectView();
-            redirectView.setUrl("https://colux.vercel.app/resultPayment?status=cancel");
+            redirectView.setUrl(FRONTEND_HOST + "/resultPayment?status=cancel");
             return redirectView;
         } catch (Exception ex) {
             RedirectView redirectView = new RedirectView();
-            redirectView.setUrl("https://colux.vercel.app" + "/payment/cancel");
+            redirectView.setUrl(FRONTEND_HOST + "/resultPayment?status=cancel");
             return redirectView;
         }
     }
