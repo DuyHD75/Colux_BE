@@ -23,4 +23,10 @@ public interface IProductClientProxy {
 
     @GetMapping("/reduceProduct")
     Optional<Response> reduceProductQuantity(@RequestBody List<OrderLineDTO> productOrderRequests);
+
+    @GetMapping("/getProductDashboard")
+    Optional<Response> getProductDashboard(List<CartVariantRequest> productDashboardRequests);
+
+    @GetMapping("/getDashboardInfo")
+    Optional<Response> getDashboardInfo();
 }

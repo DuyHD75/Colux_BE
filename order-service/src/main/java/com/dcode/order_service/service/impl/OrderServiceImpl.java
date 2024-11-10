@@ -15,10 +15,13 @@ import com.dcode.order_service.dto.order.response.OrderLineResponse;
 import com.dcode.order_service.dto.product.OrderLineDTO;
 import com.dcode.order_service.dto.product.PurchaseRequest;
 import com.dcode.order_service.dto.product.PurchaseResponse;
+import com.dcode.order_service.dto.waybill.request.GhnCancelOrderRequest;
+import com.dcode.order_service.dto.waybill.response.GhnCancelOrderResponse;
 import com.dcode.order_service.entity.cart.CartEntity;
 import com.dcode.order_service.entity.order.OrderEntity;
 import com.dcode.order_service.entity.order.OrderLineEntity;
 import com.dcode.order_service.entity.waybill.Waybill;
+import com.dcode.order_service.entity.waybill.WaybillLog;
 import com.dcode.order_service.enumuration.EventType;
 import com.dcode.order_service.enumuration.OrderStatus;
 import com.dcode.order_service.enumuration.PaymentMethod;
@@ -78,7 +81,6 @@ public class OrderServiceImpl implements IOrderService {
     private final ProductClientProxy productClientProxy;
     private final IOrderRepository orderRepository;
     private final IOrderLineRepository orderLineRepository;
-    private final IOrderLineService orderLineService;
     private final PaypalConfig paypalConfig;
     private final ICartRepository cartRepository;
     private final PaypalHttpClient paypalHttpClient;
@@ -86,6 +88,7 @@ public class OrderServiceImpl implements IOrderService {
     private final ApplicationEventPublisher publisher;
     private final ICartService cartService;
     private final IProductClientProxy IProductClientProxy;
+    private final IWaybillLogRepository waybillLogRepository;
 
     @Value("${spring.shipping.ghnToken}")
     private String ghnToken;
@@ -111,8 +114,8 @@ public class OrderServiceImpl implements IOrderService {
             Waybill waybill = waybillRepository.findByOrder_OrderId(order.getOrderId()).orElse(null);
 
             // Status 1 là Vận đơn đang chờ lấy hàng
-            /*if (waybill != null && waybill.getStatus() == 1) {
-                String cancelOrderApiPath = ghnApiPath + "/switch-status/cancel";
+            if (waybill != null && waybill.getStatus() == 1) {
+                String cancelOrderApiPath = ghnApiPath + "/v2/switch-status/cancel";
 
                 HttpHeaders headers = new HttpHeaders();
                 headers.setContentType(MediaType.APPLICATION_JSON);
@@ -143,7 +146,7 @@ public class OrderServiceImpl implements IOrderService {
                         }
                     }
                 }
-            }*/
+            }
         } else {
             throw new RuntimeException(String
                     .format("Order with code %s is in delivery or has been cancelled. Please check again!", code));

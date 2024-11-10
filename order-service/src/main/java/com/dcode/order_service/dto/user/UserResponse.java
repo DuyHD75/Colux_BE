@@ -26,4 +26,8 @@ public class UserResponse {
     private boolean credentialsNonExpired;
     private boolean mfa;
     private boolean enabled;
+
+    public String getFullName() {
+        return firstName + " " + lastName;
+    }
 }

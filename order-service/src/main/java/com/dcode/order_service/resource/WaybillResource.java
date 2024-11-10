@@ -26,12 +26,6 @@ public class WaybillResource {
 
     private WaybillService waybillService;
 
-    @PutMapping("/callback-ghn")
-    public ResponseEntity<ObjectNode> callbackStatusWaybillFromGHN(@RequestBody GhnCallbackOrderRequest ghnCallbackOrderRequest) {
-        waybillService.callbackStatusWaybillFromGHN(ghnCallbackOrderRequest);
-        return ResponseEntity.status(OK).body(new ObjectNode(JsonNodeFactory.instance));
-    }
-
     @PostMapping("/create")
     public ResponseEntity<Response> createWaybill(@RequestBody WaybillRequest waybillRequest,
                                                   HttpServletRequest request,

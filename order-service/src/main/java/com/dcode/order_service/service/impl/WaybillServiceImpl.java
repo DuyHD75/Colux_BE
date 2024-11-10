@@ -7,6 +7,8 @@ import com.dcode.order_service.dto.order.request.GhnCreateOrderRequest;
 import com.dcode.order_service.dto.order.request.WaybillRequest;
 import com.dcode.order_service.dto.order.response.GhnCreateOrderResponse;
 import com.dcode.order_service.dto.order.response.WaybillResponse;
+import com.dcode.order_service.dto.waybill.request.GhnDetailOrderRequest;
+import com.dcode.order_service.dto.waybill.response.GhnDetailOrderResponse;
 import com.dcode.order_service.entity.order.OrderEntity;
 import com.dcode.order_service.entity.order.OrderLineEntity;
 import com.dcode.order_service.entity.waybill.Waybill;
@@ -23,6 +25,7 @@ import com.dcode.order_service.service.WaybillService;
 import com.dcode.order_service.utils.WaybillUtils;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,6 +34,7 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -39,6 +43,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
+@Transactional
 @RequiredArgsConstructor
 @Slf4j
 public class WaybillServiceImpl implements WaybillService {
@@ -58,83 +63,83 @@ public class WaybillServiceImpl implements WaybillService {
     @Autowired
     private ObjectMapper objectMapper;
 
-    @Override
-    public void callbackStatusWaybillFromGHN(GhnCallbackOrderRequest ghnCallbackOrderRequest) {
-        if (Objects.equals(ghnCallbackOrderRequest.getShopID().toString(), ghnShopId)) {
-            Waybill waybill = waybillRepository.findByCode(ghnCallbackOrderRequest.getOrderCode())
-                    .orElseThrow(() -> new BusinessException("Waybill not found!"));
+    @Scheduled(fixedRate = 300000)
+    public void checkOrderShipmentStatus() {
+        List<Waybill> waybills = waybillRepository.findAllByStatusIn(List.of(1, 2));
+        if (!waybills.isEmpty()) {
+            String checkGhnOrderApiPath = ghnApiPath + "/v2/shipping-order/detail";
 
-            OrderEntity order = waybill.getOrder();
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.setAccept(List.of(MediaType.APPLICATION_JSON));
+            headers.add("Token", ghnToken);
 
-            WaybillLog waybillLog = new WaybillLog();
-            waybillLog.setWaybill(waybill);
-            waybillLog.setPreviousStatus(waybill.getStatus());
+            RestTemplate restTemplate = new RestTemplate();
 
-            int currentWaybillStatus = WaybillCallbackConstants.WAYBILL_STATUS_CODE
-                    .get(ghnCallbackOrderRequest.getStatus());
+            waybills.forEach(waybill -> {
+                var request = new HttpEntity<>(new GhnDetailOrderRequest(waybill.getCode()), headers);
+                var response = restTemplate.postForEntity(checkGhnOrderApiPath, request, GhnDetailOrderResponse.class);
 
-            if (!waybill.getStatus().equals(currentWaybillStatus)) {
-                switch (currentWaybillStatus) {
-                    case WaybillCallbackConstants.WAITING:
-                        waybillLog.setCurrentStatus(1);
-                        waybill.setStatus(1);
-                        order.setStatus(2);
-                        break;
-                    case WaybillCallbackConstants.SHIPPING:
-                        // sử dụng mail hoặc notification để thông báo cho người dùng
-                        /*createNotification(new Notification()
-                                .setUser(order.getUser())
-                                .setType(NotificationType.ORDER)
-                                .setMessage(String.format("Đơn hàng %s của bạn đang được vận chuyển.", order.getCode()))
-                                .setAnchor("/order/detail/" + order.getCode())
-                                .setStatus(1));*/
-                        waybillLog.setCurrentStatus(2);
-                        waybill.setStatus(2);
-                        order.setStatus(3);
-                        break;
-                    case WaybillCallbackConstants.SUCCESS:
-                        // sử dụng mail hoặc notification để thông báo cho người dùng
-                        /*createNotification(new Notification()
-                                .setUser(order.getUser())
-                                .setType(NotificationType.ORDER)
-                                .setMessage(String.format("Đơn hàng %s của bạn đã giao thành công!", order.getCode()))
-                                .setAnchor("/order/detail/" + order.getCode())
-                                .setStatus(1));*/
-                        // TODO: KHI HOÀN THÀNH ĐƠN HÀNG CẦN GỬI MAIL CHO KHÁCH HÀNG
-                        waybillLog.setCurrentStatus(3);
-                        waybill.setStatus(3);
-                        order.setStatus(4);
-                        // Status 2: Đã thanh toán (giả định giao thành công thì
-                        // cũng có nghĩa khách hàng đã thanh toán tiền mặt)
-                        order.setPaymentStatus(2);
-
-                        // Tích điểm
-//                        rewardUtils.successOrderHook(order);
-                        break;
-                    case WaybillCallbackConstants.FAILED:
-
-                    case WaybillCallbackConstants.RETURN:
-                        // TODO: CẦN THỐNG NHẤT VỀ CÁCH TRẢ HÀNG HOẶC HỦY ĐƠN HÀNG
-                        /*createNotification(new Notification()
-                                .setUser(order.getUser())
-                                .setType(NotificationType.ORDER)
-                                .setMessage(String.format("Đơn hàng %s của bạn đã bị hủy.", order.getCode()))
-                                .setAnchor("/order/detail/" + order.getCode())
-                                .setStatus(1));*/
-                        waybillLog.setCurrentStatus(4);
-                        waybill.setStatus(4);// 5
-                        order.setStatus(5);
-                        break;
-                    default:
-                        throw new RuntimeException("There is no waybill status corresponding to GHN status code");
+                if (response.getStatusCode() != HttpStatus.OK) {
+                    throw new RuntimeException("Error when calling status Order GHN API");
                 }
 
-                waybillRepository.save(waybill);
-                orderRepository.save(order);
-                waybillLogRepository.save(waybillLog);
-            }
-        } else {
-            throw new RuntimeException("ShopId is not valid");
+                if (response.getBody() != null) {
+                    var ghnCreateOrderResponse = response.getBody();
+
+                    OrderEntity order = waybill.getOrder();
+
+                    WaybillLog waybillLog = new WaybillLog();
+                    waybillLog.setWaybill(waybill);
+                    waybillLog.setPreviousStatus(waybill.getStatus());
+
+                    int currentWaybillStatus = WaybillCallbackConstants.WAYBILL_STATUS_CODE
+                            .get(ghnCreateOrderResponse.getData().getStatus());
+
+                    if (!waybill.getStatus().equals(currentWaybillStatus)) {
+                        switch (currentWaybillStatus) {
+                            case WaybillCallbackConstants.WAITING:
+                                waybillLog.setCurrentStatus(1);
+                                waybill.setStatus(1);
+                                order.setStatus(2);
+                                break;
+                            case WaybillCallbackConstants.SHIPPING:
+                                waybillLog.setCurrentStatus(2);
+                                waybill.setStatus(2);
+                                order.setStatus(3);
+                                break;
+                            case WaybillCallbackConstants.SUCCESS:
+                                // Gửi mail khi success
+                                waybillLog.setCurrentStatus(3);
+                                waybill.setStatus(3);
+                                order.setStatus(4);
+                                // Status 2: Đã thanh toán (giả định giao thành công thì
+                                // cũng có nghĩa khách hàng đã thanh toán tiền mặt)
+                                order.setPaymentStatus(2);
+                                break;
+                            case WaybillCallbackConstants.FAILED:
+                                waybillLog.setCurrentStatus(4);
+                                waybill.setStatus(4);
+                                order.setStatus(5);
+                            case WaybillCallbackConstants.RETURN:
+                                // TODO: gửi mail
+                                waybillLog.setCurrentStatus(4);
+                                waybill.setStatus(4);
+                                order.setStatus(5);
+                                break;
+                            default:
+                                throw new RuntimeException("There is no waybill status corresponding to GHN status code");
+                        }
+
+                        waybillRepository.save(waybill);
+                        orderRepository.save(order);
+                        waybillLogRepository.save(waybillLog);
+                    }
+
+                } else {
+                    throw new RuntimeException("Response from Check Order GHN API cannot use");
+                }
+            });
         }
     }
 
@@ -150,7 +155,7 @@ public class WaybillServiceImpl implements WaybillService {
 
         // tạo waybill khi order.status = 1
         if (order.getStatus() == 1) {
-            String createGhnOrderApiPath = ghnApiPath + "/shipping-order/create";
+            String createGhnOrderApiPath = ghnApiPath + "/v2/shipping-order/create";
 
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
@@ -274,7 +279,8 @@ public class WaybillServiceImpl implements WaybillService {
         Optional<Response> response = IProductClientProxy.findProductInfo(productOrderRequests);
         log.info("Response from product service: {}", response);
         if (response.isPresent() && response.get().data() != null) {
-            List<Map<String, Object>> products = objectMapper.convertValue(response.get().data().get("products"), new TypeReference<List<Map<String, Object>>>() {});
+            List<Map<String, Object>> products =
+                    objectMapper.convertValue(response.get().data().get("products"), new TypeReference<List<Map<String, Object>>>() {});
             for (OrderLineEntity orderLineEntity : order.getOrderLines()) {
                 var item = new GhnCreateOrderRequest.Item();
                 Map<String, Object> productInfo = products.stream()
@@ -308,9 +314,12 @@ public class WaybillServiceImpl implements WaybillService {
     }
 
     private String buildGhnProductName(Map<String, Object> productInfo) {
-        Map<String, Object> productDetails = objectMapper.convertValue(productInfo.get("productDetails"), new TypeReference<Map<String, Object>>() {});
-        Map<String, Object> variantResponse = objectMapper.convertValue(productInfo.get("variantResponse"), new TypeReference<Map<String, Object>>() {});
-        Map<String, Object> paintDetails = productDetails != null ? objectMapper.convertValue(productDetails.get("paintDetails"), new TypeReference<Map<String, Object>>() {}) : null;
+        Map<String, Object> productDetails = objectMapper.convertValue(productInfo.get("productDetails"), new TypeReference<Map<String, Object>>() {
+        });
+        Map<String, Object> variantResponse = objectMapper.convertValue(productInfo.get("variantResponse"), new TypeReference<Map<String, Object>>() {
+        });
+        Map<String, Object> paintDetails = productDetails != null ? objectMapper.convertValue(productDetails.get("paintDetails"), new TypeReference<Map<String, Object>>() {
+        }) : null;
 
         String productName = productDetails != null ? (String) productDetails.get("productName") : "";
         String sizeName = variantResponse != null ? (String) variantResponse.get("sizeName") : "";

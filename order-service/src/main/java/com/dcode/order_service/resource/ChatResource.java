@@ -1,6 +1,5 @@
 package com.dcode.order_service.resource;
 
-import com.dcode.order_service.dto.kafka.request.MessageRequest;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

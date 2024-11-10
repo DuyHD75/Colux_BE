@@ -4,6 +4,7 @@ import lombok.Data;
 
 @Data
 public class ProductOrderRequest {
+    private String productId;
     private String paintId;
     private String wallpaperId;
     private String floorId;
