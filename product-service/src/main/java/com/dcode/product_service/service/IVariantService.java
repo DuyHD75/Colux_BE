@@ -8,5 +8,7 @@ import java.util.Set;
 public interface IVariantService {
     void createAVariant(String sizeName, String categoryName, String packageType);
 
+    Set<VariantResponse> getAllVariant();
+
 //    Set<VariantResponse> getAllPaintVariant();
 }

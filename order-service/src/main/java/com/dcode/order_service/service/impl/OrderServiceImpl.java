@@ -1,38 +1,75 @@
 package com.dcode.order_service.service.impl;
 
-import com.dcode.order_service.domain.kafka.OrderConfirmation;
-//import com.dcode.order_service.domain.kafka.OrderProducer;
+import com.dcode.order_service.config.PaypalConfig;
+import com.dcode.order_service.config.PaypalHttpClient;
+import com.dcode.order_service.domain.Response;
+import com.dcode.order_service.dto.cart.request.CartVariantKeyRequest;
+import com.dcode.order_service.dto.cart.request.CartVariantRequest;
 import com.dcode.order_service.dto.order.Order;
+import com.dcode.order_service.dto.order.request.GhnCalculateFeeRequest;
 import com.dcode.order_service.dto.order.request.OrderLineRequest;
 import com.dcode.order_service.dto.order.request.OrderRequest;
-import com.dcode.order_service.dto.order.response.OrderResponse;
-import com.dcode.order_service.dto.payment.PaypalRequest;
+import com.dcode.order_service.dto.order.response.ConfirmedOrderResponse;
+import com.dcode.order_service.dto.order.response.GhnCalculateFeeResponse;
+import com.dcode.order_service.dto.order.response.OrderLineResponse;
+import com.dcode.order_service.dto.product.OrderLineDTO;
 import com.dcode.order_service.dto.product.PurchaseRequest;
+import com.dcode.order_service.dto.product.PurchaseResponse;
+import com.dcode.order_service.dto.waybill.request.GhnCancelOrderRequest;
+import com.dcode.order_service.dto.waybill.response.GhnCancelOrderResponse;
+import com.dcode.order_service.entity.cart.CartEntity;
+import com.dcode.order_service.entity.order.OrderEntity;
+import com.dcode.order_service.entity.order.OrderLineEntity;
+import com.dcode.order_service.entity.waybill.Waybill;
+import com.dcode.order_service.entity.waybill.WaybillLog;
+import com.dcode.order_service.enumuration.EventType;
+import com.dcode.order_service.enumuration.OrderStatus;
 import com.dcode.order_service.enumuration.PaymentMethod;
-import com.dcode.order_service.event.listener.OrderEvent;
+import com.dcode.order_service.enumuration.payment.PaypalStatus;
+import com.dcode.order_service.event.OrderEvent;
 import com.dcode.order_service.exception.BusinessException;
 
+import com.dcode.order_service.exception.ResourceNotFoundException;
 import com.dcode.order_service.proxy.ICustomerClientProxy;
+import com.dcode.order_service.proxy.IProductClientProxy;
 import com.dcode.order_service.proxy.ProductClientProxy;
-import com.dcode.order_service.repository.IOrderRepository;
+import com.dcode.order_service.repository.*;
+import com.dcode.order_service.service.ICartService;
 import com.dcode.order_service.service.IOrderLineService;
 import com.dcode.order_service.service.IOrderService;
 import com.dcode.order_service.utils.OrderUtils;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.paypal.api.payments.Payment;
 import jakarta.transaction.Transactional;
+import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.*;
+//import org.apache.kafka.clients.producer.ProducerRecord;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+//import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.RestTemplate;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
-import static com.dcode.order_service.constant.Constants.AppConstants.HOST_URL;
-import static com.dcode.order_service.enumuration.EventType.ORDER_CREATED;
-import static com.dcode.order_service.enumuration.TransactionIntent.CAPTURE;
-import static com.dcode.order_service.enumuration.PaymentPage.BILLING;
-import static com.dcode.order_service.utils.OrderUtils.createNewOrderEntity;
+
+import static com.dcode.order_service.constant.Constants.AppConstants.*;
+import static com.dcode.order_service.utils.OrderUtils.*;
 
 @Service
 @RequiredArgsConstructor
@@ -40,93 +77,261 @@ import static com.dcode.order_service.utils.OrderUtils.createNewOrderEntity;
 @Transactional
 public class OrderServiceImpl implements IOrderService {
 
+
     private final ICustomerClientProxy clientProxy;
     private final ProductClientProxy productClientProxy;
-
     private final IOrderRepository orderRepository;
-
-    private final IOrderLineService orderLineService;
+    private final IOrderLineRepository orderLineRepository;
+    private final PaypalConfig paypalConfig;
+    private final ICartRepository cartRepository;
+    private final PaypalHttpClient paypalHttpClient;
+    private final IWaybillRepository waybillRepository;
     private final ApplicationEventPublisher publisher;
+    private final ICartService cartService;
+    private final IProductClientProxy IProductClientProxy;
+    private final IWaybillLogRepository waybillLogRepository;
 
-    private static final int VND_TO_USD = 23_000;
+    @Value("${spring.shipping.ghnToken}")
+    private String ghnToken;
+    @Value("${spring.shipping.ghnShopId}")
+    private String ghnShopId;
+    @Value("${spring.shipping.ghnApiPath}")
+    private String ghnApiPath;
 
 //    private final OrderProducer orderProducer;
 
     @Override
     public void cancelOrder(String code) {
-//     This method is not implemented yet
-    }
+        OrderEntity order = orderRepository.findByCode(code)
+                .orElseThrow(() -> new BusinessException("Order not found with code: " + code));
 
-    @Override
-    public void createClientOrder(OrderRequest request) {
-        var customer = this.clientProxy.findUserByUserId(request.getCustomerId())
-                .orElseThrow(() -> new BusinessException("Cannot create order :: No customer found with ID: " + request.getToWardName()));
-
-        log.info("Customer found: {}", customer);
-
-        var purchasedProducts = this.productClientProxy.purchaseProducts(request.getPurchaseProducts());
-
-        var order = this.orderRepository.save(createNewOrderEntity(request));
-
-        /*for (PurchaseRequest purchaseRequest : request.getPurchaseProducts()) {
-            orderLineService.saveOrderLine(
-                    new OrderLineRequest(
-                            order.getOrderId(),
-                            purchaseRequest.productId(),
-                            purchaseRequest.variantId(),
-                            purchaseRequest.colorId(),
-                            purchaseRequest.quantity()
-                    )
-            );
-        }
-
-        if (request.getPaymentMethod() == PaymentMethod.CASH) {
+        // Hủy đơn hàng khi status = 1 hoặc 2
+        if (order.getStatus() < 3) {
+            order.setStatus(5); // Status 5 là trạng thái Hủy
             orderRepository.save(order);
-        } else if (request.getPaymentMethod() == PaymentMethod.PAYPAL) {
-            try {
 
-                BigDecimal convertTotalPayUSD = request.getTotalPay()
-                        .divide(BigDecimal.valueOf(VND_TO_USD), 0, BigDecimal.ROUND_HALF_UP);
+            sendEmail(order, EventType.ORDER_CANCELLED);
 
-                PaypalRequest paypalRequest = new PaypalRequest();
+            Waybill waybill = waybillRepository.findByOrder_OrderId(order.getOrderId()).orElse(null);
 
-                paypalRequest.setIntent(CAPTURE);
-                paypalRequest.setPurchaseUnits(
-                        List.of(
-                                new PaypalRequest.PurchaseUnit(
-                                        new PaypalRequest.PurchaseUnit.Money("USD", convertTotalPayUSD.toString())
-                                )
-                        )
-                );
-                paypalRequest.setApplicationContext(
-                        new PaypalRequest.PayPalAppContext()
-                                .setBrandName("Colux")
-                                .setLandingPage(BILLING)
-                                .setReturnUrl(HOST_URL + "/api/v1/orders/paypal/capture")
-                                .setCancelUrl(HOST_URL + "/api/v1/orders/paypal/cancel")
-                );
+            // Status 1 là Vận đơn đang chờ lấy hàng
+            if (waybill != null && waybill.getStatus() == 1) {
+                String cancelOrderApiPath = ghnApiPath + "/v2/switch-status/cancel";
 
-            } catch (Exception e) {
-                log.error("Error while processing payment", e);
-                throw new BusinessException("Error while processing payment");
+                HttpHeaders headers = new HttpHeaders();
+                headers.setContentType(MediaType.APPLICATION_JSON);
+                headers.add("Token", ghnToken);
+                headers.add("ShopId", ghnShopId);
+
+                RestTemplate restTemplate = new RestTemplate();
+
+                var request = new HttpEntity<>(new GhnCancelOrderRequest(List.of(waybill.getCode())), headers);
+                var response = restTemplate.postForEntity(cancelOrderApiPath, request, GhnCancelOrderResponse.class);
+
+                if (response.getStatusCode() != HttpStatus.OK) {
+                    throw new RuntimeException("Error when calling Cancel Order GHN API");
+                }
+
+                // Integrated with GHN API
+                if (response.getBody() != null) {
+                    for (var data : response.getBody().getData()) {
+                        if (data.getResult()) {
+                            WaybillLog waybillLog = new WaybillLog();
+                            waybillLog.setWaybill(waybill);
+                            waybillLog.setPreviousStatus(waybill.getStatus()); // Status 1: Đang đợi lấy hàng
+                            waybillLog.setCurrentStatus(4);
+                            waybillLogRepository.save(waybillLog);
+
+                            waybill.setStatus(4); // Status 4 là trạng thái Hủy
+                            waybillRepository.save(waybill);
+                        }
+                    }
+                }
             }
+        } else {
+            throw new RuntimeException(String
+                    .format("Order with code %s is in delivery or has been cancelled. Please check again!", code));
+        }
+    }
+
+
+    @Override
+    public ConfirmedOrderResponse createClientOrder(OrderRequest request) {
+        Map<String, Object> customerData = fetchCustomerData(request.getCustomerId());
+
+        var orderEntity = mapToOrderEntity(request, customerData);
+        List<PurchaseResponse> purchaseResponses = processProductPurchases(request.getPurchaseProducts());
+
+        orderEntity.setOrderLines(mapToOrderLineEntities(orderEntity, purchaseResponses));
+        setOrderTotals(orderEntity, request.getShippingCost(), request.getPaymentMethod());
+
+        orderRepository.save(orderEntity);
+
+        ConfirmedOrderResponse confirmedOrderResponse = createPaymentAndGetResponse(orderEntity, request.getPaymentMethod());
+
+
+        if (request.getCustomerId() != null) {
+            cleanCart(request);
         }
 
-        orderProducer.sendOrderConfirmation(
-                new OrderConfirmation(
-                        request.getReference(),
-                        request.getTotalPay(),
-                        request.getPaymentMethod(),
-                        customer,
-                        purchasedProducts
-                )
-        );*/
+        return confirmedOrderResponse;
+    }
 
+    private Map<String, Object> fetchCustomerData(String customerId) {
+        if (customerId == null) return null;
+
+        var customerFetch = clientProxy.findUserByUserId(customerId)
+                .orElseThrow(() ->
+                        new BusinessException("Cannot create order :: No customer found with ID: " + customerId));
+
+        return (Map<String, Object>) customerFetch.data().get("user");
+    }
+
+    // Helper method to process product purchases and return responses
+    private List<PurchaseResponse> processProductPurchases(List<PurchaseRequest> purchaseProducts) {
+        var purchaseProductsResponse = productClientProxy.purchaseProducts(purchaseProducts);
+
+        if (purchaseProductsResponse.getStatus() != 200) {
+            throw new BusinessException("Cannot create order :: Error purchasing products", purchaseProductsResponse.getData());
+        }
+        return purchaseProductsResponse.getData();
+    }
+
+
+    // Helper method to set order totals and advance payment
+    private void setOrderTotals(OrderEntity orderEntity, BigDecimal shippingCost, PaymentMethod paymentMethod) {
+        BigDecimal totalAmount = calculateTotalAmount(orderEntity.getOrderLines());
+        BigDecimal totalPay = calculateTotalPay(totalAmount, shippingCost);
+
+        orderEntity.setTotalAmount(totalAmount);
+        orderEntity.setTax(totalAmount.multiply(BigDecimal.valueOf(0.1)));
+        orderEntity.setTotalPay(totalPay);
+
+        BigDecimal advancePayment = (paymentMethod == PaymentMethod.CASH)
+                ? totalPay.multiply(BigDecimal.valueOf(0.25))
+                : totalPay;
+
+        orderEntity.setAdvancePayment(advancePayment);
+    }
+
+    // Helper method to create PayPal payment and set response details
+    private ConfirmedOrderResponse createPaymentAndGetResponse(OrderEntity orderEntity, PaymentMethod paymentMethod) {
+        ConfirmedOrderResponse response = new ConfirmedOrderResponse();
+        response.setOrderCode(orderEntity.getCode());
+        response.setPaymentMethod(paymentMethod);
+
+        BigDecimal advancePayment = orderEntity.getAdvancePayment();
+
+        try {
+            Payment payment = paypalConfig.createPayment(
+                    advancePayment.doubleValue(),
+                    "USD",
+                    "paypal",
+                    "sale",
+                    "Order payment",
+                    HOST_URL + SERVICE_NAME + "/api/v1/orders/payment/cancel",
+                    HOST_URL + SERVICE_NAME + "/api/v1/orders/payment/success"
+            );
+
+            if (payment != null && "created".equals(payment.getState())) {
+                orderEntity.setPaypalOrderId(payment.getId());
+                orderEntity.setPaypalOrderStatus(payment.getState());
+                orderRepository.save(orderEntity);
+
+                payment.getLinks().stream()
+                        .filter(link -> "approval_url".equals(link.getRel()))
+                        .findFirst()
+                        .ifPresent(link -> response.setOrderPaypalCheckoutLink(link.getHref()));
+            }
+        } catch (Exception e) {
+            log.error("Error creating Paypal transaction: {}", e.getMessage());
+            throw new BusinessException("Error Create Paypal Transaction Request :: " + e.getMessage());
+        }
+        return response;
+    }
+
+
+    private void cleanCart(OrderRequest request) {
+        var cartEntityOptional = cartRepository.findByCustomerId(request.getCustomerId());
+
+        if (cartEntityOptional.isPresent()) {
+            CartEntity cartEntity = cartEntityOptional.get();
+            CartVariantKeyRequest cartVariantKeyRequest = new CartVariantKeyRequest();
+
+            cartVariantKeyRequest.setCartId(cartEntity.getCartId());
+
+            Map<String, List<String>> itemDeleteRequests = request.getPurchaseProducts().stream()
+                    .collect(Collectors.groupingBy(PurchaseRequest::variantId,
+                            Collectors.flatMapping(purchaseRequest -> Stream.of(
+                                    purchaseRequest.productId(),
+                                    purchaseRequest.paintId(),
+                                    purchaseRequest.floorId(),
+                                    purchaseRequest.wallpaperId()
+                            ).filter(Objects::nonNull), Collectors.toList())));
+
+            cartVariantKeyRequest.setItemDeleteRequests(itemDeleteRequests);
+
+            cartService.deleteCartItem(cartVariantKeyRequest);
+        }
+    }
+
+    public List<OrderLineEntity> returnOrderToProductService(String orderId) {
+        var orderLines = orderLineRepository.findByOrderEntity_orderId(orderId);
+        if (orderLines.isEmpty()) {
+            throw new BusinessException("No order lines found for order ID: " + orderId);
+        }
+        return orderLines;
     }
 
     @Override
-    public void captureTransactionPaypal(String paypalOrderId, String payerId) {
+    public void captureTransactionPaypal(String paypalOrderId, String payerId) throws ResourceNotFoundException {
+        var order = orderRepository.findByPaypalOrderId(paypalOrderId).get();
 
+        try {
+            // (1) Capture
+            paypalHttpClient.capturePaypalTransaction(paypalOrderId, payerId);
+
+            // (2) Cập nhật order
+            if (order.getPaymentMethod() == PaymentMethod.CASH) {
+                order.setPaymentStatus(3); // Status 3: Đã thanh toán đặt cọc (25%)
+            } else {
+                order.setPaymentStatus(2); // Status 2: Đã thanh toán
+            }
+            order.setPaypalOrderStatus(OrderStatus.COMPLETED.toString());
+
+            // (3) Gửi notification
+            sendEmail(order, EventType.ORDER_CREATED);
+            // (4) Lưu order
+            orderRepository.save(order);
+        } catch (Exception e) {
+            log.error("Cannot capture transaction: {0}", e);
+        }
+
+    }
+
+    public void sendEmail(OrderEntity order, EventType eventType) {
+        var customer = this.clientProxy.findUserByUserId(order.getCustomerId())
+                .orElseThrow(() -> new BusinessException("Cannot create cart :: No customer found with ID: " + order.getCustomerId()));
+
+        List<CartVariantRequest> cartVariantRequests = order.getOrderLines().stream()
+                .map(orderLine -> {
+                    CartVariantRequest request = new CartVariantRequest();
+                    request.setVariantId(orderLine.getVariantId());
+                    request.setProductId(orderLine.getProductId());
+                    request.setPaintId(orderLine.getPaintId());
+                    request.setWallpaperId(orderLine.getWallpaperId());
+                    request.setFloorId(orderLine.getFloorId());
+                    request.setQuantity(orderLine.getQuantity());
+                    return request;
+                })
+                .toList();
+
+        var variantResponses = this.productClientProxy.getProductByVariantId(cartVariantRequests);
+
+        if (customer != null) {
+            Map<String, Object> data = (Map<String, Object>) customer.data().get("user");
+            publisher.publishEvent(new OrderEvent(order, eventType, variantResponses, data));
+        }
     }
 
     @Override
@@ -135,7 +340,166 @@ public class OrderServiceImpl implements IOrderService {
                 .stream()
                 .map(OrderUtils::fromOrderEntity)
                 .toList();
+    }
 
+    @Override
+    public boolean hasCustomerPurchasedProduct(String customerId, String productId) {
+        return orderLineRepository.existsByOrderEntity_customerIdAndProductId(customerId, productId);
+    }
+
+    @Scheduled(fixedRate = 120000)
+    public void checkOrderPaymentStatus() {
+        List<OrderEntity> orders = orderRepository.findAllByPaypalOrderStatus(PaypalStatus.CREATED.getStatus()); // Tìm các đơn hàng chưa thanh toán
+
+        for (OrderEntity order : orders) {
+            Optional<OrderEntity> orderWithLock = orderRepository.findByOrderId(order.getOrderId());
+
+            if (orderWithLock.isPresent()) {
+                OrderEntity lockedOrder = orderWithLock.get();
+
+                if (lockedOrder.getPaypalOrderStatus().equals(PaypalStatus.SUCCESS.getStatus())) {
+                    updateOrderStatusToSuccess(lockedOrder);
+                } else if (lockedOrder.getPaypalOrderStatus().equals(PaypalStatus.FAILED.getStatus())) {
+                    updateOrderStatusToFailed(lockedOrder);
+                } else {
+                    LocalDateTime createdTime = lockedOrder.getCreatedAt(); // Assuming createdAt is a LocalDateTime
+                    LocalDateTime currentTime = LocalDateTime.now();
+
+                    long timeDifference = ChronoUnit.MINUTES.between(createdTime, currentTime);
+
+                    if (timeDifference > 10) { // Nếu đã hơn 10 phút
+                        updateOrderStatusToFailed(lockedOrder);
+                    }
+                }
+            }
+        }
+    }
+
+    private void updateOrderStatusToSuccess(OrderEntity order) {
+        if (order.getVersion() == null) {
+            order.setVersion(0L);
+        }
+        order.setPaypalOrderStatus(PaypalStatus.SUCCESS.getStatus());
+        orderRepository.save(order);
+    }
+
+    private void updateOrderStatusToFailed(OrderEntity order) {
+        if (order.getVersion() == null) {
+            order.setVersion(0L);
+        }
+        order.setPaypalOrderStatus(PaypalStatus.FAILED.getStatus());
+        order.setStatus(3);
+
+        List<OrderLineDTO> orderLineRequests = order.getOrderLines().stream()
+                .map(OrderUtils::fromOrderLineEntityToDTO)
+                .toList();
+        Optional<Response> response = IProductClientProxy.reduceProductQuantity(orderLineRequests);
+        if (response.isPresent() && response.get().data() != null) {
+            orderRepository.save(order);
+        } else {
+//            throw new BusinessException("Error reducing product quantity");
+        }
+    }
+
+    @Override
+    public GhnCalculateFeeResponse calculateFee(GhnCalculateFeeRequest ghnCalculateFeeRequestRequest) {
+        String calculateFeePath = ghnApiPath + "/v2/shipping-order/fee";
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setAccept(List.of(MediaType.APPLICATION_JSON));
+        headers.add("Token", ghnToken);
+
+        RestTemplate restTemplate = new RestTemplate();
+
+        HttpEntity<GhnCalculateFeeRequest> request = new HttpEntity<>(ghnCalculateFeeRequestRequest, headers);
+        try {
+            ResponseEntity<GhnCalculateFeeResponse> response = restTemplate.postForEntity(calculateFeePath, request, GhnCalculateFeeResponse.class);
+            return response.getBody();
+        } catch (HttpClientErrorException e) {
+            throw new BusinessException("ERROR CALCULATE FEE  :: "  + e.getMessage());
+        }
+    }
+
+    @Override
+    public Map getProvinces() {
+        String GHNProvincePath = ghnApiPath + "/master-data/province";
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setAccept(List.of(MediaType.APPLICATION_JSON));
+        headers.add("Token", ghnToken);
+
+        RestTemplate restTemplate = new RestTemplate();
+
+        HttpEntity<String> request = new HttpEntity<>(headers);
+        try {
+            ResponseEntity<Map> response = restTemplate.exchange(GHNProvincePath, HttpMethod.GET, request, Map.class);
+            return response.getBody();
+        } catch (HttpClientErrorException e) {
+            throw new BusinessException(e.getMessage());
+        }
+    }
+
+    @Override
+    public Map<String, Object> getDistrict(JsonNode districtId) {
+        String GHNDistrictPath = ghnApiPath + "/master-data/district";
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setAccept(List.of(MediaType.APPLICATION_JSON));
+        headers.add("Token", ghnToken);
+
+        RestTemplate restTemplate = new RestTemplate();
+
+        HttpEntity<JsonNode> request = new HttpEntity<>(districtId, headers);
+        try {
+            ResponseEntity<Map> response = restTemplate.postForEntity(GHNDistrictPath, request, Map.class);
+            return response.getBody();
+        } catch (HttpClientErrorException e) {
+            throw new BusinessException("ERROR GET DISTRICT  :: "  + e.getMessage());
+        }
+    }
+
+    @Override
+    public Map<String, Object> getWard(JsonNode wardId) {
+        String GHNWardPath = ghnApiPath + "/master-data/ward?district_id";
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setAccept(List.of(MediaType.APPLICATION_JSON));
+        headers.add("Token", ghnToken);
+
+        RestTemplate restTemplate = new RestTemplate();
+
+        HttpEntity<JsonNode> request = new HttpEntity<>(wardId, headers);
+        try {
+            ResponseEntity<Map> response = restTemplate.postForEntity(GHNWardPath, request, Map.class);
+            return response.getBody();
+        } catch (HttpClientErrorException e) {
+            throw new BusinessException("ERROR GET WARD  :: " + e.getMessage());
+        }
+
+    }
+
+    @Override
+    public Map<String, Object> getServices(JsonNode serviceRequest) {
+        String GHNServicesPath = ghnApiPath + "/v2/shipping-order/available-services";
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setAccept(List.of(MediaType.APPLICATION_JSON));
+        headers.add("Token", ghnToken);
+
+        RestTemplate restTemplate = new RestTemplate();
+
+        HttpEntity<JsonNode> request = new HttpEntity<>(serviceRequest, headers);
+        try {
+            ResponseEntity<Map> response = restTemplate.postForEntity(GHNServicesPath, request, Map.class);
+            return response.getBody();
+        } catch (HttpClientErrorException e) {
+            throw new BusinessException("ERROR GET SERVICES  :: "  + e.getMessage());
+        }
     }
 
 

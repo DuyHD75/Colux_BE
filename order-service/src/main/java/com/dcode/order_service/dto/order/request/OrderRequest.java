@@ -3,10 +3,7 @@ package com.dcode.order_service.dto.order.request;
 import com.dcode.order_service.dto.product.PurchaseRequest;
 import com.dcode.order_service.enumuration.PaymentMethod;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.*;
 import lombok.Data;
 import org.springframework.lang.Nullable;
 
@@ -19,38 +16,34 @@ public class OrderRequest {
     private String code;
     private Integer status;
     private String toName;
+    @NotBlank(message = "To phone number must not be blank")
     private String toPhone;
+    @NotBlank(message = "To email must not be blank")
+    @Email(message = "To email must be a valid email address")
+    private String toEmail;
+
+    @NotBlank(message = "To address must not be blank")
     private String toAddress;
+    @NotBlank(message = "To ward name must not be blank")
     private String toWardName;
+    @NotBlank(message = "To district name must not be blank")
     private String toDistrictName;
+    @NotBlank(message = "To province name must not be blank")
     private String toProvinceName;
+    @Nullable
     private String reference;
     @Nullable
-    private Long orderCancellationReasonId;
-
+    private String orderCancellationReasonId;
     @Nullable
     private String note;
 
-    @NotNull(message = "Customer should be present")
-    @NotEmpty(message = "Customer should not be empty")
-
-    @NotBlank(message = "Customer should not be blank")
     private String customerId;
 
     @NotNull(message = "You should at least purchase one product")
     private List<PurchaseRequest> purchaseProducts;
 
-    @Positive(message = "Total amount must be positive number")
-    private BigDecimal totalAmount;
-
-    @Positive(message = "Tax must be positive number")
-    private BigDecimal tax;
-
     @Positive(message = "Shipping cost must be positive number")
     private BigDecimal shippingCost;
-
-    @Positive(message = "Total pay must be positive number")
-    private BigDecimal totalPay;
 
     @NotNull(message = "Payment method type must not be precised")
     private PaymentMethod paymentMethod;

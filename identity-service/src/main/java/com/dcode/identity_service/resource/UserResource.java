@@ -4,9 +4,7 @@ package com.dcode.identity_service.resource;
 import com.dcode.identity_service.domain.Response;
 import com.dcode.identity_service.domain.TokenData;
 import com.dcode.identity_service.dto.User;
-import com.dcode.identity_service.dtorequest.ChangePasswordRequest;
-import com.dcode.identity_service.dtorequest.ResetPasswordRequest;
-import com.dcode.identity_service.dtorequest.UserRequest;
+import com.dcode.identity_service.dtorequest.*;
 import com.dcode.identity_service.exception.ApiException;
 import com.dcode.identity_service.service.IJwtService;
 import com.dcode.identity_service.service.IUserService;
@@ -23,6 +21,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
+import java.util.List;
 import java.util.Map;
 
 import static com.dcode.identity_service.enumeration.TokenType.ACCESS_TOKEN;
@@ -32,7 +31,6 @@ import static com.dcode.identity_service.utils.RequestUtils.getResponse;
 import static java.util.Collections.emptyMap;
 import static org.springframework.http.HttpStatus.*;
 
-//@CrossOrigin(origins = "", allowCredentials = "true")
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/users")
@@ -194,6 +192,39 @@ public class UserResource {
         }
         var user = (User) authentication.getPrincipal();
         return ResponseEntity.ok().body(getResponse(request, Map.of("user", user), "User info retrieved.", OK));
+    }
+
+    @PostMapping("/update-profile")
+    public ResponseEntity<Response> updateUserProfile(@RequestBody @Valid UpdateProfileRequest user, HttpServletRequest request, HttpServletResponse response) {
+        var authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return ResponseEntity.status(UNAUTHORIZED)
+                    .body(getErrorResponse(request,response, new ApiException("User not authenticated."), UNAUTHORIZED));
+        }
+
+        var userEntity = (User) authentication.getPrincipal();
+        userService.updateUserProfile(userEntity.getEmail(), user);
+        return ResponseEntity.ok().body(getResponse(request, emptyMap(), "User info updated.", OK));
+    }
+
+    @PostMapping("/reviews/info")
+    public ResponseEntity<Response> getUserInfoForReview(@RequestBody @Valid List<UserReviewRequest> userReviewRequest, HttpServletRequest request, HttpServletResponse response){
+        var userReviewResponse = userService.getUserReviewInfo(userReviewRequest);
+        return ResponseEntity.ok().body(getResponse(request, Map.of("user", userReviewResponse), "Users info retrieve success!", OK));
+    }
+
+    @GetMapping("/getTotalUser")
+    public ResponseEntity<Response> getTotalUser(HttpServletRequest request) {
+        var totalUser = userService.getTotalUser();
+        return ResponseEntity.ok().body(getResponse(request, Map.of("totalUser", totalUser), "Total user retrieved.", OK));
+    }
+
+    @GetMapping("/monthlyUser")
+    public ResponseEntity<Response> getMonthlyUserPageable(@RequestParam("monthBack") int monthBack,
+                                                           HttpServletRequest request) {
+        var monthlyUser = userService.getMonthlyUser(monthBack);
+        return ResponseEntity.ok().body(getResponse(request, Map.of("monthlyUser", monthlyUser), "Monthly user retrieved.", OK));
     }
 
     private URI getUri() {

@@ -25,6 +25,9 @@ public class Paint extends Auditable{
     @JoinColumn(nullable = false, updatable = false, unique = true)
     private String paintId;
 
+    @Column(name = "status", nullable = false, columnDefinition = "TINYINT")
+    private Integer status;
+
     @ManyToOne
     @JsonIgnore 
     private Product product;
@@ -35,7 +38,5 @@ public class Paint extends Auditable{
 
     @OneToMany(cascade = {PERSIST, MERGE}, mappedBy = "paint")
     private Set<PaintVariant> paintVariants;
-
-
 
 }

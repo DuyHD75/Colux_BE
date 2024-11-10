@@ -20,22 +20,23 @@ import static com.dcode.product_service.utils.PaintUtils.convertVariantToVRespon
 import static com.dcode.product_service.utils.ProductUtils.fromProductEntitySimple;
 
 public class WallpaperUtils {
-    public static Wallpaper createNewWallpaperEntity(Product product, String area, Map<Variant, Pair<Double, Double>> variantRequestSet){
+    public static Wallpaper createNewWallpaperEntity(Product product, String area, Map<Variant, Pair<Integer, Double>> variantRequestSet){
         Set< WallpaperVariant> wallpaperVariants = new HashSet<>();
         Wallpaper wallpaper = Wallpaper.builder()
                 .wallpaperId(UUID.randomUUID().toString())
                 .product(product)
-                .area(Double.parseDouble(area))
+                .status(1)
                 .wallpaperVariants(wallpaperVariants)
                 .build();
 
         //lap qua Map de set quantity
-        for (Map.Entry<Variant, Pair<Double, Double>> entry: variantRequestSet.entrySet()){
+        for (Map.Entry<Variant, Pair<Integer, Double>> entry: variantRequestSet.entrySet()){
             Variant variant = entry.getKey();
-            Double quantity = entry.getValue().getLeft();
+            Integer quantity = entry.getValue().getLeft();
             Double price = entry.getValue().getRight();
 
             WallpaperVariant temp = WallpaperVariant.builder()
+                    .wallpaperVariantId(UUID.randomUUID().toString())
                     .wallpaper(wallpaper)
                     .variant(variant)
                     .quantity(quantity)
@@ -48,19 +49,18 @@ public class WallpaperUtils {
     public static WallpaperResponse fromWallpaperEntity(Wallpaper wallpaper){
 
         return WallpaperResponse.builder()
-                .area(String.valueOf(wallpaper.getArea()))
+                .wallpaperId(wallpaper.getWallpaperId())
+                .status(wallpaper.getStatus())
                 .variants(convertVariantToVResponse(wallpaper.getWallpaperVariants()))
                 .product(fromProductEntitySimple(wallpaper.getProduct()))
                 .build();
     }
-    public static Wallpaper fromWallpaperEntity(String area, Map<Variant, Pair<Double, Double>> variantRequestSet, Wallpaper wallpaper){
-        wallpaper.setArea(Double.parseDouble(area));
+    public static Wallpaper fromWallpaperEntity(Map<Variant, Pair<Integer, Double>> variantRequestSet, Wallpaper wallpaper){
         Set<WallpaperVariant> existingWallpaperVariants = wallpaper.getWallpaperVariants();
-
         Set<WallpaperVariant> updatedWallpaperVariants = new HashSet<>();
-        for (Map.Entry<Variant, Pair<Double, Double>> entry: variantRequestSet.entrySet()){
+        for (Map.Entry<Variant, Pair<Integer, Double>> entry: variantRequestSet.entrySet()){
             Variant variant = entry.getKey();
-            Double quantity = entry.getValue().getLeft();
+            Integer quantity = entry.getValue().getLeft();
             Double price = entry.getValue().getRight();
 
             WallpaperVariant wallpaperVariant = existingWallpaperVariants.stream()

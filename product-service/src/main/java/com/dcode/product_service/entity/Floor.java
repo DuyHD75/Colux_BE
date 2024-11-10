@@ -1,10 +1,8 @@
 package com.dcode.product_service.entity;
 
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.util.List;
 import java.util.Set;
 
 import static jakarta.persistence.CascadeType.MERGE;
@@ -26,13 +24,14 @@ public class Floor extends Auditable{
 //    private String color;
 
     @Column(nullable = false, updatable = false, unique = true)
-    private String floorID;
+    private String floorId;
     private Double foamThickness; // Xốp: 2mm
-    private String accessoryType; // Len tường hoặc chỉ nẹp
-
-    private String packagingMaterial; // Giấy cứng
+//
     private Integer numberOfPiecesPerBox; // Số tấm trong 1 hộp: 12 Tấm
-//    private Double areaPerBox; // Diện tích 1 hộp: 2.888 m² => should be in variant
+
+
+    @Column(name = "status", nullable = false, columnDefinition = "TINYINT")
+    private Integer status;
 
     @ManyToOne
     private Product product;

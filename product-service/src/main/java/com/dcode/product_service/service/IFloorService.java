@@ -9,11 +9,11 @@ import org.springframework.data.domain.Pageable;
 import java.util.Set;
 
 public interface IFloorService {
-    void createAFloor(String productId, FloorRequest floorRequest);
+    void createFloor(String productId, FloorRequest floorRequest);
 
     FloorResponse getAFloor(String floorId);
 
-    void updateAFloor(String floorId, Double foamThickness, String accessoryType, String packagingMaterial, Integer numberOfPiecesPerBox, Set<VariantRequest> variants);
+    void updateAFloor(String floorId, FloorRequest floorRequest);
 
     void deleteAFloor(String floorId);
 

@@ -2,18 +2,34 @@ package com.dcode.order_service.service;
 
 
 import com.dcode.order_service.dto.order.Order;
+import com.dcode.order_service.dto.order.request.GhnCalculateFeeRequest;
 import com.dcode.order_service.dto.order.request.OrderRequest;
-import com.dcode.order_service.dto.order.response.OrderResponse;
+import com.dcode.order_service.dto.order.response.ConfirmedOrderResponse;
+import com.dcode.order_service.dto.order.response.GhnCalculateFeeResponse;
+import com.dcode.order_service.exception.ResourceNotFoundException;
+import com.fasterxml.jackson.databind.JsonNode;
 
 import java.util.List;
+import java.util.Map;
 
 public interface IOrderService {
     void cancelOrder(String code);
 
-    void createClientOrder(OrderRequest request);
+    ConfirmedOrderResponse createClientOrder(OrderRequest request);
 
-    void captureTransactionPaypal(String paypalOrderId, String payerId);
+    void captureTransactionPaypal(String paymentId, String payerId) throws ResourceNotFoundException;
 
     List<Order> getAllOrders();
 
+    boolean hasCustomerPurchasedProduct(String customerId, String productId);
+
+    GhnCalculateFeeResponse calculateFee(GhnCalculateFeeRequest ghnCalculateFeeRequestRequest);
+
+    Map<String, Object> getProvinces();
+
+    Map<String, Object> getDistrict(JsonNode districtId);
+
+    Map<String, Object> getWard(JsonNode wardId);
+
+    Map<String, Object> getServices(JsonNode serviceRequest);
 }

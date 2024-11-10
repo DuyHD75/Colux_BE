@@ -12,9 +12,5 @@ import lombok.Setter;
 public class ImageResponse {
     private String imageId;
     private String url;
-    private String imageName;
-    private String caption;
-    private String altText;
-    private ImageType type;
     private ProductResponse product;
 }

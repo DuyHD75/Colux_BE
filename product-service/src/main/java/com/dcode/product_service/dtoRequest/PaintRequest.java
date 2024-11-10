@@ -8,6 +8,7 @@ import java.util.Set;
 
 @Data
 public class PaintRequest {
+    private String productId;
     private String color;
     private Set<VariantRequest> variants;
 }

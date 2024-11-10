@@ -7,10 +7,13 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.Accessors;
+import org.hibernate.annotations.NaturalId;
 import org.springframework.lang.Nullable;
 
 import java.math.BigDecimal;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 
 @AllArgsConstructor
@@ -26,7 +29,11 @@ import java.util.List;
 public class OrderEntity extends Auditable {
 
     @Column(name = "order_id", nullable = false, unique = true)
+    @NaturalId
     private String orderId;
+
+    @Version
+    private Long version; // Trường version cho Optimistic Locking
 
     @Column(name = "customer_id", nullable = false)
     private String customerId;
@@ -43,6 +50,9 @@ public class OrderEntity extends Auditable {
     @Column(name = "to_phone", nullable = false)
     private String toPhone;
 
+    @Column(name = "to_email", nullable = false)
+    private String toEmail;
+
     @Column(name = "to_address", nullable = false)
     private String toAddress;
 
@@ -58,16 +68,20 @@ public class OrderEntity extends Auditable {
     @Nullable
     private String note;
 
-    @OneToMany(mappedBy = "orderEntity")
-    private List<OrderLineEntity> orderLines;
+    @OneToMany(mappedBy = "orderEntity", cascade = CascadeType.ALL)
+    private Set<OrderLineEntity> orderLines = new HashSet<>(); // (1) Một đơn hàng có nhiều sản phẩm
 
     @Column(name = "total_amount", nullable = false, columnDefinition = "DECIMAL(15,5)")
     private BigDecimal totalAmount;
-    @Column(name = "tax", nullable = false, columnDefinition = "DECIMAL(15,5)")
 
+    @Column(name = "tax", nullable = false, columnDefinition = "DECIMAL(15,5)")
     private BigDecimal tax;
+
     @Column(name = "shipping_cost", nullable = false, columnDefinition = "DECIMAL(15,5)")
     private BigDecimal shippingCost;
+
+    @Column(name = "advance_payment", columnDefinition = "DECIMAL(15,5)")
+    private BigDecimal advancePayment; // (3) Số tiền đã đặt cọc
 
     @Column(name ="total_pay", nullable = false, columnDefinition = "DECIMAL(15,5)")
     private BigDecimal totalPay;
@@ -77,8 +91,11 @@ public class OrderEntity extends Auditable {
     private PaymentMethod paymentMethod;
 
     @Column(name = "paypal_order_id")
-    private String paypalOrderId;
+    private String paypalOrderId; // (2) ID của đơn hàng trên paypal
 
-    @Column(name= "payment_status") /* (1) Chưa thanh toán, (2) Đã thanh toán */
+    @Column(name = "paypal_order_status")
+    private String paypalOrderStatus;
+
+    @Column(name= "payment_status") /* (1) Chưa thanh toán, (2) Đã thanh toán  (3) Đã đặt cọc*/
     private Integer paymentStatus;
 }

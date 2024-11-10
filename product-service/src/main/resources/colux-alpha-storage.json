@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "colux-alpha-storage",
+  "private_key_id": "6180a499f559b57d0c825c3e4a1eb857f7821319",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQCdLjqLK1sJRH3N\nBnCmWW13CGN5lURI7Sd1gzGphjPCW6QywchuYuYpeP4gIU7ag9FYBNAO5HwQuNAe\nwU5IvGMOQh36D2823gTPAamIAmOtJHdfJMHZZRKtIM0Gfz4wEeIKU1Bvf14QavX7\niKnS/oa+NKo71CNnbzEf6bHGIB/FhDAJiSvhIX8uoESuK0wdSZh2kvLUxQmbsx2Z\nT4h4DoWW1seJ+1/PIuJF0gNf2AePrabxYSmmpnskNUtzf3uMENYV3RykuDkYmXnc\ncUomUChUWZFJuu127wAe206fRT4tYNXAOSbnM1JkyyGUG2qaD72yvee9iDhK42vN\nT9P/VZHzAgMBAAECggEAJVdRtjVXG9UHM/mXMpXlQRWfmEdjYRXiPXMtDbKhwkdG\nM37BEKRzPKAPc2+mTZhqWAhQq3ERnmFhpCTVZcdHmyAPAhS/nZ/SMaGZ9oNmzb/v\nkg1n9i8iaDn2K1h4XDArbLuNTOfL34ehp5+4hLVOKorVdIA55v1OBOBeiQyhr6kP\nhnrvDYbtzWAVWUD6u191BouY/uLtcCVphXCvkeBBgOTNnSggphMYraSJQWdxKKWI\n6QLQaxWUzzIZT7XRt0SbNz1sPVs4bbUcS0vKQaG0mvV3u/lXBJGj6JMR5+QbTRYx\nfnHr0StOZJo7TaatwqaZhaUYsQ6haszbeTwZa3UswQKBgQDcycVR4WreDtdyhVLT\nC4Y35d81+gb7cpEgcn9ctvyoPE2Wz6vBygzUHWSjYeA5lEKRj6VAWGgdHjddnKwP\nD+wkp7LuuJJ+RCa/wBZ31P0tFA3v/9vkfmRpYG4GGrR2PO53fQS8qHyAPH8J3Odv\nEBZQ6/IP+ghLJElycXe8/k3DMwKBgQC2P4TihEW44vt57qq/MMEHEbcj/3fAH7KB\nsj3ItlxEvbQFzjgCWRxsLgwJoRs0PoIihLx4t8uu6lypbwXYeio56bxBCDtORz+V\nNy3d/jmQ2YNEmHCmK4KdWaS+azHY/rw8AKOaOwujVtPCrW2n3+V6OO/+f9vMeP+A\nW4wEO+z2QQKBgQDaf0+oNZXGBhgO/IQ32YrNXM8mIrawNvQKkWUbgvfNIkiCvCg1\nEtjZPfFvgxgcw22Rkf+vCw6V6mZOXRMloNNIfzGj78MB9D4Iu3dAxeZ7qwIUBjg+\nCxsh8c1QezMmZCx20aFTdsYnPjdWsmfS0K/VC3s1dnKoslOBT2t4/I5GYwKBgQCX\n5Ha/R5jIkD0hkb4zXNH0L1qhIQFQWdqv57tAtmROUoFguU/K/TQIIZScze5ba6GQ\nXWqrfhu/a8rQ2BxaIO9ilyD0XoT3J8Chf3y14XVe+TpDiH2SsP7KX/VDUxoXja+a\nnrm8CGwZtXsGbP7QhHXAmQXE6hFp6IqiEyquOLe1QQKBgFff6YLnSlntz9Ww8aK3\nvDU2T2XO0EZcpvVHs/weRFRY02x9gfXy9lZeR3Ysm+z4TT9juz5VbINt3cLBhD70\nHu/OrTzKqVOkjVukJSX8i2flyT7/t0AOof1r4G4YHhU4nvSZ9kjDmHmdDFAGOIMn\nJuBOliG/uFSyRf7k0XU7Bobx\n-----END PRIVATE KEY-----\n",
+  "client_email": "firebase-adminsdk-e3pay@colux-alpha-storage.iam.gserviceaccount.com",
+  "client_id": "108164616188629457626",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/firebase-adminsdk-e3pay%40colux-alpha-storage.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}

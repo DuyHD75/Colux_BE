@@ -1,12 +1,13 @@
 package com.dcode.order_service.service;
 
 import com.dcode.order_service.dto.cart.request.CartRequest;
-import com.dcode.order_service.entity.cart.CartEntity;
-
-import java.util.List;
+import com.dcode.order_service.dto.cart.request.CartVariantKeyRequest;
+import com.dcode.order_service.dto.cart.response.ClientCartResponse;
 
 public interface ICartService {
-    void createClientCart(CartRequest request);
+    ClientCartResponse saveClientCart(CartRequest request);
 
-    List<CartEntity> getAllCarts();
+    ClientCartResponse getCart(String customerId);
+
+    void deleteCartItem(CartVariantKeyRequest idRequests);
 }

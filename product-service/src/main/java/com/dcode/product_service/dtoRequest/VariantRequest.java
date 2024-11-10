@@ -5,6 +5,6 @@ import lombok.Data;
 @Data
 public class VariantRequest {
     private String variantId;
-    private Double quantity;
+    private Integer quantity;
     private Double price;
 }

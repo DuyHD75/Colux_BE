@@ -5,6 +5,8 @@ import com.dcode.identity_service.cache.CacheStore;
 import com.dcode.identity_service.domain.RequestContext;
 import com.dcode.identity_service.dto.User;
 import com.dcode.identity_service.dtorequest.ResetPasswordRequest;
+import com.dcode.identity_service.dtorequest.UpdateProfileRequest;
+import com.dcode.identity_service.dtorequest.UserReviewRequest;
 import com.dcode.identity_service.entity.ConfirmationEntity;
 import com.dcode.identity_service.entity.CredentialEntity;
 import com.dcode.identity_service.entity.RoleEntity;
@@ -18,6 +20,7 @@ import com.dcode.identity_service.repository.CredentialRepository;
 import com.dcode.identity_service.repository.RoleRepository;
 import com.dcode.identity_service.repository.UserRepository;
 import com.dcode.identity_service.service.IUserService;
+import com.dcode.identity_service.utils.UserUtils;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,12 +29,16 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static com.dcode.identity_service.enumeration.EventType.REGISTRATION;
 import static com.dcode.identity_service.enumeration.EventType.RESET_PASSWORD;
-import static com.dcode.identity_service.utils.UserUtils.createNewUserEntity;
-import static com.dcode.identity_service.utils.UserUtils.fromUserEntity;
+import static com.dcode.identity_service.utils.UserUtils.*;
 import static java.time.LocalDateTime.now;
 
 @Service
@@ -168,6 +175,52 @@ public class UserServiceImpl implements IUserService {
         credentialRepository.save(credentialEntity);
     }
 
+    @Override
+    public User updateUserProfile(String email, UpdateProfileRequest data) {
+        var userEntity = getUserEntityByEmail(email);
+        userEntity.setFirstName(data.getFirstName());
+        userEntity.setLastName(data.getLastName());
+        userEntity.setPhone(data.getPhone());
+        userEntity.setImageUrl(data.getImageUrl());
+        userRepository.save(userEntity);
+        return fromUserEntity(userEntity, userEntity.getRole(), getUserCredentialById(userEntity.getId()));
+    }
+
+    @Override
+    public List<User> getUserReviewInfo(List<UserReviewRequest> userReviewRequest) {
+        var userReviewInfos = userRepository.findAllByUserIdIn(userReviewRequest.stream().map(UserReviewRequest::getCustomerId).toList());
+        if (userReviewInfos.size() != userReviewRequest.size() || userReviewInfos.isEmpty()) throw new ApiException("Error: User review info is not found.");
+        return userReviewInfos.stream().map(UserUtils::fromReviewUserEntity).toList() ;
+    }
+
+    @Override
+    public Object getTotalUser() {
+        return userRepository.countUsersWithUserRole();
+    }
+
+    @Override
+    public List<Map<String, Object>> getMonthlyUser(int monthsBack) {
+        List<Map<String, Object>> monthlyUserData = new ArrayList<>();
+
+        LocalDateTime currentDate = LocalDateTime.now().withDayOfMonth(1).truncatedTo(ChronoUnit.DAYS);
+
+        for (int i = 0; i <= monthsBack; i++) {
+            LocalDateTime startOfMonth = currentDate.minusMonths(i);
+            LocalDateTime endOfMonth = startOfMonth.plusMonths(1).minusNanos(1);
+
+            long countUsers = userRepository.countByCreatedAtBetween(startOfMonth, endOfMonth);
+
+            Map<String, Object> monthlyData = new HashMap<>();
+            monthlyData.put("month", startOfMonth.getMonth().toString());
+            monthlyData.put("year", startOfMonth.getYear());
+            monthlyData.put("userCount", countUsers);
+
+            monthlyUserData.add(monthlyData);
+        }
+
+        return monthlyUserData;
+    }
+
     private UserEntity getUserEntityByEmail(String email) {
         return userRepository.findByEmailIgnoreCase(email).orElseThrow(() -> new ApiException("Error: User is not found."));
     }
@@ -183,3 +236,4 @@ public class UserServiceImpl implements IUserService {
         return createNewUserEntity(firstName, lastName, email, role);
     }
 }
+

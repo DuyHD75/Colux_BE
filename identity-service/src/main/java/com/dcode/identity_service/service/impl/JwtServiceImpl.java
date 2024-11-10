@@ -37,7 +37,6 @@ import static java.util.Arrays.stream;
 import static java.util.Optional.empty;
 import static org.springframework.security.core.authority.AuthorityUtils.commaSeparatedStringToAuthorityList;
 
-
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -122,12 +121,13 @@ public class JwtServiceImpl extends JwtConfiguration implements IJwtService {
         cookie.setHttpOnly(true);
         cookie.setPath("/");
         cookie.setDomain(DOMAIN_SERVER);
-        cookie.setAttribute("SameSite", "Lax");
-        if (DOMAIN_SERVER.contains("colux.site"))
+        if (DOMAIN_SERVER.contains("colux.site")) {
             cookie.setSecure(true);
-        else
+            cookie.setAttribute("SameSite", "None"); // Use None for cross-site contexts
+        } else {
             cookie.setSecure(false);
-
+            cookie.setAttribute("SameSite", "Lax"); // Lax is less restrictive
+        }
         response.addCookie(cookie);
     };
 
@@ -173,12 +173,13 @@ public class JwtServiceImpl extends JwtConfiguration implements IJwtService {
 
     @Override
     public void removeCookie(HttpServletRequest request, HttpServletResponse response, String cookieName) {
-        extractCookie.apply(request, cookieName).ifPresent(cookie -> {
-            cookie.setMaxAge(0);
-            cookie.setValue(EMPTY_VALUE);
-            cookie.setPath("/");
-            response.addCookie(cookie);
-        });
+        Cookie cookie = new Cookie(cookieName, "");
+        cookie.setMaxAge(0);
+        cookie.setPath("/");
+        cookie.setHttpOnly(true);
+        cookie.setSecure(DOMAIN_SERVER.contains("colux.site"));
+        cookie.setDomain(DOMAIN_SERVER);
+        response.addCookie(cookie);
     }
 }
 

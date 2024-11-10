@@ -1,6 +1,8 @@
 package com.dcode.product_service.entity;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import lombok.*;
 import org.hibernate.annotations.NaturalId;
 
@@ -24,8 +26,9 @@ public class Product extends Auditable{
     private String productName;
     @Column(columnDefinition = "TEXT")
     private String description;
-    private String price;
-    private String ratingAverage;
+    @Min(0)
+    @Max(5)
+    private Double ratingAverage;
     private String code;
     private String placeOfOrigin;
     private String warranty;
@@ -59,9 +62,6 @@ public class Product extends Auditable{
     private Brand brand;
 
     @OneToMany(mappedBy = "product")
-    private List<ProductImage> productImages;
-
-    @OneToMany(mappedBy = "product")
     private List<Paint> paints;
 
     @OneToMany(mappedBy = "product")
@@ -71,5 +71,15 @@ public class Product extends Auditable{
     private List<Floor> floors;
 
     @OneToMany(mappedBy = "product")
-    private List<Image> images;
+    private Set<Image> images;
+
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL)
+    private List<Review> review;
+
+    @OneToOne(mappedBy = "product", cascade = CascadeType.ALL)
+    private ProductSupplier productSupplier;
+
+    @ManyToOne
+    @JoinColumn(name = "wish_list_id", referencedColumnName = "id")
+    private WishList wishList;
 }

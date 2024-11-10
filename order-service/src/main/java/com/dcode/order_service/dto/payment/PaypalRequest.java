@@ -2,6 +2,8 @@ package com.dcode.order_service.dto.payment;
 
 import com.dcode.order_service.enumuration.TransactionIntent;
 import com.dcode.order_service.enumuration.PaymentPage;
+import com.dcode.order_service.enumuration.payment.OrderIntent;
+import com.dcode.order_service.enumuration.payment.PaymentLandingPage;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -13,7 +15,7 @@ import java.util.List;
 @Data
 public class PaypalRequest implements Serializable {
     @JsonProperty("intent")
-    private TransactionIntent intent;
+    private OrderIntent intent;
     @JsonProperty("purchase_units")
     private List<PurchaseUnit> purchaseUnits;
     @JsonProperty("application_context")
@@ -41,7 +43,7 @@ public class PaypalRequest implements Serializable {
         @JsonProperty("brand_name")
         private String brandName;
         @JsonProperty("landing_page")
-        private PaymentPage landingPage;
+        private PaymentLandingPage landingPage;
         @JsonProperty("return_url")
         private String returnUrl;
         @JsonProperty("cancel_url")

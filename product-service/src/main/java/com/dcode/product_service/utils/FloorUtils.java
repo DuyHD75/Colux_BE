@@ -1,7 +1,6 @@
 package com.dcode.product_service.utils;
 
 import com.dcode.product_service.dtoRequest.FloorRequest;
-import com.dcode.product_service.dtoRequest.VariantRequest;
 import com.dcode.product_service.dtoResponse.FloorResponse;
 import com.dcode.product_service.entity.*;
 import org.apache.commons.lang3.tuple.Pair;
@@ -14,24 +13,23 @@ import java.util.UUID;
 import static com.dcode.product_service.utils.PaintUtils.convertVariantToVResponse;
 
 public class FloorUtils {
-    public static Floor createNewFloorEntity(Product product, FloorRequest floorRequest, Map<Variant, Pair<Double, Double>> variantRequestSet){
+    public static Floor createNewFloorEntity(Product product, FloorRequest floorRequest, Map<Variant, Pair<Integer, Double>> variantRequestSet){
         Set<FloorVariant> floorVariants = new HashSet<>();
         Floor floor = Floor.builder()
-                .floorID(UUID.randomUUID().toString())
+                .floorId(UUID.randomUUID().toString())
                 .product(product)
                 .foamThickness(floorRequest.getFoamThickness())
-                .accessoryType(floorRequest.getAccessoryType())
-                .packagingMaterial(floorRequest.getPackagingMaterial())
                 .numberOfPiecesPerBox(floorRequest.getNumberOfPiecesPerBox())
                 .floorVariants(floorVariants)
                 .build();
 
-        for (Map.Entry<Variant, Pair<Double, Double>> entry: variantRequestSet.entrySet()){
+        for (Map.Entry<Variant, Pair<Integer, Double>> entry: variantRequestSet.entrySet()){
             Variant variant = entry.getKey();
-            Double quantity = entry.getValue().getLeft();
+            Integer quantity = entry.getValue().getLeft();
             Double price = entry.getValue().getRight();
 
            FloorVariant temp = FloorVariant.builder()
+                   .floorVariantId(UUID.randomUUID().toString())
                    .floor(floor)
                    .variant(variant)
                    .quantity(quantity)
@@ -44,26 +42,23 @@ public class FloorUtils {
 
     public static FloorResponse fromFloorEntity(Floor floor){
         return FloorResponse.builder()
-                .accessoryType(floor.getAccessoryType())
-                .foamThickness(floor.getFoamThickness().toString())
-                .numberOfPiecesPerBox(floor.getNumberOfPiecesPerBox().toString())
-                .packagingMaterial(floor.getPackagingMaterial())
+                .floorId(floor.getFloorId())
+                .foamThickness(floor.getFoamThickness())
+                .numberOfPiecesPerBox(floor.getNumberOfPiecesPerBox())
                 .variants(convertVariantToVResponse(floor.getFloorVariants()))
-
+                .status(floor.getStatus())
                 .build();
     }
-    public static Floor fromFloorEntity(Double foamThickness, String accessoryType, String packagingMaterial, Integer numberOfPiecesPerBox, Map<Variant, Pair<Double, Double>> variantRequestSet, Floor floor){
-        floor.setFoamThickness(foamThickness);
-        floor.setAccessoryType(accessoryType);
-        floor.setPackagingMaterial(packagingMaterial);
-        floor.setNumberOfPiecesPerBox(numberOfPiecesPerBox);
+    public static Floor fromFloorEntity(FloorRequest floorRequest, Map<Variant, Pair<Integer, Double>> variantRequestSet, Floor floor){
+        floor.setFoamThickness(floorRequest.getFoamThickness());
+        floor.setNumberOfPiecesPerBox(floorRequest.getNumberOfPiecesPerBox());
 
         Set<FloorVariant> existingFloorVariants = floor.getFloorVariants();
 
         Set<FloorVariant> updatedFloorVariants = new HashSet<>();
-        for (Map.Entry<Variant, Pair<Double, Double>> entry: variantRequestSet.entrySet()){
+        for (Map.Entry<Variant, Pair<Integer, Double>> entry: variantRequestSet.entrySet()){
             Variant variant = entry.getKey();
-            Double quantity = entry.getValue().getLeft();
+            Integer quantity = entry.getValue().getLeft();
             Double price = entry.getValue().getRight();
 
             FloorVariant floorVariant = existingFloorVariants.stream()

@@ -10,7 +10,7 @@
     </parent>
     <groupId>com.dcode</groupId>
     <artifactId>order-service</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>0.0.23-SNAPSHOT</version>
     <name>order-service</name>
     <description>Implement Order Service</description>
     <url/>
@@ -29,6 +29,9 @@
     <properties>
         <java.version>17</java.version>
         <spring-cloud.version>2023.0.3</spring-cloud.version>
+        <stomp-websocket.version>2.3.3</stomp-websocket.version>
+        <sockjs-client.version>1.0.2</sockjs-client.version>
+        <rsql-jpa-spring-boot-starter.version>5.0.19</rsql-jpa-spring-boot-starter.version>
     </properties>
     <dependencies>
         <dependency>
@@ -75,11 +78,6 @@
             <version>33.0.0-jre</version>
         </dependency>
 
-<!--        <dependency>-->
-<!--            <groupId>org.springframework.cloud</groupId>-->
-<!--            <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>-->
-<!--        </dependency>-->
-
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-devtools</artifactId>
@@ -101,14 +99,11 @@
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
+
         <dependency>
-            <groupId>org.springframework.kafka</groupId>
-            <artifactId>spring-kafka</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.kafka</groupId>
-            <artifactId>spring-kafka-test</artifactId>
-            <scope>test</scope>
+            <groupId>com.fasterxml.jackson.datatype</groupId>
+            <artifactId>jackson-datatype-jsr310</artifactId>
+            <version>2.17.2</version>
         </dependency>
 
         <dependency>
@@ -121,13 +116,6 @@
             <artifactId>micrometer-tracing-bridge-otel</artifactId>
         </dependency>
 
-<!--        <dependency>-->
-<!--            <groupId>io.opentelemetry</groupId>-->
-<!--            <artifactId>opentelemetry-exporter-zipkin</artifactId>-->
-<!--        </dependency>-->
-
-        <!--PAYPAL SDK-->
-
         <dependency>
             <groupId>com.paypal.sdk</groupId>
             <artifactId>paypal-core</artifactId>
@@ -139,13 +127,37 @@
             <artifactId>rest-api-sdk</artifactId>
             <version>1.14.0</version>
         </dependency>
-<!--
         <dependency>
-            <groupId>org.springframework.kafka</groupId>
-            <artifactId>spring-kafka</artifactId>
-        </dependency>-->
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-mail</artifactId>
+        </dependency>
 
+        <!-- SOCKET-->
 
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-websocket</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.webjars</groupId>
+            <artifactId>webjars-locator-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.webjars</groupId>
+            <artifactId>sockjs-client</artifactId>
+            <version>${sockjs-client.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.webjars</groupId>
+            <artifactId>stomp-websocket</artifactId>
+            <version>${stomp-websocket.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>io.github.perplexhub</groupId>
+            <artifactId>rsql-jpa-spring-boot-starter</artifactId>
+            <version>${rsql-jpa-spring-boot-starter.version}</version>
+        </dependency>
 
     </dependencies>
 
@@ -189,6 +201,9 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <configuration>
+                    <image>
+                        <name>coluxalpha/mmv3-${project.artifactId}:${project.version}</name>
+                    </image>
                     <excludes>
                         <exclude>
                             <groupId>org.projectlombok</groupId>

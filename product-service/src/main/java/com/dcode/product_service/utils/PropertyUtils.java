@@ -1,5 +1,6 @@
 package com.dcode.product_service.utils;
 
+import com.dcode.product_service.dtoRequest.RequestProperty;
 import com.dcode.product_service.dtoResponse.PropertyResponse;
 import com.dcode.product_service.entity.Property;
 import com.dcode.product_service.entity.PropertyValue;
@@ -9,14 +10,16 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import static com.dcode.product_service.utils.PropertyValueUtils.fromPropertyValueEntity;
+
 public class PropertyUtils {
-    public static Property createNewPropertyEntity(String name, String description, Set<String> propertyValueSet) {
+    public static Property createNewPropertyEntity(RequestProperty requestProperty) {
         Property property = Property.builder()
                 .propertyId(UUID.randomUUID().toString())
-                .name(name)
-                .description(description)
+                .name(requestProperty.getName())
+                .description(requestProperty.getDescription())
                 .build();
-        Set<PropertyValue> propertyValues = mapToListPropertyValue(propertyValueSet, property);
+        Set<PropertyValue> propertyValues = mapToListPropertyValue(requestProperty.getPropertyValues(), property);
         property.setPropertyValues(propertyValues);
         return property;
     }
@@ -31,12 +34,22 @@ public class PropertyUtils {
                 }).collect(Collectors.toSet());
     }
     public static PropertyResponse fromPropertyEntity(Property property){
-        PropertyResponse propertyResponse = new PropertyResponse();
+        PropertyResponse propertyResponse = PropertyResponse.builder().build();
         BeanUtils.copyProperties(property, propertyResponse);
 
-        propertyResponse.setPropertyValues(property.getPropertyValues().stream()
-                .map(PropertyValue::getValue)
-                .collect(Collectors.toSet()));
+        propertyResponse.setPropertyValues(fromPropertyValueEntity(property.getPropertyValues()));
+        // This is the original code
+//        propertyResponse.setPropertyValues(property.getPropertyValues().stream()
+//                .map(PropertyValue::getValue)
+//                .collect(Collectors.toSet()));
         return propertyResponse;
+    }
+
+    public static PropertyResponse buildPropertyResponse(Property property){
+        return PropertyResponse.builder()
+                .propertyId(property.getPropertyId())
+                .name(property.getName())
+                .description(property.getDescription())
+                .build();
     }
 }

@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
 import java.util.Map;
+import java.util.Set;
 
 import static com.dcode.product_service.utils.RequestUtils.getErrorResponse;
 import static com.dcode.product_service.utils.RequestUtils.getResponse;
@@ -28,9 +29,9 @@ public class PropertyController {
     private final PropertyServiceImpl propertyService;
 
     @PostMapping()
-    public ResponseEntity<Response> createProperty(@RequestBody @Valid RequestProperty requestProperty, HttpServletRequest request, HttpServletResponse response) {
+    public ResponseEntity<Response> createProperty(@RequestBody @Valid Set<RequestProperty> requestProperty, HttpServletRequest request, HttpServletResponse response) {
         try {
-        propertyService.createAProperty(requestProperty.getName(), requestProperty.getDescription(), requestProperty.getPropertyValues());
+        propertyService.createProperties(requestProperty);
         return ResponseEntity.created(getUri()).body(getResponse(request, emptyMap(),"Property created successfully!", HttpStatus.CREATED));
         }catch (ApiException ex) {
             return ResponseEntity.status(BAD_REQUEST)
@@ -46,6 +47,20 @@ public class PropertyController {
         try {
         var property = propertyService.getAProperty(propertyId);
         return ResponseEntity.ok().body(getResponse(request, Map.of("property", property),"Retrieve property successfully!", HttpStatus.OK));
+        }catch (ApiException ex) {
+            return ResponseEntity.status(BAD_REQUEST)
+                    .body(getErrorResponse(request, response, ex, BAD_REQUEST));
+        } catch (Exception exception) {
+            return ResponseEntity.status(INTERNAL_SERVER_ERROR)
+                    .body(getErrorResponse(request, response, new ApiException("An unexpected error occurred."), INTERNAL_SERVER_ERROR));
+        }
+    }
+
+    @GetMapping
+    public ResponseEntity<Response> getProperties(HttpServletRequest request, HttpServletResponse response){
+        try {
+            var properties = propertyService.getAllProperty();
+            return ResponseEntity.ok().body(getResponse(request, Map.of("properties", properties),"Retrieve properties successfully!", HttpStatus.OK));
         }catch (ApiException ex) {
             return ResponseEntity.status(BAD_REQUEST)
                     .body(getErrorResponse(request, response, ex, BAD_REQUEST));

@@ -21,6 +21,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static com.dcode.product_service.utils.PaintUtils.checkVariantRequestSet;
 import static com.dcode.product_service.utils.PaintUtils.extractVariantIds;
@@ -38,8 +39,13 @@ public class WallpaperServiceImpl implements IWallpaperService {
     private final VariantRepository variantRepository;
     private final WallpaperVariantRepository wallpaperVariantRepository;
 
-    public void createAWallpaper(String productId, WallpaperRequest wallpaperRequest) {
+    public void createWallpaper(String productId, WallpaperRequest wallpaperRequest) {
         wallpaperRepository.save(createAWallpaperEntity(productId, wallpaperRequest));
+    }
+    public void createWallpapers(Set<WallpaperRequest> wallpaperRequests) {
+        wallpaperRepository.saveAll(wallpaperRequests.stream().map(
+                wallpaperRequest -> createAWallpaperEntity(wallpaperRequest.getProductId(), wallpaperRequest)
+                ).collect(Collectors.toSet()));
     }
 
     private Wallpaper createAWallpaperEntity(String productId, WallpaperRequest wRequest) {
@@ -58,7 +64,7 @@ public class WallpaperServiceImpl implements IWallpaperService {
     public void updateAWallpaper(String wallpaperId, String area, Set<VariantRequest> variantRequestSet) {
         var wallpaper = wallpaperRepository.findByWallpaperId(wallpaperId).orElseThrow(()-> new ApiException("Wallpaper not found while update!"));
         Set<String> variantIds = extractVariantIds(variantRequestSet);
-        var wallpaperUpdated = fromWallpaperEntity(area, checkVariantRequestSet(variantRequestSet, variantRepository.findAllByVariantIdIn(variantIds)), wallpaper);
+        var wallpaperUpdated = fromWallpaperEntity(checkVariantRequestSet(variantRequestSet, variantRepository.findAllByVariantIdIn(variantIds)), wallpaper);
         wallpaperRepository.save(wallpaperUpdated);
     }
 

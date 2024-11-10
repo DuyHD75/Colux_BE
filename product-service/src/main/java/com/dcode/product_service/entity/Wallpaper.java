@@ -19,20 +19,18 @@ import static jakarta.persistence.CascadeType.PERSIST;
 @Entity
 @Table(name = "wallpapers")
 
-public class Wallpaper extends Auditable{
+public class Wallpaper extends Auditable {
 
     @Column(unique = true, updatable = false, nullable = false)
     private String wallpaperId;
     @ManyToOne
     private Product product;
-//
-//    private String dimensions;
-//    private String material;
-//    private String fireResistant;
-    private double area;
 
-//    @JsonManagedReference
-    @OneToMany(cascade = {PERSIST,MERGE}, mappedBy = "wallpaper")
+    @Column(name = "status", nullable = false, columnDefinition = "TINYINT")
+    private Integer status;
+
+    //    @JsonManagedReference
+    @OneToMany(cascade = {PERSIST, MERGE}, mappedBy = "wallpaper")
     private Set<WallpaperVariant> wallpaperVariants;
 
 

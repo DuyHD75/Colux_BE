@@ -29,9 +29,6 @@ public class PaintVariant extends Auditable {
 
     private Double price;
 
-    @ManyToOne
-    @JoinColumn(name = "promotion_id")
-    private Promotion promotion;
 
 
 }
