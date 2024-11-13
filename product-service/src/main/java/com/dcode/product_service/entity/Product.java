@@ -76,7 +76,8 @@ public class Product extends Auditable{
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL)
     private List<Review> review;
 
-    @OneToOne(mappedBy = "product", cascade = CascadeType.ALL)
+    @ManyToOne
+    @JoinColumn(name = "product_supplier_id", referencedColumnName = "id")
     private ProductSupplier productSupplier;
 
     @ManyToOne

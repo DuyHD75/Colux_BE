@@ -11,6 +11,7 @@ public class VariantUtils {
     public static Set<VariantResponse> fromVariantEntity(Set<Variant> variant){
         return variant.stream().map(
                 v -> {return VariantResponse.builder()
+                        .variantId(v.getVariantId())
                         .categoryName(v.getCategoryName())
                         .sizeName(v.getSizeName())
                         .packageType(v.getPackageType())

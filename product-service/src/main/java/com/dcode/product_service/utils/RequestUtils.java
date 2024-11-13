@@ -14,6 +14,7 @@ import org.springframework.security.authentication.LockedException;
 import org.springframework.security.core.AuthenticationException;*/
 
 import java.nio.file.AccessDeniedException;
+import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
@@ -75,7 +76,19 @@ public class RequestUtils {
                 request.getRequestURI(), HttpStatus.valueOf(status.value()),
                 exception.getMessage(), errorReason.apply(exception, status), emptyMap());
     }
-
+    public static Response getErrorResponse(HttpServletRequest request, HttpServletResponse response, Exception exception, HttpStatus status, Map<? , ?> data) {
+        response.setContentType(APPLICATION_JSON_VALUE);
+        response.setStatus(status.value());
+        return new Response(
+                LocalDateTime.now().toString(),
+                status.value(),
+                request.getRequestURI(),
+                HttpStatus.valueOf(status.value()),
+                exception.getMessage(),
+                errorReason.apply(exception, status),
+                data
+        );
+    }
 
 }
 

@@ -15,11 +15,13 @@ import static com.dcode.product_service.utils.BrandUtils.fromEntityToResponse;
 import static com.dcode.product_service.utils.FeatureValueUtils.fromFeatureValueEntity;
 import static com.dcode.product_service.utils.PaintUtils.fromPaintEntity;
 import static com.dcode.product_service.utils.PropertyValueUtils.fromPropertyValueEntity;
+import static com.dcode.product_service.utils.SupplierUtils.fromSupplierEntity;
+import static com.dcode.product_service.utils.SupplierUtils.fromSupplierEntityToResponse;
 
 public class ProductUtils {
 
     public static Product createNewProductEntity(ProductRequest productRequest,
-                                                 Brand brand, Category category, Set<FeatureValue> features, Set<PropertyValue> properties) {
+                                                 Brand brand, Category category, Set<FeatureValue> features, Set<PropertyValue> properties, ProductSupplier productSupplier) {
         return Product.builder()
                 .productId(UUID.randomUUID().toString())
                 .productName(productRequest.getProductName())
@@ -31,13 +33,14 @@ public class ProductUtils {
                 .applicableSurface(productRequest.getApplicableSurface())
                 .brand(brand)
                 .category(category)
+                .productSupplier(productSupplier)
                 .featureValues(features)
                 .propertyValues(properties)
                 .build();
     }
 
     public static ProductResponse fromProductEntity(Product product) {
-        return ProductResponse.builder()
+        ProductResponse.ProductResponseBuilder responseBuilder = ProductResponse.builder()
                 .productId(product.getProductId())
                 .productName(product.getProductName())
                 .description(product.getDescription())
@@ -53,9 +56,16 @@ public class ProductUtils {
                 .properties(fromPropertyValueEntity(product.getPropertyValues()))
                 .paints(product.getPaints().stream().map(PaintUtils::fromPaintEntity).toList())
                 .wallpapers(product.getWallpapers().stream().map(WallpaperUtils::fromWallpaperEntity).toList())
-                .floors(product.getFloors().stream().map(FloorUtils::fromFloorEntity).toList())
-                .build();
+                .floors(product.getFloors().stream().map(FloorUtils::fromFloorEntity).toList());
+
+        // Only set the supplier if it's not null
+        if (product.getProductSupplier() != null) {
+            responseBuilder.supplier(fromSupplierEntityToResponse(product.getProductSupplier()));
+        }
+
+        return responseBuilder.build();
     }
+
     public static ProductResponse fromProductEntitySimple(Product product){
         return ProductResponse.builder()
                 .productId(product.getProductId())

@@ -8,6 +8,7 @@ public class Constants {
                 "/product-service/api/v1/upload/.*",
                 "/order-service/api/v1/orders/shipping/.*",
                 "/order-service/api/v1/chats/.*",
+                "/order-service/ws/.*",
 
         };
     }

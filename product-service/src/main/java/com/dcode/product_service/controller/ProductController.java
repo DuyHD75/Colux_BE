@@ -8,6 +8,7 @@ import com.dcode.product_service.dtoRequest.order_service.OrderLineDTO;
 import com.dcode.product_service.dtoResponse.ProductOrderResponse;
 import com.dcode.product_service.dtoResponse.ProductResponse;
 import com.dcode.product_service.exception.ApiException;
+import com.dcode.product_service.exception.BusinessException;
 import com.dcode.product_service.service.impl.ProductServiceImpl;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -189,12 +190,14 @@ public class ProductController {
         try {
             var products = productService.getAllProduct();
             return ResponseEntity.ok().body(getResponse(request, Map.of("products", products), "Product info retrieved", OK));
-        } catch (ApiException ex) {
-            return ResponseEntity.status(BAD_REQUEST)
-                    .body(getErrorResponse(request, response, ex, BAD_REQUEST));
-        } catch (Exception exception) {
-            return ResponseEntity.status(INTERNAL_SERVER_ERROR)
-                    .body(getErrorResponse(request, response, new ApiException("An unexpected error occurred."), INTERNAL_SERVER_ERROR));
+        } catch (BusinessException ex) {
+            return ResponseEntity.status(BAD_REQUEST).body(
+                    getErrorResponse(request, response, ex, BAD_REQUEST, emptyMap())
+            );
+        } catch (Exception ex) {
+            return ResponseEntity.status(INTERNAL_SERVER_ERROR).body(
+                    getErrorResponse(request, response, ex, INTERNAL_SERVER_ERROR, emptyMap())
+            );
         }
     }
 
@@ -222,12 +225,14 @@ public class ProductController {
         try {
             productService.updateProduct(productRequest);
             return ResponseEntity.ok().body(getResponse(request, emptyMap(), "Product updated successfully!", OK));
-        } catch (ApiException ex) {
-            return ResponseEntity.status(BAD_REQUEST)
-                    .body(getErrorResponse(request, response, ex, BAD_REQUEST));
-        } catch (Exception exception) {
-            return ResponseEntity.status(INTERNAL_SERVER_ERROR)
-                    .body(getErrorResponse(request, response, new ApiException("An unexpected error occurred."), INTERNAL_SERVER_ERROR));
+        } catch (BusinessException ex) {
+            return ResponseEntity.internalServerError().body(
+                    getErrorResponse(request, response, ex, INTERNAL_SERVER_ERROR, Map.of("errorData", ex.getData()))
+            );
+        } catch (Exception ex) {
+            return ResponseEntity.internalServerError().body(
+                    getErrorResponse(request, response, ex, INTERNAL_SERVER_ERROR, emptyMap())
+            );
         }
     }
 

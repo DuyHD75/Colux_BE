@@ -6,6 +6,7 @@ import com.dcode.order_service.dto.order.request.GhnCalculateFeeRequest;
 import com.dcode.order_service.dto.order.request.OrderRequest;
 import com.dcode.order_service.dto.order.response.ConfirmedOrderResponse;
 import com.dcode.order_service.dto.order.response.GhnCalculateFeeResponse;
+import com.dcode.order_service.dto.order.response.OrderResponse;
 import com.dcode.order_service.exception.ResourceNotFoundException;
 import com.fasterxml.jackson.databind.JsonNode;
 
@@ -32,4 +33,6 @@ public interface IOrderService {
     Map<String, Object> getWard(JsonNode wardId);
 
     Map<String, Object> getServices(JsonNode serviceRequest);
+
+    List<OrderResponse> getOrdersByCustomerId(String customerId);
 }

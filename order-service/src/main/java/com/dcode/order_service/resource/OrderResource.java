@@ -148,6 +148,26 @@ public class OrderResource {
         }
     }
 
+    @GetMapping("/customerId/{customer-id}")
+    public ResponseEntity<Response> getOrdersByCustomerId(@PathVariable("customer-id") String customerId, HttpServletRequest request, HttpServletResponse response) {
+        try {
+            var orders = orderService.getOrdersByCustomerId(customerId);
+            return ResponseEntity.ok().body(
+                    getResponse(request, "Orders retrieved successfully!", OK, Map.of("orders", orders))
+            );
+        } catch (BusinessException ex) {
+            return ResponseEntity.status(BAD_REQUEST).body(
+                    getErrorResponse(request, response, ex, BAD_REQUEST, emptyMap())
+            );
+        } catch (Exception ex) {
+            return ResponseEntity.status(INTERNAL_SERVER_ERROR).body(
+                    getErrorResponse(request, response, ex, INTERNAL_SERVER_ERROR, emptyMap())
+            );
+        }
+
+    }
+
+
     @PostMapping("/shipping/calculateFee")
     public ResponseEntity<Response> calculateFee(@RequestBody GhnCalculateFeeRequest ghnCalculateFeeRequestRequest, HttpServletRequest request, HttpServletResponse response) {
         try {
@@ -243,3 +263,4 @@ public class OrderResource {
         return URI.create("/api/v1/orders");
     }
 }
+

@@ -5,7 +5,8 @@ public class Constants {
     public class AppConstants {
         public static final String ROLE = "role";
         public static final String DUY_CODE_LLC = "DUY_CODE_LLC";
-        public static final String HOST_URL = "http://localhost:8765/";
+//        public static final String HOST_URL = "http://localhost:8765/";
+        public static final String HOST_URL = "https://colux.site/";
         public static final int EXPIRATION_DAYS = 90;
         public static final int STRENGTH = 12;
         public static final String EMPTY_VALUE = "empty";

@@ -1,15 +1,20 @@
 package com.dcode.order_service.dto.order.response;
 
 
+import com.dcode.order_service.dto.cart.response.CartVariantResponse;
+import com.dcode.order_service.dto.dashboard.response.DashboardResponse;
 import com.dcode.order_service.dto.user.UserResponse;
 import com.dcode.order_service.enumuration.PaymentMethod;
+import lombok.Builder;
 import lombok.Data;
 import org.springframework.lang.Nullable;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.List;
 
 @Data
+@Builder
 public class OrderResponse {
     private Long id;
     private Instant createdAt;
@@ -33,4 +38,7 @@ public class OrderResponse {
     private BigDecimal totalPay;
     private PaymentMethod paymentMethod;
     private Integer paymentStatus;
+
+    private List<CartVariantResponse.ClientVariantResponse> products;
+
 }

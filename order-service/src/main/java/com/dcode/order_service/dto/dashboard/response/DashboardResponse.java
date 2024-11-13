@@ -31,6 +31,8 @@ public class DashboardResponse {
     @Data
     public static class ProductDto {
         private String name;
+        private String description;
+        private String colorCode;
         private String image;
         private String category;
         private Integer price;

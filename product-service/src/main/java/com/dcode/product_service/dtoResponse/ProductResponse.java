@@ -1,5 +1,6 @@
 package com.dcode.product_service.dtoResponse;
 
+import com.dcode.product_service.entity.ProductSupplier;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.Builder;
@@ -24,6 +25,7 @@ public class ProductResponse {
     private Double ratingAverage;
     private String code;
     private String warranty;
+    private SupplierResponse supplier;
     private String applicableSurface;
     private CategoryResponse category;
     private BrandResponse brand;

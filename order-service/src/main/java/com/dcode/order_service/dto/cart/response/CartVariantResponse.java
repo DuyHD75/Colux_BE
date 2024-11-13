@@ -15,12 +15,14 @@ public class CartVariantResponse {
         private String packageType;
         private Integer variantInventory;
         private Double priceSell;
+        private Integer itemQuantity;
         private ClientProductResponse productDetails;
 
         @Data
         public static class ClientProductResponse {
             private String productId;
             private String productName;
+            private String productDescription;
             private String productImage;
             private String code;
             private PaintDetails paintDetails;

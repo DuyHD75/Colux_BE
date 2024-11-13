@@ -2,15 +2,14 @@ package com.dcode.product_service.controller;
 
 import com.dcode.product_service.domain.Response;
 import com.dcode.product_service.dtoRequest.VariantAttributeRequest;
-import com.dcode.product_service.dtoRequest.VariantRequest;
 import com.dcode.product_service.dtoResponse.VariantResponse;
 import com.dcode.product_service.exception.ApiException;
+import com.dcode.product_service.exception.BusinessException;
 import com.dcode.product_service.service.impl.VariantServiceImpl;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -56,12 +55,14 @@ public class VariantController {
         try {
             Set<VariantResponse> variantResponseSet = variantService.getAllVariant();
             return ResponseEntity.ok().body(getResponse(request, Map.of("variants", variantResponseSet), "Retrieve Variant successfully!", OK));
-        } catch (ApiException ex) {
-            return ResponseEntity.status(BAD_REQUEST)
-                    .body(getErrorResponse(request, response, ex, BAD_REQUEST));
-        } catch (Exception exception) {
-            return ResponseEntity.status(INTERNAL_SERVER_ERROR)
-                    .body(getErrorResponse(request, response, new ApiException("An unexpected error occurred."), INTERNAL_SERVER_ERROR));
+        } catch (BusinessException ex) {
+            return ResponseEntity.internalServerError().body(
+                    getErrorResponse(request, response, ex, INTERNAL_SERVER_ERROR, Map.of("errorData", ex.getData()))
+            );
+        } catch (Exception ex) {
+            return ResponseEntity.internalServerError().body(
+                    getErrorResponse(request, response, ex, INTERNAL_SERVER_ERROR, emptyMap())
+            );
         }
     }
 

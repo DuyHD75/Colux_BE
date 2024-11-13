@@ -16,6 +16,7 @@ public class CartDtoBase {
     public static class ClientProductResponse {
         private String productId;
         private String productName;
+        private String productDescription;
         private String productImage; // chỉ cần 1 image hiển thị
         private String code;
         private PaintDetailsDto paintDetails;

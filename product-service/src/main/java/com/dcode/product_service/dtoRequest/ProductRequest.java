@@ -9,6 +9,7 @@ public class ProductRequest {
     private String description;
     private String placeOfOrigin;
     private String productName;
+    private String supplierId;
     private Double ratingAverage;
     private String code;
     private String warranty;
@@ -17,4 +18,5 @@ public class ProductRequest {
     private String categoryId;
     private Set<String> featureValueIds;
     private Set<String> propertyValueIds;
+    private Set<String> images;
 }

@@ -5,13 +5,13 @@ import com.dcode.order_service.config.PaypalHttpClient;
 import com.dcode.order_service.domain.Response;
 import com.dcode.order_service.dto.cart.request.CartVariantKeyRequest;
 import com.dcode.order_service.dto.cart.request.CartVariantRequest;
+import com.dcode.order_service.dto.cart.response.CartVariantResponse;
 import com.dcode.order_service.dto.order.Order;
 import com.dcode.order_service.dto.order.request.GhnCalculateFeeRequest;
-import com.dcode.order_service.dto.order.request.OrderLineRequest;
 import com.dcode.order_service.dto.order.request.OrderRequest;
 import com.dcode.order_service.dto.order.response.ConfirmedOrderResponse;
 import com.dcode.order_service.dto.order.response.GhnCalculateFeeResponse;
-import com.dcode.order_service.dto.order.response.OrderLineResponse;
+import com.dcode.order_service.dto.order.response.OrderResponse;
 import com.dcode.order_service.dto.product.OrderLineDTO;
 import com.dcode.order_service.dto.product.PurchaseRequest;
 import com.dcode.order_service.dto.product.PurchaseResponse;
@@ -35,13 +35,11 @@ import com.dcode.order_service.proxy.IProductClientProxy;
 import com.dcode.order_service.proxy.ProductClientProxy;
 import com.dcode.order_service.repository.*;
 import com.dcode.order_service.service.ICartService;
-import com.dcode.order_service.service.IOrderLineService;
 import com.dcode.order_service.service.IOrderService;
 import com.dcode.order_service.utils.OrderUtils;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.paypal.api.payments.Payment;
 import jakarta.transaction.Transactional;
-import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -58,6 +56,7 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
@@ -80,6 +79,7 @@ public class OrderServiceImpl implements IOrderService {
 
     private final ICustomerClientProxy clientProxy;
     private final ProductClientProxy productClientProxy;
+    private final IProductClientProxy iproductClientProxy;
     private final IOrderRepository orderRepository;
     private final IOrderLineRepository orderLineRepository;
     private final PaypalConfig paypalConfig;
@@ -501,6 +501,71 @@ public class OrderServiceImpl implements IOrderService {
             throw new BusinessException("ERROR GET SERVICES  :: "  + e.getMessage());
         }
     }
+
+    @Override
+    public List<OrderResponse> getOrdersByCustomerId(String customerId) {
+        // Fetch all orders by customerId
+        var orders = orderRepository.findByCustomerId(customerId);
+        if (orders.isEmpty()) {
+            throw new BusinessException("No orders found for customer ID: " + customerId);
+        }
+
+        // Map each order to an OrderResponse with detailed product information
+        return orders.stream().map(order -> {
+            // Create OrderResponse for each order
+            OrderResponse.OrderResponseBuilder orderResponseBuilder = OrderResponse.builder()
+                    .toName(order.getToName())
+                    .toAddress(order.getToAddress())
+                    .toWardName(order.getToWardName())
+                    .toDistrictName(order.getToDistrictName())
+                    .toProvinceName(order.getToProvinceName())
+                    .toPhone(order.getToPhone())
+                    .paymentMethod(order.getPaymentMethod())
+                    .totalAmount(order.getTotalAmount())
+                    .tax(order.getTax())
+                    .shippingCost(order.getShippingCost())
+                    .totalPay(order.getTotalPay())
+                    .status(order.getStatus())
+                    .paymentStatus(order.getPaymentStatus())
+                    .note(order.getNote())
+//                    .createdAt(Instant.from(order.getCreatedAt()))
+//                    .updatedAt(Instant.from(order.getUpdatedAt()))
+                    .code(order.getCode())
+                    .id(order.getId());
+
+            // Map order lines to CartVariantRequests to send to product service
+            List<CartVariantRequest> productRequests = order.getOrderLines().stream().map(orderLineEntity -> {
+                CartVariantRequest cartVariantRequest = new CartVariantRequest();
+                cartVariantRequest.setProductId(orderLineEntity.getProductId());
+                cartVariantRequest.setVariantId(orderLineEntity.getVariantId());
+                cartVariantRequest.setPaintId(orderLineEntity.getPaintId());
+                cartVariantRequest.setWallpaperId(orderLineEntity.getWallpaperId());
+                cartVariantRequest.setFloorId(orderLineEntity.getFloorId());
+                return cartVariantRequest;
+            }).toList();
+
+            // Get detailed product information from the product service
+            List<CartVariantResponse.ClientVariantResponse> productsInfo = productClientProxy.getProductByVariantId(productRequests);
+
+            // Map each order line to include product details and quantity
+            List<CartVariantResponse.ClientVariantResponse> enrichedProducts = order.getOrderLines().stream().map(orderLineEntity -> {
+                CartVariantResponse.ClientVariantResponse product = productsInfo.stream()
+                        .filter(p -> p.getVariantId().equals(orderLineEntity.getVariantId()))
+                        .findFirst()
+                        .orElseThrow(() -> new BusinessException("Product details not found for variant ID: " + orderLineEntity.getVariantId()));
+
+                // Set the quantity from orderLine
+                product.setItemQuantity(orderLineEntity.getQuantity());
+
+                return product;
+            }).toList();
+            // Add the enriched product data to the order response
+            orderResponseBuilder.products(enrichedProducts);
+
+            return orderResponseBuilder.build();
+        }).toList();
+    }
+
 
 
 }
