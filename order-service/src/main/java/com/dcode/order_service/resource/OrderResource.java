@@ -69,6 +69,7 @@ public class OrderResource {
         }
     }
 
+
     @PutMapping("/cancel/{code}")
     public ResponseEntity<Response> cancelOrder(@PathVariable("code") String code, HttpServletRequest request, HttpServletResponse response) {
         try {
@@ -130,6 +131,7 @@ public class OrderResource {
                     URI.create("https://colux.vercel.app/")).build();
         }
     }
+
 
     @GetMapping(value = "/payment/cancel")
     public RedirectView paymentCancel(HttpServletRequest request) {
