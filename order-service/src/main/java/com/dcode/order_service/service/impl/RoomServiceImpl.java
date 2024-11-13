@@ -98,6 +98,29 @@ public class RoomServiceImpl implements IRoomService {
         return clientRoomExistenceResponse;
     }
 
+    @Override
+    public List<ClientRoomExistenceResponse> getAllRooms() {
+
+
+        List<RoomResponse> roomResponses = roomRepository.findAll()
+                .stream()
+                .map(roomUtils::entityToResponse)
+                .collect(Collectors.toList());
+
+        if (roomResponses.size() > 0) {
+            return roomResponses.stream()
+                    .map(roomResponse -> {
+                        var clientRoomExistenceResponse = new ClientRoomExistenceResponse();
+                        clientRoomExistenceResponse.setRoomExistence(true);
+                        clientRoomExistenceResponse.setRoomResponse(roomResponse);
+
+                        return clientRoomExistenceResponse;
+                    })
+                    .collect(Collectors.toList());
+        }
+        return List.of();
+    }
+
     private RoomResponse checkRoomExistence(RoomRequest roomRequest) {
         Optional<Room> existingRoom = Optional.empty();
 
