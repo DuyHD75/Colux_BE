@@ -9,7 +9,6 @@ public class Constants {
                 "/order-service/api/v1/orders/shipping/.*",
                 "/order-service/api/v1/chats/.*",
                 "/order-service/ws/.*",
-
         };
     }
 }

@@ -63,6 +63,14 @@ public class ClientChatController {
         );
     }
 
+    @GetMapping("/get-all-room")
+    public ResponseEntity<Response> getRoom( HttpServletRequest request, HttpServletResponse response) {
+        var clientRoomExistenceResponse = roomService.getAllRooms();
+        return ResponseEntity.status(OK).body(
+                getResponse(request, "Room found!", OK, Map.of("dataRoom", clientRoomExistenceResponse))
+        );
+    }
+
     private URI getUri() {
         return URI.create("/client-api/chat");
     }

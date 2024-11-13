@@ -14,7 +14,7 @@ import java.util.Map;
 
 
 public interface IUserService {
-    void createUser(String firstName, String lastName, String email, String password);
+    void createUser(String firstName, String lastName, String email, String password, String role);
 
     RoleEntity getRoleName(String name);
 
