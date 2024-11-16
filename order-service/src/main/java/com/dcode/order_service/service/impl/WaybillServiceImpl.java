@@ -9,6 +9,7 @@ import com.dcode.order_service.dto.order.response.GhnCreateOrderResponse;
 import com.dcode.order_service.dto.order.response.WaybillResponse;
 import com.dcode.order_service.dto.waybill.request.GhnDetailOrderRequest;
 import com.dcode.order_service.dto.waybill.response.GhnDetailOrderResponse;
+import com.dcode.order_service.dto.waybill.response.WaybillLogResponse;
 import com.dcode.order_service.entity.order.OrderEntity;
 import com.dcode.order_service.entity.order.OrderLineEntity;
 import com.dcode.order_service.entity.waybill.Waybill;
@@ -251,6 +252,14 @@ public class WaybillServiceImpl implements WaybillService {
         } else {
             throw new BusinessException("Cannot create a new waybill. Order already had a waybill or was cancelled before.");
         }
+    }
+
+    @Override
+    public WaybillResponse getWaybill(String waybillId) {
+        Waybill waybill = waybillRepository.findByWaybillId(waybillId)
+                .orElseThrow(() -> new BusinessException("Waybill not found!"));
+
+        return WaybillUtils.entityToResponse(waybill);
     }
 
     private GhnCreateOrderRequest buildGhnCreateOrderRequest(WaybillRequest waybillRequest, OrderEntity order) {

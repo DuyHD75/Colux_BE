@@ -9,6 +9,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
@@ -24,6 +25,7 @@ import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 @RestController
 @RequestMapping("/api/v1/products/features")
 @AllArgsConstructor
+@Validated
 public class FeatureController {
 
     private final FeatureServiceImpl featureService;
@@ -48,7 +50,7 @@ public class FeatureController {
     @PutMapping("/{featureId}")
     public ResponseEntity<Response> updateFeature(@PathVariable("featureId") String featureId, @RequestBody @Valid FeatureRequest featureRequest, HttpServletRequest request, HttpServletResponse response) {
         try {
-            featureService.updateFeature(featureRequest.getName(), featureRequest.getDescription(), featureRequest.getFeatureValue(), featureId);
+            featureService.updateFeature(featureRequest, featureId);
             return ResponseEntity.ok().body(getResponse(request, emptyMap(), "Feature updated successfully!", OK));
         } catch (ApiException ex) {
             return ResponseEntity.status(BAD_REQUEST)

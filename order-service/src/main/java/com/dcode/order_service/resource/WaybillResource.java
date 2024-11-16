@@ -35,6 +35,16 @@ public class WaybillResource {
                 getResponse(request, "Waybill created successfully!", CREATED, Map.of("waybill",waybill)));
 
     }
+
+    @GetMapping("/{waybillId}")
+    public ResponseEntity<Response> getWaybill(@PathVariable String waybillId,
+                                               HttpServletRequest request,
+                                               HttpServletResponse response) {
+        var waybill = waybillService.getWaybill(waybillId);
+        return ResponseEntity.ok().body(
+                getResponse(request, "Waybill retrieved successfully!", OK, Map.of("waybill",waybill)));
+    }
+
     private URI getUri() {
         return URI.create("/api/v1/waybills");
     }

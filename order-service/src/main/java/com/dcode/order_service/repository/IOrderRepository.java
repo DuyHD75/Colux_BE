@@ -38,4 +38,12 @@ public interface IOrderRepository extends JpaRepository<OrderEntity, Long>, JpaS
             @Param("statuses") List<Integer> statuses
     );
 
+    @Query("SELECT o.createdAt, o.totalPay " +
+            "FROM OrderEntity o " +
+            "WHERE o.paymentStatus = 2 AND o.createdAt >= :startDate")
+    List<Object[]> getRevenueForOrders(@Param("startDate") LocalDateTime startDate);
+
+
+
+
 }

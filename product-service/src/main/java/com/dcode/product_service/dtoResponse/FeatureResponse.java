@@ -13,6 +13,7 @@ public class FeatureResponse {
     private String featureId;
     private String name;
     private String description;
+    private String category;
     private Set<FeatureValueResponse> featureValues;
 }
 

@@ -9,7 +9,7 @@ import java.util.Set;
 public interface IFeatureService {
     void createFeatures(Set<FeatureRequest> featureRequest);
 
-    void updateFeature(String name, String description, Set<String> featureValue, String featureId);
+    void updateFeature(FeatureRequest featureRequest, String featureId);
 
     FeatureResponse getFeature(String featureId);
 

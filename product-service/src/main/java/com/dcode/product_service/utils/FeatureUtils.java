@@ -19,6 +19,7 @@ public class FeatureUtils {
     public static Feature createNewFeatureEntity(FeatureRequest featureRequest) {
         Feature feature = Feature.builder()
                 .featureId(UUID.randomUUID().toString())
+                .category(featureRequest.getCategory())
                 .name(featureRequest.getName())
                 .description(featureRequest.getDescription())
                 .build();
@@ -26,11 +27,13 @@ public class FeatureUtils {
         feature.setFeatureValues(featureValueSet);
         return feature;
     }
-    public static Feature updateFeatureEntity(String name, String description, Set<String> featureValues, Feature feature){
-            feature.setName(name);
-            feature.setDescription(description);
+    public static Feature updateFeatureEntity(FeatureRequest featureRequest, Feature feature){
+            feature.setName(featureRequest.getName());
+            feature.setDescription(featureRequest.getDescription());
+            feature.setCategory(feature.getCategory());
+            feature.setCategory(featureRequest.getCategory());
             Set<String> newFeatureValues = new HashSet<>();
-            for (String featureValue: featureValues){
+            for (String featureValue: featureRequest.getFeatureValue()){
                     if (!feature.getFeatureValues().contains(featureValue)){
                         newFeatureValues.add(featureValue);
                     }
@@ -54,6 +57,7 @@ public class FeatureUtils {
                 .featureId(feature.getFeatureId())
                 .name(feature.getName())
                 .description(feature.getDescription())
+                .category(feature.getCategory())
                 .featureValues(fromFeatureValueEntity(feature.getFeatureValues()))
                 .build();
     }

@@ -20,11 +20,6 @@ import java.io.IOException;
 public class ProductServiceApplication {
 
 	public static void main(String[] args) throws IOException {
-
-
-
-
-
 		SpringApplication.run(ProductServiceApplication.class, args);
 	}
 

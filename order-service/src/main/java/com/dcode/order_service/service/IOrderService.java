@@ -1,14 +1,17 @@
 package com.dcode.order_service.service;
 
 
+import com.dcode.order_service.dto.dashboard.response.DashboardResponse;
 import com.dcode.order_service.dto.order.Order;
 import com.dcode.order_service.dto.order.request.GhnCalculateFeeRequest;
 import com.dcode.order_service.dto.order.request.OrderRequest;
 import com.dcode.order_service.dto.order.response.ConfirmedOrderResponse;
 import com.dcode.order_service.dto.order.response.GhnCalculateFeeResponse;
 import com.dcode.order_service.dto.order.response.OrderResponse;
+import com.dcode.order_service.entity.PageResponse;
 import com.dcode.order_service.exception.ResourceNotFoundException;
 import com.fasterxml.jackson.databind.JsonNode;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 import java.util.Map;
@@ -34,5 +37,7 @@ public interface IOrderService {
 
     Map<String, Object> getServices(JsonNode serviceRequest);
 
-    List<OrderResponse> getOrdersByCustomerId(String customerId);
+    List<OrderResponse> getOrdersByCustomerId(String customerId, String orderId);
+
+    PageResponse<DashboardResponse.ProductDto> getTopProducts(Pageable pageable);
 }

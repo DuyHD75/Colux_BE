@@ -20,6 +20,7 @@ public class Feature extends Auditable {
     private String name;
     @Column(columnDefinition = "TEXT")
     private String description;
+    private String category;
 
     @OneToMany(mappedBy = "feature", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<FeatureValue> featureValues;

@@ -15,6 +15,8 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -48,6 +50,65 @@ public class OrderResource {
             return "Order service is up and running!";
         } catch (Exception ex) {
             return "Error: " + ex.getMessage();
+        }
+    }
+
+    @GetMapping("/topProducts")
+    public ResponseEntity<Response> getTopProducts(@RequestParam(defaultValue = "0") int page,
+                                                   @RequestParam(defaultValue = "10") int size,
+                                                   HttpServletRequest request,
+                                                   HttpServletResponse response) {
+        try {
+            Pageable pageable = PageRequest.of(page,size);
+            var products = orderService.getTopProducts(pageable);
+            return ResponseEntity.ok().body(
+                    getResponse(request, "Top products retrieved successfully!", OK, Map.of("products", products))
+            );
+        } catch (BusinessException ex) {
+            return ResponseEntity.status(BAD_REQUEST).body(
+                    getErrorResponse(request, response, ex, BAD_REQUEST, emptyMap())
+            );
+        } catch (Exception ex) {
+            return ResponseEntity.status(INTERNAL_SERVER_ERROR).body(
+                    getErrorResponse(request, response, ex, INTERNAL_SERVER_ERROR, emptyMap())
+            );
+        }
+    }
+
+    @GetMapping("/customerId/{customer-id}")
+    public ResponseEntity<Response> getOrdersByCustomerId(@PathVariable("customer-id") String customerId, HttpServletRequest request, HttpServletResponse response) {
+        try {
+            var orders = orderService.getOrdersByCustomerId(customerId, null);
+            return ResponseEntity.ok().body(
+                    getResponse(request, "Orders retrieved successfully!", OK, Map.of("orders", orders))
+            );
+        } catch (BusinessException ex) {
+            return ResponseEntity.status(BAD_REQUEST).body(
+                    getErrorResponse(request, response, ex, BAD_REQUEST, emptyMap())
+            );
+        } catch (Exception ex) {
+            return ResponseEntity.status(INTERNAL_SERVER_ERROR).body(
+                    getErrorResponse(request, response, ex, INTERNAL_SERVER_ERROR, emptyMap())
+            );
+        }
+
+    }
+
+    @GetMapping("/order/{orderId}")
+    public ResponseEntity<Response> getOrderById(@PathVariable("orderId") String orderId, HttpServletRequest request, HttpServletResponse response) {
+        try {
+            var order = orderService.getOrdersByCustomerId(null, orderId);
+            return ResponseEntity.ok().body(
+                    getResponse(request, "Order retrieved successfully!", OK, Map.of("order", order))
+            );
+        } catch (BusinessException ex) {
+            return ResponseEntity.status(BAD_REQUEST).body(
+                    getErrorResponse(request, response, ex, BAD_REQUEST, emptyMap())
+            );
+        } catch (Exception ex) {
+            return ResponseEntity.status(INTERNAL_SERVER_ERROR).body(
+                    getErrorResponse(request, response, ex, INTERNAL_SERVER_ERROR, emptyMap())
+            );
         }
     }
 
@@ -150,24 +211,7 @@ public class OrderResource {
         }
     }
 
-    @GetMapping("/customerId/{customer-id}")
-    public ResponseEntity<Response> getOrdersByCustomerId(@PathVariable("customer-id") String customerId, HttpServletRequest request, HttpServletResponse response) {
-        try {
-            var orders = orderService.getOrdersByCustomerId(customerId);
-            return ResponseEntity.ok().body(
-                    getResponse(request, "Orders retrieved successfully!", OK, Map.of("orders", orders))
-            );
-        } catch (BusinessException ex) {
-            return ResponseEntity.status(BAD_REQUEST).body(
-                    getErrorResponse(request, response, ex, BAD_REQUEST, emptyMap())
-            );
-        } catch (Exception ex) {
-            return ResponseEntity.status(INTERNAL_SERVER_ERROR).body(
-                    getErrorResponse(request, response, ex, INTERNAL_SERVER_ERROR, emptyMap())
-            );
-        }
 
-    }
 
 
     @PostMapping("/shipping/calculateFee")

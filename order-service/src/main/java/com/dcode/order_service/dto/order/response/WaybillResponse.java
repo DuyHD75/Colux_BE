@@ -1,11 +1,13 @@
 package com.dcode.order_service.dto.order.response;
 
+import com.dcode.order_service.dto.waybill.response.WaybillLogResponse;
 import com.dcode.order_service.enumuration.RequiredNote;
 import lombok.Builder;
 import lombok.Data;
 import org.springframework.lang.Nullable;
 
 import java.time.Instant;
+import java.util.List;
 
 @Data
 @Builder
@@ -29,4 +31,5 @@ public class WaybillResponse {
     private String note;
     private Integer ghnPaymentTypeId;
     private RequiredNote ghnRequiredNote;
+    private List<WaybillLogResponse> waybillLogs;
 }

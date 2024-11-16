@@ -4,7 +4,9 @@ import com.dcode.order_service.entity.order.OrderLineEntity;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
@@ -18,5 +20,12 @@ public interface IOrderLineRepository extends JpaRepository<OrderLineEntity, Lon
             "GROUP BY ol.productId " +
             "ORDER BY occurrences DESC")
     List<Map<String, Object>> findTop5MostFrequentProductsWithQuantity(Pageable pageable);
+
+    @Query("SELECT ol FROM OrderLineEntity ol " +
+            "WHERE ol.createdAt >= :startDate AND ol.createdAt <= :endDate")
+    List<OrderLineEntity> findOrderLinesByDateRange(@Param("startDate") LocalDateTime startDate,
+                                                    @Param("endDate") LocalDateTime endDate);
+
+
 
 }

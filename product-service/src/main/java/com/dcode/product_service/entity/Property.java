@@ -19,6 +19,7 @@ public class Property extends Auditable {
     private String name;
     @Column(columnDefinition = "TEXT")
     private String description;
+    private String category;
 
     @OneToMany(mappedBy = "property", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<PropertyValue> propertyValues;

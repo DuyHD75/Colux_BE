@@ -33,10 +33,10 @@ public class FeatureServiceImpl implements IFeatureService {
     }
 
     @Override
-    public void updateFeature(String name, String description, Set<String> featureValue, String featureId) {
+    public void updateFeature(FeatureRequest featureRequest, String featureId) {
         var feature = featureRepository.findByFeatureId(featureId).orElseThrow(() -> new ApiException("Error: Feature is not found."));
-        log.info(String.format("Updating feature: %s", name));
-        featureRepository.save(updateFeatureEntity(name, description, featureValue, feature));
+        log.info(String.format("Updating feature: %s", featureRequest.getName()));
+        featureRepository.save(updateFeatureEntity(featureRequest, feature));
 
     }
 

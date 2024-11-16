@@ -6,6 +6,7 @@ import com.dcode.order_service.domain.Response;
 import com.dcode.order_service.dto.cart.request.CartVariantKeyRequest;
 import com.dcode.order_service.dto.cart.request.CartVariantRequest;
 import com.dcode.order_service.dto.cart.response.CartVariantResponse;
+import com.dcode.order_service.dto.dashboard.response.DashboardResponse;
 import com.dcode.order_service.dto.order.Order;
 import com.dcode.order_service.dto.order.request.GhnCalculateFeeRequest;
 import com.dcode.order_service.dto.order.request.OrderRequest;
@@ -17,6 +18,8 @@ import com.dcode.order_service.dto.product.PurchaseRequest;
 import com.dcode.order_service.dto.product.PurchaseResponse;
 import com.dcode.order_service.dto.waybill.request.GhnCancelOrderRequest;
 import com.dcode.order_service.dto.waybill.response.GhnCancelOrderResponse;
+import com.dcode.order_service.entity.PageResponse;
+import com.dcode.order_service.entity.PageResponseBuilder;
 import com.dcode.order_service.entity.cart.CartEntity;
 import com.dcode.order_service.entity.order.OrderEntity;
 import com.dcode.order_service.entity.order.OrderLineEntity;
@@ -43,6 +46,9 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.*;
 //import org.apache.kafka.clients.producer.ProducerRecord;
 import org.springframework.context.ApplicationEventPublisher;
@@ -58,6 +64,7 @@ import org.springframework.web.client.RestTemplate;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
@@ -90,6 +97,7 @@ public class OrderServiceImpl implements IOrderService {
     private final ICartService cartService;
     private final IProductClientProxy IProductClientProxy;
     private final IWaybillLogRepository waybillLogRepository;
+    private final AdminServiceImpl adminService;
 
     @Value("${spring.shipping.ghnToken}")
     private String ghnToken;
@@ -417,7 +425,7 @@ public class OrderServiceImpl implements IOrderService {
             ResponseEntity<GhnCalculateFeeResponse> response = restTemplate.postForEntity(calculateFeePath, request, GhnCalculateFeeResponse.class);
             return response.getBody();
         } catch (HttpClientErrorException e) {
-            throw new BusinessException("ERROR CALCULATE FEE  :: "  + e.getMessage());
+            throw new BusinessException("ERROR CALCULATE FEE  :: " + e.getMessage());
         }
     }
 
@@ -457,7 +465,7 @@ public class OrderServiceImpl implements IOrderService {
             ResponseEntity<Map> response = restTemplate.postForEntity(GHNDistrictPath, request, Map.class);
             return response.getBody();
         } catch (HttpClientErrorException e) {
-            throw new BusinessException("ERROR GET DISTRICT  :: "  + e.getMessage());
+            throw new BusinessException("ERROR GET DISTRICT  :: " + e.getMessage());
         }
     }
 
@@ -498,74 +506,94 @@ public class OrderServiceImpl implements IOrderService {
             ResponseEntity<Map> response = restTemplate.postForEntity(GHNServicesPath, request, Map.class);
             return response.getBody();
         } catch (HttpClientErrorException e) {
-            throw new BusinessException("ERROR GET SERVICES  :: "  + e.getMessage());
+            throw new BusinessException("ERROR GET SERVICES  :: " + e.getMessage());
         }
     }
 
     @Override
-    public List<OrderResponse> getOrdersByCustomerId(String customerId) {
-        // Fetch all orders by customerId
+    public List<OrderResponse> getOrdersByCustomerId(String customerId, String orderId) {
+        if (orderId != null) {
+            // Fetch a single order by orderId
+            var order = orderRepository.findByOrderId(orderId)
+                    .orElseThrow(() -> new BusinessException("Order not found for ID: " + orderId));
+
+            // Map the single order to OrderResponse
+            return List.of(mapOrderToResponse(order));
+        }
+
+        // If no orderId is provided, fetch all orders by customerId
         var orders = orderRepository.findByCustomerId(customerId);
         if (orders.isEmpty()) {
             throw new BusinessException("No orders found for customer ID: " + customerId);
         }
 
-        // Map each order to an OrderResponse with detailed product information
-        return orders.stream().map(order -> {
-            // Create OrderResponse for each order
-            OrderResponse.OrderResponseBuilder orderResponseBuilder = OrderResponse.builder()
-                    .toName(order.getToName())
-                    .toAddress(order.getToAddress())
-                    .toWardName(order.getToWardName())
-                    .toDistrictName(order.getToDistrictName())
-                    .toProvinceName(order.getToProvinceName())
-                    .toPhone(order.getToPhone())
-                    .paymentMethod(order.getPaymentMethod())
-                    .totalAmount(order.getTotalAmount())
-                    .tax(order.getTax())
-                    .shippingCost(order.getShippingCost())
-                    .totalPay(order.getTotalPay())
-                    .status(order.getStatus())
-                    .paymentStatus(order.getPaymentStatus())
-                    .note(order.getNote())
-//                    .createdAt(Instant.from(order.getCreatedAt()))
-//                    .updatedAt(Instant.from(order.getUpdatedAt()))
-                    .code(order.getCode())
-                    .id(order.getId());
-
-            // Map order lines to CartVariantRequests to send to product service
-            List<CartVariantRequest> productRequests = order.getOrderLines().stream().map(orderLineEntity -> {
-                CartVariantRequest cartVariantRequest = new CartVariantRequest();
-                cartVariantRequest.setProductId(orderLineEntity.getProductId());
-                cartVariantRequest.setVariantId(orderLineEntity.getVariantId());
-                cartVariantRequest.setPaintId(orderLineEntity.getPaintId());
-                cartVariantRequest.setWallpaperId(orderLineEntity.getWallpaperId());
-                cartVariantRequest.setFloorId(orderLineEntity.getFloorId());
-                return cartVariantRequest;
-            }).toList();
-
-            // Get detailed product information from the product service
-            List<CartVariantResponse.ClientVariantResponse> productsInfo = productClientProxy.getProductByVariantId(productRequests);
-
-            // Map each order line to include product details and quantity
-            List<CartVariantResponse.ClientVariantResponse> enrichedProducts = order.getOrderLines().stream().map(orderLineEntity -> {
-                CartVariantResponse.ClientVariantResponse product = productsInfo.stream()
-                        .filter(p -> p.getVariantId().equals(orderLineEntity.getVariantId()))
-                        .findFirst()
-                        .orElseThrow(() -> new BusinessException("Product details not found for variant ID: " + orderLineEntity.getVariantId()));
-
-                // Set the quantity from orderLine
-                product.setItemQuantity(orderLineEntity.getQuantity());
-
-                return product;
-            }).toList();
-            // Add the enriched product data to the order response
-            orderResponseBuilder.products(enrichedProducts);
-
-            return orderResponseBuilder.build();
-        }).toList();
+        // Map each order to an OrderResponse
+        return orders.stream()
+                .map(this::mapOrderToResponse)
+                .collect(Collectors.toList());
     }
 
+    @Override
+    public PageResponse<DashboardResponse.ProductDto> getTopProducts(Pageable pageable) {
+        List<DashboardResponse.ProductDto> topProducts = adminService.getTopProduct(pageable);
+        Page<DashboardResponse.ProductDto> topProductsPage = new PageImpl<>(topProducts, pageable, topProducts.size());
+        return PageResponseBuilder.buildPageResponse(topProductsPage);
+    }
+
+    private OrderResponse mapOrderToResponse(OrderEntity order) {
+        // Create OrderResponse for each order
+        OrderResponse.OrderResponseBuilder orderResponseBuilder = OrderResponse.builder()
+                .toName(order.getToName())
+                .toAddress(order.getToAddress())
+                .toWardName(order.getToWardName())
+                .toDistrictName(order.getToDistrictName())
+                .toProvinceName(order.getToProvinceName())
+                .toPhone(order.getToPhone())
+                .paymentMethod(order.getPaymentMethod())
+                .totalAmount(order.getTotalAmount())
+                .tax(order.getTax())
+                .shippingCost(order.getShippingCost())
+                .totalPay(order.getTotalPay())
+                .status(order.getStatus())
+                .paymentStatus(order.getPaymentStatus())
+                .note(order.getNote())
+                .createdAt(order.getCreatedAt().atZone(ZoneOffset.UTC).toInstant())
+                .updatedAt(order.getUpdatedAt().atZone(ZoneOffset.UTC).toInstant())
+                .code(order.getCode())
+                .id(order.getId());
+
+        // Map order lines to CartVariantRequests to send to product service
+        List<CartVariantRequest> productRequests = order.getOrderLines().stream().map(orderLineEntity -> {
+            CartVariantRequest cartVariantRequest = new CartVariantRequest();
+            cartVariantRequest.setProductId(orderLineEntity.getProductId());
+            cartVariantRequest.setVariantId(orderLineEntity.getVariantId());
+            cartVariantRequest.setPaintId(orderLineEntity.getPaintId());
+            cartVariantRequest.setWallpaperId(orderLineEntity.getWallpaperId());
+            cartVariantRequest.setFloorId(orderLineEntity.getFloorId());
+            return cartVariantRequest;
+        }).toList();
+
+        // Get detailed product information from the product service
+        List<CartVariantResponse.ClientVariantResponse> productsInfo = productClientProxy.getProductByVariantId(productRequests);
+
+        // Map each order line to include product details and quantity
+        List<CartVariantResponse.ClientVariantResponse> enrichedProducts = order.getOrderLines().stream().map(orderLineEntity -> {
+            CartVariantResponse.ClientVariantResponse product = productsInfo.stream()
+                    .filter(p -> p.getVariantId().equals(orderLineEntity.getVariantId()))
+                    .findFirst()
+                    .orElseThrow(() -> new BusinessException("Product details not found for variant ID: " + orderLineEntity.getVariantId()));
+
+            // Set the quantity from orderLine
+            product.setItemQuantity(orderLineEntity.getQuantity());
+
+            return product;
+        }).toList();
+
+        // Add the enriched product data to the order response
+        orderResponseBuilder.products(enrichedProducts);
+
+        return orderResponseBuilder.build();
+    }
 
 
 }

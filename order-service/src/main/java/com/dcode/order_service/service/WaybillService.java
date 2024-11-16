@@ -9,4 +9,6 @@ public interface WaybillService {
 
 
     WaybillResponse createAWaybill(WaybillRequest waybillRequest);
+
+    WaybillResponse getWaybill(String waybillId);
 }

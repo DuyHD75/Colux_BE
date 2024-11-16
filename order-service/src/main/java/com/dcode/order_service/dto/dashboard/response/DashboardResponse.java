@@ -20,6 +20,7 @@ public class DashboardResponse {
     private List<TransactionDto> transactions;
     private List<MonthlyRevenueDto> monthlyData;
     private List<RegistrationDto> registrations;
+    private List<MonthlyRevenueDataDto> monthlyRevenueData;
 
     @Data
     public static class CustomersDto {
@@ -69,5 +70,12 @@ public class DashboardResponse {
         private String month;
         private Integer registrations;
         private Integer year;
+    }
+    @Data
+    public static class MonthlyRevenueDataDto {
+        private String month;
+        private Integer paints;
+        private Integer wallpaper;
+        private Integer floor;
     }
 }

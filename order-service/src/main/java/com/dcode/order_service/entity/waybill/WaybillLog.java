@@ -18,6 +18,10 @@ import lombok.experimental.Accessors;
 @Entity
 @Table(name = "waybill_log")
 public class WaybillLog extends Auditable {
+
+    @Column(nullable = false, updatable = false, unique = true)
+    private String waybillLogId;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "waybill_id", nullable = false)
     @JsonBackReference

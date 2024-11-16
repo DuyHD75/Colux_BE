@@ -255,6 +255,7 @@ public class ProductServiceImpl implements IProductService {
                     clientProductResponse.setProductId(variant.getFloor().getProduct().getProductId());
                     clientProductResponse.setProductName(variant.getFloor().getProduct().getProductName());
                     clientProductResponse.setProductImage(variant.getFloor().getProduct().getImages().isEmpty() ? null : variant.getFloor().getProduct().getImages().iterator().next().getUrl());
+                    clientProductResponse.setProductDescription(variant.getFloor().getProduct().getDescription());
                     clientProductResponse.setCode(variant.getFloor().getProduct().getCode());
 
                     CartDtoBase.FloorDetailsDto floorDetailsDto = new CartDtoBase.FloorDetailsDto();
@@ -279,6 +280,7 @@ public class ProductServiceImpl implements IProductService {
                     clientProductResponse.setProductId(variant.getWallpaper().getProduct().getProductId());
                     clientProductResponse.setProductName(variant.getWallpaper().getProduct().getProductName());
                     clientProductResponse.setProductImage(variant.getWallpaper().getProduct().getImages().isEmpty() ? null : variant.getWallpaper().getProduct().getImages().iterator().next().getUrl());
+                    clientProductResponse.setProductDescription(variant.getWallpaper().getProduct().getDescription());
                     clientProductResponse.setCode(variant.getWallpaper().getProduct().getCode());
 
                     CartDtoBase.WallpaperDetailsDto wallpaperDetailsDto = new CartDtoBase.WallpaperDetailsDto();

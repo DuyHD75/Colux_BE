@@ -16,6 +16,7 @@ public class PropertyUtils {
     public static Property createNewPropertyEntity(RequestProperty requestProperty) {
         Property property = Property.builder()
                 .propertyId(UUID.randomUUID().toString())
+                .category(requestProperty.getCategory())
                 .name(requestProperty.getName())
                 .description(requestProperty.getDescription())
                 .build();
@@ -48,6 +49,7 @@ public class PropertyUtils {
     public static PropertyResponse buildPropertyResponse(Property property){
         return PropertyResponse.builder()
                 .propertyId(property.getPropertyId())
+                .category(property.getCategory())
                 .name(property.getName())
                 .description(property.getDescription())
                 .build();
