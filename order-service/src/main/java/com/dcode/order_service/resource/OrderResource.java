@@ -19,6 +19,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.view.RedirectView;
 
@@ -44,8 +45,9 @@ public class OrderResource {
     private final IOrderRepository orderRepository;
 
 
+    @PreAuthorize("hasRole('ROLE_MANAGER') and hasAuthority('product:create')")
     @GetMapping("/test")
-    public String test(HttpServletRequest request) {
+    public String createProduct(HttpServletRequest request) {
         try {
             return "Order service is up and running!";
         } catch (Exception ex) {
@@ -155,6 +157,7 @@ public class OrderResource {
     }
 
 
+    @PreAuthorize("hasRole('MANAGER')")
     @GetMapping()
     public ResponseEntity<Response> getAllOrders(HttpServletRequest request, HttpServletResponse response) {
         try {

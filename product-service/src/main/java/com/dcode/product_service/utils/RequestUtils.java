@@ -41,7 +41,7 @@ public class RequestUtils {
     private static final BiFunction<Exception, HttpStatus, String> errorReason = (exception, status) -> {
         if (status.isSameCodeAs(FORBIDDEN)) return "You are not authorized to access this resource";
 
-        if (status.isSameCodeAs(UNAUTHORIZED)) return "You are not authenticated to access this resource";
+        if (status.isSameCodeAs(UNAUTHORIZED)) return "You are unauthorized to access this resource";
 
 //        if (exception instanceof DisabledException || exception instanceof AccessDeniedException || exception instanceof LockedException ||
 //                exception instanceof BadCredentialsException || exception instanceof ApiException || exception instanceof CredentialsExpiredException) {
@@ -69,6 +69,12 @@ public class RequestUtils {
 //        }
     }
 
+
+    public static void writeErrorResponse(HttpServletRequest request, HttpServletResponse response, Exception exception, HttpStatus status) {
+        writeResponse.accept(response, getErrorResponse(request, response, exception, status, emptyMap()));
+    }
+
+
     public static Response getErrorResponse(HttpServletRequest request, HttpServletResponse response, Exception exception, HttpStatus status) {
         response.setContentType(APPLICATION_JSON_VALUE);
         response.setStatus(status.value());
@@ -76,6 +82,21 @@ public class RequestUtils {
                 request.getRequestURI(), HttpStatus.valueOf(status.value()),
                 exception.getMessage(), errorReason.apply(exception, status), emptyMap());
     }
+    public static Response getErrorResponse(HttpServletRequest request, HttpServletResponse response, Exception exception, HttpStatus status, Map<? , ?> data) {
+        response.setContentType(APPLICATION_JSON_VALUE);
+        response.setStatus(status.value());
+        return new Response(
+                LocalDateTime.now().toString(),
+                status.value(),
+                request.getRequestURI(),
+                HttpStatus.valueOf(status.value()),
+                exception.getMessage(),
+                errorReason.apply(exception, status),
+                data
+        );
+    }
+
+
     public static Response getErrorResponse(HttpServletRequest request, HttpServletResponse response, Exception exception, HttpStatus status, Map<? , ?> data) {
         response.setContentType(APPLICATION_JSON_VALUE);
         response.setStatus(status.value());

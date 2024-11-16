@@ -230,15 +230,13 @@ public class UserServiceImpl implements IUserService {
     }
 
     private UserEntity createNewUser(String firstName, String lastName, String email, String role) {
-        log.info(String.format("Creating new user: %s, %s", Authority.USER.name(), Authority.USER.getAuthorityValue()));
+        log.info("Creating new user: {}, {}", Authority.USER.name(), Authority.USER.getAuthorityValue());
 
-        var roleEntity = getRoleName(Authority.USER.name());
-
-        if(role.equals(Authority.ADMIN.name())){
-            roleEntity = getRoleName(Authority.ADMIN.name());
-        }else if(role.equals(Authority.MANAGER.name())){
-            roleEntity = getRoleName(Authority.MANAGER.name());
-        }
+        var roleEntity = switch (role) {
+            case "ADMIN" -> getRoleName(Authority.ADMIN.name());
+            case "MANAGER" -> getRoleName(Authority.MANAGER.name());
+            default -> getRoleName(Authority.USER.name());
+        };
 
         return createNewUserEntity(firstName, lastName, email, roleEntity);
     }

@@ -18,6 +18,8 @@ import java.util.function.BiFunction;
 import static java.time.LocalTime.now;
 import static java.util.Collections.emptyMap;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.springframework.http.HttpStatus.FORBIDDEN;
+import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 public class RequestUtils {
@@ -34,6 +36,10 @@ public class RequestUtils {
     };
 
     private static final BiFunction<Exception, HttpStatus, String> errorReason = (exception, httpStatus) -> {
+        if (httpStatus.isSameCodeAs(FORBIDDEN)) return "You are not authorized to access this resource";
+
+        if (httpStatus.isSameCodeAs(UNAUTHORIZED)) return "You are unauthorized to access this resource";
+
         if (exception instanceof ApiException) {
             return exception.getMessage();
         } else if (exception instanceof BusinessException) {
@@ -53,6 +59,10 @@ public class RequestUtils {
                 EMPTY,
                 data
         );
+    }
+
+    public static void writeErrorResponse(HttpServletRequest request, HttpServletResponse response, Exception exception, HttpStatus status) {
+        writeResponse.accept(response, getErrorResponse(request, response, exception, status, emptyMap()));
     }
 
     public static Response getErrorResponse(HttpServletRequest request, HttpServletResponse response, Exception exception, HttpStatus status, Map<? , ?> data) {
