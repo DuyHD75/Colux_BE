@@ -23,7 +23,7 @@ function connect(event) {
         usernamePage.classList.add('hidden');
         chatPage.classList.remove('hidden');
 
-        var socket = new SockJS('/ws');
+        var socket = new SockJS('http://localhost:8082/ws');
         stompClient = Stomp.over(socket);
 
         stompClient.connect({}, onConnected, onError);
@@ -34,12 +34,14 @@ function connect(event) {
 
 function onConnected() {
     // Subscribe to the Public Topic => messageData
-    stompClient.subscribe('/chat/receive/761b6391-999c-408d-8d0f-c94fcfdb203b', onMessageReceived);
+    stompClient.subscribe('/chat/receive/302a53e9-187b-49f2-9249-bc03da2a41ff', onMessageReceived);
 
     // Tell your username to the server
     stompClient.send("/chat/send/addUser",
         {},
-        JSON.stringify({sender: username, content: `Employee ${username} has joined the chat`, status: 0, userId: "11293636-1662-4ec2-8587-05e946b4d871", roomId: "761b6391-999c-408d-8d0f-c94fcfdb203b"})
+        JSON.stringify({sender: username,
+            content: `Employee ${username} has joined the chat`,
+            status: 0, userId: "11293636-1662-4ec2-8587-05e946b4d871", roomId: "302a53e9-187b-49f2-9249-bc03da2a41ff"})
     )
 
     connectingElement.classList.add('hidden');
@@ -60,9 +62,9 @@ function sendMessage(event) {
             content: messageInput.value,
             status: 1,
             userId: "11293636-1662-4ec2-8587-05e946b4d871",
-            roomId: "761b6391-999c-408d-8d0f-c94fcfdb203b"
+            roomId: "302a53e9-187b-49f2-9249-bc03da2a41ff"
         };
-        stompClient.send("/chat/send/761b6391-999c-408d-8d0f-c94fcfdb203b", {}, JSON.stringify(chatMessage));
+        stompClient.send("/chat/send/302a53e9-187b-49f2-9249-bc03da2a41ff", {}, JSON.stringify(chatMessage));
         messageInput.value = '';
     }
     event.preventDefault();

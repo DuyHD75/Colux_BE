@@ -52,7 +52,7 @@ public class UserResource {
     @PostMapping("/register")
     public ResponseEntity<Response> registerUser(@RequestBody @Valid UserRequest user, HttpServletRequest request) {
 
-        userService.createUser(user.getFirstName(), user.getLastName(), user.getEmail(), user.getPassword());
+        userService.createUser(user.getFirstName(), user.getLastName(), user.getEmail(), user.getPassword(), user.getRole());
 
         return ResponseEntity.created(getUri()).body(
                 getResponse(request, emptyMap(),

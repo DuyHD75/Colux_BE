@@ -17,6 +17,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.view.RedirectView;
 
@@ -42,8 +43,9 @@ public class OrderResource {
     private final IOrderRepository orderRepository;
 
 
+    @PreAuthorize("hasRole('ROLE_MANAGER') and hasAuthority('product:create')")
     @GetMapping("/test")
-    public String test(HttpServletRequest request) {
+    public String createProduct(HttpServletRequest request) {
         try {
             return "Order service is up and running!";
         } catch (Exception ex) {
@@ -69,6 +71,7 @@ public class OrderResource {
         }
     }
 
+
     @PutMapping("/cancel/{code}")
     public ResponseEntity<Response> cancelOrder(@PathVariable("code") String code, HttpServletRequest request, HttpServletResponse response) {
         try {
@@ -93,6 +96,7 @@ public class OrderResource {
     }
 
 
+    @PreAuthorize("hasRole('MANAGER')")
     @GetMapping()
     public ResponseEntity<Response> getAllOrders(HttpServletRequest request, HttpServletResponse response) {
         try {
@@ -121,15 +125,16 @@ public class OrderResource {
         try {
             orderService.captureTransactionPaypal(paymentId, payerId);
             return ResponseEntity.status(HttpStatus.FOUND).location(
-                    URI.create("https://colux.vercel.app/resultPayment?status=success")).build();
+                    URI.create(FRONTEND_HOST + "/resultPayment?status=success")).build();
         } catch (ResourceNotFoundException ex) {
             return ResponseEntity.status(HttpStatus.FOUND).location(
-                    URI.create("https://www.youtube.com/watch?v=_eTcseS410E&t=1552s")).build();
+                    URI.create(FRONTEND_HOST + "/resultPayment?status=cancel")).build();
         } catch (Exception ex) {
             return ResponseEntity.status(HttpStatus.FOUND).location(
-                    URI.create("https://colux.vercel.app/")).build();
+                    URI.create(FRONTEND_HOST + "/resultPayment?status=cancel")).build();
         }
     }
+
 
     @GetMapping(value = "/payment/cancel")
     public RedirectView paymentCancel(HttpServletRequest request) {
@@ -139,11 +144,11 @@ public class OrderResource {
                    .orElseThrow(() -> new ResourceNotFoundException("Order", "paypal_order_id", paypalOrderId));*/
 
             RedirectView redirectView = new RedirectView();
-            redirectView.setUrl("https://colux.vercel.app/resultPayment?status=cancel");
+            redirectView.setUrl(FRONTEND_HOST + "/resultPayment?status=cancel");
             return redirectView;
         } catch (Exception ex) {
             RedirectView redirectView = new RedirectView();
-            redirectView.setUrl("https://colux.vercel.app" + "/payment/cancel");
+            redirectView.setUrl(FRONTEND_HOST + "/resultPayment?status=cancel");
             return redirectView;
         }
     }

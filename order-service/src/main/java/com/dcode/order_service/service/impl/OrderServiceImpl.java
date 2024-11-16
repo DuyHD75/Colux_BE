@@ -53,6 +53,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 //import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
@@ -334,6 +335,7 @@ public class OrderServiceImpl implements IOrderService {
         }
     }
 
+    @PreAuthorize("hasRole('MANAGER')")
     @Override
     public List<Order> getAllOrders() {
         return orderRepository.findAll()

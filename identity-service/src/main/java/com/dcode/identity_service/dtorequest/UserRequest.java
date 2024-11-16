@@ -22,6 +22,7 @@ public class UserRequest {
     @NotEmpty(message = "Password is required")
     private String password;
 
-    private String phone;
+    @NotEmpty(message = "Role is required")
+    private String role;
     private String bio;
 }

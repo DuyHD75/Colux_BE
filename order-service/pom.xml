@@ -10,7 +10,7 @@
     </parent>
     <groupId>com.dcode</groupId>
     <artifactId>order-service</artifactId>
-    <version>0.0.23-SNAPSHOT</version>
+    <version>0.0.24-SNAPSHOT</version>
     <name>order-service</name>
     <description>Implement Order Service</description>
     <url/>
@@ -132,6 +132,19 @@
             <artifactId>spring-boot-starter-mail</artifactId>
         </dependency>
 
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-security</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+
         <!-- SOCKET-->
 
         <dependency>
@@ -158,6 +171,28 @@
             <artifactId>rsql-jpa-spring-boot-starter</artifactId>
             <version>${rsql-jpa-spring-boot-starter.version}</version>
         </dependency>
+
+        <!--Java JWT-->
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-api</artifactId>
+            <version>0.12.5</version>
+        </dependency>
+
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-impl</artifactId>
+            <version>0.12.5</version>
+            <scope>runtime</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-jackson</artifactId>
+            <version>0.12.5</version>
+            <scope>runtime</scope>
+        </dependency>
+        <!--Java JWT-->
 
     </dependencies>
 

@@ -57,8 +57,8 @@ public class UserServiceImpl implements IUserService {
     private final CacheStore<String, String> resetPasswordCache;
 
     @Override
-    public void createUser(String firstName, String lastName, String email, String password) {
-        var userEntity = userRepository.save(createNewUser(firstName, lastName, email));
+    public void createUser(String firstName, String lastName, String email, String password, String role) {
+        var userEntity = userRepository.save(createNewUser(firstName, lastName, email, role));
         log.info("User created: {}", userEntity);
 
         var credentialEntity = new CredentialEntity(userEntity, passwordEncoder.encode(password));
@@ -229,11 +229,16 @@ public class UserServiceImpl implements IUserService {
         return confirmationRepository.findByConfirmKey(key).orElseThrow(() -> new ApiException("Error: Confirmation key is not found."));
     }
 
-    private UserEntity createNewUser(String firstName, String lastName, String email) {
-        log.info(String.format("Creating new user: %s, %s", Authority.USER.name(), Authority.USER.getAuthorityValue()));
+    private UserEntity createNewUser(String firstName, String lastName, String email, String role) {
+        log.info("Creating new user: {}, {}", Authority.USER.name(), Authority.USER.getAuthorityValue());
 
-        var role = getRoleName(Authority.USER.name());
-        return createNewUserEntity(firstName, lastName, email, role);
+        var roleEntity = switch (role) {
+            case "ADMIN" -> getRoleName(Authority.ADMIN.name());
+            case "MANAGER" -> getRoleName(Authority.MANAGER.name());
+            default -> getRoleName(Authority.USER.name());
+        };
+
+        return createNewUserEntity(firstName, lastName, email, roleEntity);
     }
 }
 

@@ -13,4 +13,7 @@ public interface IRoomService {
 
     ClientRoomExistenceResponse getRoom(String roomId);
 
+
+    List<ClientRoomExistenceResponse> getAllRooms();
+
 }
