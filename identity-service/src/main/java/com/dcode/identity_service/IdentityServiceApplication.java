@@ -28,8 +28,8 @@ public class IdentityServiceApplication {
 		return args -> {
 			RequestContext.setUserId(0L);
 //            var userRole = new RoleEntity();
-//            userRole.setName(Authority.USER.name());
-//            userRole.setAuthorities(Authority.USER.getAuthorityValue());
+//            userRole.setName(Authority.MANAGER.name());
+//            userRole.setAuthorities(Authority.MANAGER.getAuthorityValue());
 //            roleRepository.save(userRole);
 //
 //            var adminRole = new RoleEntity();

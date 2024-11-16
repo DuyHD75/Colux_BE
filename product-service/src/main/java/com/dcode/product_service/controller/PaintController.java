@@ -14,6 +14,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
@@ -32,6 +33,16 @@ import static org.springframework.http.HttpStatus.*;
 public class PaintController {
 
     private final PaintServiceImpl paintService;
+
+    @PreAuthorize("hasRole('ROLE_MANAGER') and hasAuthority('product:create')")
+    @GetMapping("/test")
+    public String createProduct(HttpServletRequest request) {
+        try {
+            return "Product service is up and running, Authorization ok!";
+        } catch (Exception ex) {
+            return "Error: " + ex.getMessage();
+        }
+    }
 
     @PostMapping("{productId}")
     public ResponseEntity<Response> createAPaint(@PathVariable("productId") String productId,
