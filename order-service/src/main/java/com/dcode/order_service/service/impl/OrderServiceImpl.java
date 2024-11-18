@@ -40,6 +40,7 @@ import com.dcode.order_service.service.IOrderService;
 import com.dcode.order_service.utils.OrderUtils;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.paypal.api.payments.Payment;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
@@ -166,16 +167,43 @@ public class OrderServiceImpl implements IOrderService {
         orderEntity.setOrderLines(mapToOrderLineEntities(orderEntity, purchaseResponses));
         setOrderTotals(orderEntity, request.getShippingCost(), request.getPaymentMethod());
 
+        if (request.getPaymentMethod().equals(PaymentMethod.CASH)) {
+            if (orderEntity.getAdvancePayment().compareTo(orderEntity.getTotalPay()) != 0) {
+                orderEntity.setPaymentStatus(3); // Status 3: Advance payment not equal to 100% of total pay
+            } else {
+                orderEntity.setPaymentStatus(2); // Status 2: Advance payment equal to 100% of total pay
+            }
+        }
+
         orderRepository.save(orderEntity);
 
-        ConfirmedOrderResponse confirmedOrderResponse = createPaymentAndGetResponse(orderEntity, request.getPaymentMethod());
-
+        ConfirmedOrderResponse confirmedOrderResponse;
+        if (!request.getPaymentMethod().equals(PaymentMethod.CASH)) {
+            confirmedOrderResponse = createPaymentAndGetResponse(orderEntity, request.getPaymentMethod());
+        } else {
+            confirmedOrderResponse = new ConfirmedOrderResponse();
+            confirmedOrderResponse.setOrderCode(orderEntity.getCode());
+            confirmedOrderResponse.setPaymentMethod(request.getPaymentMethod());
+        }
 
         if (request.getCustomerId() != null) {
             cleanCart(request);
         }
 
         return confirmedOrderResponse;
+    }
+
+    public void updateOrderContactDetails(String orderCode, String newPhoneNumber, String newAddress) {
+        OrderEntity order = orderRepository.findByCode(orderCode)
+                .orElseThrow(() -> new BusinessException("Order not found with code: " + orderCode));
+
+        if (order.getStatus() == 1 || order.getStatus() == 2) {
+            order.setToPhone(newPhoneNumber);
+            order.setToAddress(newAddress);
+            orderRepository.save(order);
+        } else {
+            throw new BusinessException("Order status must be 1 or 2 to update contact details");
+        }
     }
 
     private Map<String, Object> fetchCustomerData(String customerId) {
@@ -208,7 +236,7 @@ public class OrderServiceImpl implements IOrderService {
         orderEntity.setTax(totalAmount.multiply(BigDecimal.valueOf(0.1)));
         orderEntity.setTotalPay(totalPay);
 
-        BigDecimal advancePayment = (paymentMethod == PaymentMethod.CASH)
+        BigDecimal advancePayment = (paymentMethod == PaymentMethod.COD)
                 ? totalPay.multiply(BigDecimal.valueOf(0.25))
                 : totalPay;
 
@@ -276,13 +304,6 @@ public class OrderServiceImpl implements IOrderService {
         }
     }
 
-    public List<OrderLineEntity> returnOrderToProductService(String orderId) {
-        var orderLines = orderLineRepository.findByOrderEntity_orderId(orderId);
-        if (orderLines.isEmpty()) {
-            throw new BusinessException("No order lines found for order ID: " + orderId);
-        }
-        return orderLines;
-    }
 
     @Override
     public void captureTransactionPaypal(String paypalOrderId, String payerId) throws ResourceNotFoundException {
@@ -293,7 +314,7 @@ public class OrderServiceImpl implements IOrderService {
             paypalHttpClient.capturePaypalTransaction(paypalOrderId, payerId);
 
             // (2) Cập nhật order
-            if (order.getPaymentMethod() == PaymentMethod.CASH) {
+            if (order.getPaymentMethod() == PaymentMethod.COD) {
                 order.setPaymentStatus(3); // Status 3: Đã thanh toán đặt cọc (25%)
             } else {
                 order.setPaymentStatus(2); // Status 2: Đã thanh toán
@@ -419,7 +440,7 @@ public class OrderServiceImpl implements IOrderService {
             ResponseEntity<GhnCalculateFeeResponse> response = restTemplate.postForEntity(calculateFeePath, request, GhnCalculateFeeResponse.class);
             return response.getBody();
         } catch (HttpClientErrorException e) {
-            throw new BusinessException("ERROR CALCULATE FEE  :: "  + e.getMessage());
+            throw new BusinessException("ERROR CALCULATE FEE  :: " + e.getMessage());
         }
     }
 
@@ -459,7 +480,7 @@ public class OrderServiceImpl implements IOrderService {
             ResponseEntity<Map> response = restTemplate.postForEntity(GHNDistrictPath, request, Map.class);
             return response.getBody();
         } catch (HttpClientErrorException e) {
-            throw new BusinessException("ERROR GET DISTRICT  :: "  + e.getMessage());
+            throw new BusinessException("ERROR GET DISTRICT  :: " + e.getMessage());
         }
     }
 
@@ -500,7 +521,7 @@ public class OrderServiceImpl implements IOrderService {
             ResponseEntity<Map> response = restTemplate.postForEntity(GHNServicesPath, request, Map.class);
             return response.getBody();
         } catch (HttpClientErrorException e) {
-            throw new BusinessException("ERROR GET SERVICES  :: "  + e.getMessage());
+            throw new BusinessException("ERROR GET SERVICES  :: " + e.getMessage());
         }
     }
 

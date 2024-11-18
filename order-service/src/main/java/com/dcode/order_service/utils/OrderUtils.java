@@ -43,6 +43,7 @@ public class OrderUtils {
                 .toDistrictName(request.getToDistrictName())
                 .toProvinceName(request.getToProvinceName())
                 .note(request.getNote())
+                .advancePayment(request.getAdvancePayment() != null ? request.getAdvancePayment() : BigDecimal.ZERO)
                 .shippingCost(request.getShippingCost())
                 .paymentMethod(request.getPaymentMethod())
                 .paymentStatus(request.getPaymentStatus())
@@ -76,8 +77,7 @@ public class OrderUtils {
 
     public static BigDecimal calculateTotalPay(BigDecimal totalAmount, BigDecimal shippingCost) {
         return totalAmount
-                .add(totalAmount.multiply(BigDecimal.valueOf(DEFAULT_TAX)).setScale(0, RoundingMode.HALF_UP))
-                .add(shippingCost);
+                .add(totalAmount.multiply(BigDecimal.valueOf(DEFAULT_TAX)).setScale(0, RoundingMode.HALF_UP));
     }
 
     public static Order fromOrderEntity(OrderEntity orderEntity) {

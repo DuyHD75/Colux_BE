@@ -1,5 +1,6 @@
 package com.dcode.order_service.proxy;
 
+import com.dcode.order_service.config.AuthenticationRequestInterceptor;
 import com.dcode.order_service.dto.cart.request.CartVariantRequest;
 import com.dcode.order_service.dto.cart.response.CartVariantResponse;
 import com.dcode.order_service.dto.cart.response.ProductResponseWrapper;
@@ -30,7 +31,6 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-
 public class ProductClientProxy {
 
     @Value("${application.config.product-url}")
