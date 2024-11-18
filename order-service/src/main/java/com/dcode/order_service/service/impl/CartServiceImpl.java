@@ -9,6 +9,7 @@ import com.dcode.order_service.entity.cart.CartEntity;
 import com.dcode.order_service.entity.cart.CartVariantEntity;
 import com.dcode.order_service.exception.BusinessException;
 import com.dcode.order_service.proxy.ICustomerClientProxy;
+import com.dcode.order_service.proxy.IProductClientProxy;
 import com.dcode.order_service.proxy.ProductClientProxy;
 import com.dcode.order_service.repository.ICartRepository;
 import com.dcode.order_service.repository.ICartVariantRepository;
@@ -22,7 +23,10 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
+
+import static com.dcode.order_service.utils.CartUtils.convertToClientVariantResponse;
 
 
 @Service
@@ -32,7 +36,7 @@ import java.util.stream.Collectors;
 public class CartServiceImpl implements ICartService {
 
     private final ICustomerClientProxy clientProxy;
-    private final ProductClientProxy productClientProxy;
+    private final IProductClientProxy productClientProxy;
 
     private final ICartRepository cartRepository;
     private final ICartVariantRepository cartVariantRepository;
@@ -53,13 +57,15 @@ public class CartServiceImpl implements ICartService {
                     .orElseThrow(() -> new BusinessException("Cannot create order :: No cart found with ID: " + request.getCartId()));
         }
 
-        var customer = this.clientProxy.findUserByUserId(request.getCustomerId())
-                .orElseThrow(() -> new BusinessException("Cannot create cart :: No customer found with ID: " + request.getCustomerId()));
+        /*var customer = this.clientProxy.findUserByUserId(request.getCustomerId())
+                .orElseThrow(() -> new BusinessException("Cannot create cart :: No customer found with ID: " + request.getCustomerId()));*/
 
-        var variantResponses = this.productClientProxy.getProductByVariantId(request.getCartItems());
+        List<Map<String, Object>> variantResponses = (List<Map<String, Object>>) this.productClientProxy.getProductByVariantId(request.getCartItems()).get().data().get("products");
+
+        List<CartVariantResponse.ClientVariantResponse> clientVariantResponses = convertToClientVariantResponse(variantResponses);
 
         for (CartVariantEntity cartVariant : cartBeforeSave.getCartVariants()) {
-            for (var variant : variantResponses) {
+            for (var variant : clientVariantResponses) {
                 if (isVariantMatching(cartVariant, variant)) {
                     if (isQuantityExceedingInventory(cartVariant.getQuantity(), variant.getVariantInventory())) {
                         throw new BusinessException(String.format("Sorry, you can only purchase a maximum of %s products of this .",
@@ -73,7 +79,7 @@ public class CartServiceImpl implements ICartService {
         CartEntity cart = cartRepository.save(cartBeforeSave);
         log.info("Cart saved: {}", cart);
 
-        return cartUtils.entityToResponse(cart, variantResponses);
+        return cartUtils.entityToResponse(cart, clientVariantResponses);
     }
 
     private boolean isCartIdInvalid(String cartId) {
@@ -123,9 +129,13 @@ public class CartServiceImpl implements ICartService {
                 })
                 .collect(Collectors.toList());
 
-        var variantResponses = this.productClientProxy.getProductByVariantId(cartItems);
+        List<Map<String, Object>> variantResponses = (List<Map<String, Object>>) this.productClientProxy.getProductByVariantId(cartItems).get().data().get("products");
 
-        return cartUtils.entityToResponse(cart, variantResponses);
+
+        List<CartVariantResponse.ClientVariantResponse> clientVariantResponses = convertToClientVariantResponse(variantResponses);
+
+
+        return cartUtils.entityToResponse(cart, clientVariantResponses);
     }
 
     @Override

@@ -1,8 +1,10 @@
 package com.dcode.order_service.dto.order.request;
 
 import com.dcode.order_service.dto.product.PurchaseRequest;
+import com.dcode.order_service.entity.order.ShipmentEntity;
 import com.dcode.order_service.enumuration.PaymentMethod;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import jakarta.persistence.OneToOne;
 import jakarta.validation.constraints.*;
 import lombok.Data;
 import org.springframework.lang.Nullable;
@@ -38,6 +40,11 @@ public class OrderRequest {
     private String note;
 
     private String customerId;
+
+    @OneToOne(targetEntity = ShipmentEntity.class)
+    private ShipmentEntity shipment;
+
+    private BigDecimal advancePayment;
 
     @NotNull(message = "You should at least purchase one product")
     private List<PurchaseRequest> purchaseProducts;

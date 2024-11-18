@@ -14,6 +14,7 @@ public class Constants {
         public static final String AUTHORITIES = "authorities";
         public static final String AUTHORITY_DELIMITER = ",";
         public static final String[] ALLOWED_PATHS = {
+                "/api/v1/orders/create",
         };
         public static final String PAYPAL_BASE_URL = "https://api-m.sandbox.paypal.com";
         public static final double DEFAULT_TAX = 0.1;

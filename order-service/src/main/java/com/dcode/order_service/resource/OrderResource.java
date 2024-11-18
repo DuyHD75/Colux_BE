@@ -5,10 +5,12 @@ import com.dcode.order_service.domain.Response;
 import com.dcode.order_service.dto.order.request.GhnCalculateFeeRequest;
 import com.dcode.order_service.dto.order.request.OrderRequest;
 import com.dcode.order_service.dto.order.response.ConfirmedOrderResponse;
+import com.dcode.order_service.dto.shipment.ShipmentDto;
 import com.dcode.order_service.exception.BusinessException;
 import com.dcode.order_service.exception.ResourceNotFoundException;
 import com.dcode.order_service.repository.IOrderRepository;
 import com.dcode.order_service.service.IOrderService;
+import com.dcode.order_service.service.IShipmentService;
 import com.fasterxml.jackson.databind.JsonNode;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -43,6 +45,8 @@ public class OrderResource {
     private final IOrderService orderService;
 
     private final IOrderRepository orderRepository;
+
+    private final IShipmentService shipmentService;
 
 
     @PreAuthorize("hasRole('ROLE_MANAGER') and hasAuthority('product:create')")
@@ -300,6 +304,60 @@ public class OrderResource {
             return ResponseEntity.status(BAD_REQUEST).body(
                     getErrorResponse(request, response, ex, BAD_REQUEST, emptyMap())
 
+            );
+        } catch (Exception ex) {
+            return ResponseEntity.status(INTERNAL_SERVER_ERROR).body(
+                    getErrorResponse(request, response, ex, INTERNAL_SERVER_ERROR, emptyMap())
+            );
+        }
+    }
+
+    @PostMapping("/shipment")
+    public ResponseEntity<Response> createShipment(@RequestBody @Valid ShipmentDto orderRequest, HttpServletRequest request, HttpServletResponse response) {
+        try {
+            var shipmentResponse = shipmentService.createOrUpdateShipment(orderRequest);
+            return ResponseEntity.created(getUri()).body(
+                    getResponse(request, "Shipment created successfully!", CREATED, Map.of("data", shipmentResponse))
+            );
+        } catch (BusinessException ex) {
+            return ResponseEntity.internalServerError().body(
+                    getErrorResponse(request, response, ex, INTERNAL_SERVER_ERROR, Map.of("errorData", ex.getData()))
+            );
+        } catch (Exception ex) {
+            return ResponseEntity.internalServerError().body(
+                    getErrorResponse(request, response, ex, INTERNAL_SERVER_ERROR, emptyMap())
+            );
+        }
+    }
+
+    @PostMapping("/shipment/{customerId}/{shipmentId}")
+    public ResponseEntity<Response> deleteShipment(@PathVariable("customerId") String customerId, @PathVariable("shipmentId") String shipmentId, HttpServletRequest request, HttpServletResponse response) {
+        try {
+            shipmentService.deleteShipment(customerId, shipmentId);
+            return ResponseEntity.ok().body(
+                    getResponse(request, "Shipment deleted successfully!", OK, Map.of("isDeleted", true))
+            );
+        } catch (BusinessException ex) {
+            return ResponseEntity.internalServerError().body(
+                    getErrorResponse(request, response, ex, INTERNAL_SERVER_ERROR, Map.of("errorData", ex.getData()))
+            );
+        } catch (Exception ex) {
+            return ResponseEntity.internalServerError().body(
+                    getErrorResponse(request, response, ex, INTERNAL_SERVER_ERROR, emptyMap())
+            );
+        }
+    }
+
+    @GetMapping("/shipment/{customerId}")
+    public ResponseEntity<Response> getShipment(@PathVariable("customerId") String customerId, HttpServletRequest request, HttpServletResponse response) {
+        try {
+            var shipments = shipmentService.getShipment(customerId);
+            return ResponseEntity.ok().body(
+                    getResponse(request, "Shipments retrieved successfully!", OK, Map.of("shipments", shipments))
+            );
+        } catch (BusinessException ex) {
+            return ResponseEntity.status(BAD_REQUEST).body(
+                    getErrorResponse(request, response, ex, BAD_REQUEST, emptyMap())
             );
         } catch (Exception ex) {
             return ResponseEntity.status(INTERNAL_SERVER_ERROR).body(
