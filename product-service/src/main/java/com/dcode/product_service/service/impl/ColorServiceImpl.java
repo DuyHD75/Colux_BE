@@ -57,7 +57,7 @@ public class ColorServiceImpl implements IColorService {
     public PageResponse<ColorResponse> getAllColor(Pageable pageable) {
         var colors = colorRepository.findAll(pageable);
         if (colors.isEmpty()) throw new ApiException("Not found any!");
-        Page<ColorResponse> colorResponsePage = colors.map(ColorUtils::fromColorEntity);
+        Page<ColorResponse> colorResponsePage = colors.map(ColorUtils::fromColorEntityPartical);
         return PageResponseBuilder.buildPageResponse(colorResponsePage);
     }
 

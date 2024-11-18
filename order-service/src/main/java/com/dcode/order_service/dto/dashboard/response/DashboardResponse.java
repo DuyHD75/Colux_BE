@@ -32,10 +32,12 @@ public class DashboardResponse {
     @Data
     public static class ProductDto {
         private String name;
+        private String productId;
         private String description;
         private String colorCode;
         private String image;
         private String category;
+        private String categoryId;
         private Integer price;
         private long sold;
         private Integer profit;

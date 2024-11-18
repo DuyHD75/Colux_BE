@@ -177,9 +177,9 @@ public class ProductServiceImpl implements IProductService {
                         .map(ProductOrderRequest::getProductId)
                         .collect(Collectors.toList())
         );
-        if (products.size() != productDashboardRequests.size()) {
-            throw new ApiException("One or more products not found!");
-        }
+//        if (products.size() != productDashboardRequests.size()) {
+//
+//        }
         return products.stream().map(ProductUtils::fromProductEntitySimple).collect(Collectors.toList());
     }
 
@@ -841,6 +841,7 @@ public class ProductServiceImpl implements IProductService {
 
     public PageResponse<ProductResponse> filterProducts(String type, List<String> features, List<String> properties, Double minPrice, Double maxPrice, Pageable pageable) {
 //        Specification<Product> spec = new ProductSpecification(features, properties, rating, minPrice, maxPrice, type);
+        // TODO: property = null (bug)
         Page<Product> productPage = productRepository.filterProductsNative(type, minPrice, maxPrice, features, properties, (long) properties.size(), pageable);
 
         if (productPage.isEmpty()) {

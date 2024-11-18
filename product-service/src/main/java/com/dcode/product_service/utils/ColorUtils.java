@@ -40,7 +40,7 @@ public class ColorUtils {
         Set<CollectionResponse> collections = color.getCollections().stream()
                 .map(collection -> {
                     CollectionResponse response = fromCollectionEntity(collection);
-                    response.setColors(null);
+//                    response.setColors(null);
 //                    collectionResponse.setColorFamily(null);
 //                    collectionResponse.setRoom(null);
 //                    collectionResponse.setRelativeCollection(null);
@@ -49,7 +49,7 @@ public class ColorUtils {
         Set<ColorFamilyResponse> colorFamilyResponses = colorFamily.stream()
                 .map(colorFamilyTemp -> {
                     ColorFamilyResponse response = fromColorFamilyEntity(colorFamilyTemp);
-                    response.setCollections(null);
+//                    response.setCollections(null);
                     return response;
                 }).collect(Collectors.toSet());
         return ColorResponse.builder()

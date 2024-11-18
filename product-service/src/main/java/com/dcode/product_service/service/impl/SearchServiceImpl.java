@@ -36,7 +36,13 @@ public class SearchServiceImpl implements ISearchService {
         List<Product> products = productRepository.searchProductsByKeyword(keyword);
 
         List<ColorResponse> colorResponseList = colors.stream().map(ColorUtils::simpleColorResponse).toList();
-        List<ProductResponse> productResponseList = products.stream().map(ProductUtils::fromProductEntitySimple).toList();
+        List<ProductResponse> productResponseList = products.stream().map(
+                product -> {
+                    if (product.getPaints() == null && product.getWallpapers() == null && product.getFloors() == null) {
+                        return null;
+                    }
+                    return ProductUtils.fromProductEntity(product);
+                }).toList();
 
         Map<String, List<?>> results = new HashMap<>();
         results.put("colors", colorResponseList);

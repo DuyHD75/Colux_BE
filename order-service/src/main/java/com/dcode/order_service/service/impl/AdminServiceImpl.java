@@ -276,6 +276,7 @@ public class AdminServiceImpl implements IAdminService {
                     if (productInfo != null) {
                         DashboardResponse.ProductDto productDto = new DashboardResponse.ProductDto();
                         productDto.setName((String) productInfo.get("productName"));
+                        productDto.setProductId((String) productInfo.get("productId"));
 
                         // Use the first image URL if available
                         List<Map<String, Object>> images = (List<Map<String, Object>>) productInfo.get("images");
@@ -284,6 +285,7 @@ public class AdminServiceImpl implements IAdminService {
                         }
 
                         productDto.setCategory((String) ((Map<String, Object>) productInfo.get("category")).get("name"));
+                        productDto.setCategoryId((String) ((Map<String, Object>) productInfo.get("category")).get("categoryId"));
                         productDto.setSold((long) topProduct.get("totalQuantity")); // quantity sold
 //                            productDto.setProfit(productDto.getPrice() * productDto.getSold()); // calculate profit
 
