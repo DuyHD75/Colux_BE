@@ -4,6 +4,7 @@ import java.util.stream.Stream;
 
 public enum PaymentMethod {
     CASH("cash"),
+    COD("cod"),
     PAYPAL("paypal");
 
     private String value;

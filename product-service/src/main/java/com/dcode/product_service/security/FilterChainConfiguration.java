@@ -27,7 +27,7 @@ public class FilterChainConfiguration {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
                 .csrf(AbstractHttpConfigurer::disable)
-                .addFilterBefore(new JwtAuthenticationFilter(jwtService), UsernamePasswordAuthenticationFilter.class)
+                .addFilterAfter(new JwtAuthenticationFilter(jwtService), UsernamePasswordAuthenticationFilter.class)
                 .authorizeHttpRequests(req ->
                         req.requestMatchers(ALLOWED_PATHS)
                                 .permitAll()
