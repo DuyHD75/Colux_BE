@@ -131,7 +131,11 @@ public class CartUtils {
 
         for (CartVariantResponse.ClientVariantResponse variant : variantResponses) {
             if (variant.getVariantId().equals(cartVariantEntity.getVariantId())) {
-                if(cartVariantEntity.getPaintId() != null && cartVariantEntity.getPaintId().equals(variant.getProductDetails().getPaintDetails().getPaintId())) {
+                if (cartVariantEntity.getPaintId() != null && cartVariantEntity.getPaintId().equals(variant.getProductDetails().getPaintDetails().getPaintId())) {
+                    cartVariantResponse.setCartItemVariant(variant);
+                } else if (cartVariantEntity.getFloorId() != null && cartVariantEntity.getFloorId().equals(variant.getProductDetails().getFloorDetails().getFloorId())) {
+                    cartVariantResponse.setCartItemVariant(variant);
+                } else if (cartVariantEntity.getWallpaperId() != null && cartVariantEntity.getWallpaperId().equals(variant.getProductDetails().getWallpaperDetails().getWallpaperId())) {
                     cartVariantResponse.setCartItemVariant(variant);
                 }
             }
