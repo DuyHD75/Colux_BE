@@ -36,7 +36,14 @@ public class IdentityServiceApplication {
 //            adminRole.setName(Authority.ADMIN.name());
 //            adminRole.setAuthorities(Authority.ADMIN.getAuthorityValue());
 //            roleRepository.save(adminRole);
-
+//
+			var employeeRole = new RoleEntity();
+			employeeRole.setName(Authority.EMPLOYEE.name());
+			employeeRole.setAuthorities(Authority.EMPLOYEE.getAuthorityValue());
+            roleRepository.save(employeeRole);
+//
+//
+//
             RequestContext.start();
 		};
 	}

@@ -13,9 +13,6 @@ public class Constants {
         public static final String ROLE_PREFIX = "ROLE_";
         public static final String AUTHORITIES = "authorities";
         public static final String AUTHORITY_DELIMITER = ",";
-        public static final String USER_AUTHORITIES = "review:create,product:read,review:update,review:delete";
-        public static final String ADMIN_AUTHORITIES = "user:create,user:read,user:update,product:create,product:read,product:update,product:delete";
-        public static final String MANAGER_AUTHORITIES = "product:create,product:read,product:update,product:delete";
         public static final String[] ALLOWED_PATHS = {
         };
         public static final String PAYPAL_BASE_URL = "https://api-m.sandbox.paypal.com";

@@ -14,8 +14,8 @@ import java.util.Optional;
 
 @FeignClient(
         name = "product-service",
-        url = "${application.config.product-url}"
-//        configuration = {AuthenticationRequestInterceptor.class}
+        url = "${application.config.product-url}",
+        configuration = {AuthenticationRequestInterceptor.class}
 )
 public interface IProductClientProxy {
     @GetMapping("/getInfo")

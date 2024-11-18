@@ -6,8 +6,8 @@ import static com.dcode.identity_service.constant.Constants.AuthorityConstant.*;
 public enum Authority {
     USER(USER_AUTHORITIES),
     ADMIN(ADMIN_AUTHORITIES),
-    MANAGER(MANAGER_AUTHORITIES);
-
+    MANAGER(MANAGER_AUTHORITIES),
+    EMPLOYEE(EMPLOYEE_AUTHORITIES);
 
     private final String authorityValue;
 

@@ -28,6 +28,10 @@ public class SearchServiceImpl implements ISearchService {
     private ProductRepository productRepository;
 
     public Map<String, List<?>> searchByKeyword(String keyword) {
+
+        if (keyword.isBlank()) {
+            return new HashMap<>();
+        }
         List<Color> colors = colorRepository.searchColorsByKeyword(keyword);
         List<Product> products = productRepository.searchProductsByKeyword(keyword);
 

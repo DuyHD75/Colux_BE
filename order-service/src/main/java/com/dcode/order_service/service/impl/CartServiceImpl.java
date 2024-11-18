@@ -45,8 +45,6 @@ public class CartServiceImpl implements ICartService {
 
         final CartEntity cartBeforeSave;
 
-        assert request.getCartId() != null;
-
         if (isCartIdInvalid(request.getCartId())) {
             cartBeforeSave = cartUtils.createNewCartEntity(request);
         } else {

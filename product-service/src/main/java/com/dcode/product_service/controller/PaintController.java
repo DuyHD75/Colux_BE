@@ -34,13 +34,32 @@ public class PaintController {
 
     private final PaintServiceImpl paintService;
 
-    @PreAuthorize("hasRole('ROLE_MANAGER') and hasAuthority('product:create')")
+    @PreAuthorize("hasRole('ROLE_EMPLOYEE') and hasAuthority('product:create')")
     @GetMapping("/test")
     public String createProduct(HttpServletRequest request) {
         try {
             return "Product service is up and running, Authorization ok!";
         } catch (Exception ex) {
             return "Error: " + ex.getMessage();
+        }
+    }
+
+    @GetMapping("/product/{colorId}")
+    public ResponseEntity<Response> getPaintsByColor(@PathVariable("colorId") String colorId,
+                                                     HttpServletRequest request,
+                                                     HttpServletResponse response,
+                                                     @RequestParam(defaultValue = "0") int page,
+                                                     @RequestParam(defaultValue = "10") int size) {
+        try {
+            Pageable pageable = PageRequest.of(page, size);
+            var products = paintService.getPaintsByColor(colorId, pageable);
+            return ResponseEntity.ok().body(getResponse(request, Map.of("paints", products), "Paint retrieve successfully!", OK));
+        }catch (ApiException ex) {
+            return ResponseEntity.status(BAD_REQUEST)
+                    .body(getErrorResponse(request, response, ex, BAD_REQUEST));
+        } catch (Exception exception) {
+            return ResponseEntity.status(INTERNAL_SERVER_ERROR)
+                    .body(getErrorResponse(request, response, new ApiException("An unexpected error occurred."), INTERNAL_SERVER_ERROR));
         }
     }
 

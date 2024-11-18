@@ -58,11 +58,7 @@ public class CategoryServiceImpl implements ICategoryService {
 
     @Override
     public PageResponse<ProductResponse> getAllProductByCategoryId(String categoryId, Pageable page) {
-        Category category = entityManager.unwrap(Session.class)
-                .byNaturalId(Category.class)
-                .using("categoryId", categoryId)
-                .getReference();
-        Page<Product> products = productRepository.findProductByCategory(category, page);
+        Page<Product> products = productRepository.findAllByCategory_categoryIdAndNonNullFields(categoryId, page);
         if (products.isEmpty()) throw new ApiException("Product not found in this category!");
         Page<ProductResponse> productResponses = products.map(productService::mapToProductResponse);
         return PageResponseBuilder.buildPageResponse(productResponses);

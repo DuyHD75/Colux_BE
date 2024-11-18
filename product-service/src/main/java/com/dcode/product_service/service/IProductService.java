@@ -30,6 +30,8 @@ public interface IProductService {
 
     Object getDashboardInfo();
 
+    ProductResponse getProductByProductId(String productId);
+
 
 //    void createProduct(ProductRequest productRequest);
 }

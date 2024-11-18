@@ -63,23 +63,38 @@
                 }
             }
 
+            // Subquery for ensuring the product has all features
             if (features != null && !features.isEmpty()) {
-                Join<Product, FeatureValue> featureValueJoin = root.join("featureValues", JoinType.LEFT);
-                Join<FeatureValue, Feature> featureJoin = featureValueJoin.join("feature", JoinType.LEFT);
+                Subquery<Long> subquery = query.subquery(Long.class);
+                Root<Product> subRoot = subquery.from(Product.class);
+                Join<Product, FeatureValue> subFeatureValueJoin = subRoot.join("featureValues", JoinType.LEFT);
+                Join<FeatureValue, Feature> subFeatureJoin = subFeatureValueJoin.join("feature", JoinType.LEFT);
 
-                // Ensure that the product contains all featureIds
-                for (String featureId : features) {
-                    predicates.add(cb.equal(featureJoin.get("featureId"), featureId));
-                }
+                // Subquery filters for matching features
+                Predicate subqueryPredicate = cb.equal(root.get("id"), subRoot.get("id"));
+                Predicate featuresMatchPredicate = subFeatureJoin.get("featureId").in(features);
+
+                subquery.select(cb.countDistinct(subFeatureJoin.get("id")))
+                        .where(cb.and(subqueryPredicate, featuresMatchPredicate));
+
+                // Add condition to main query: ensure subquery count matches features size
+                predicates.add(cb.equal(subquery, (long) features.size()));
             }
-            if (properties != null && !properties.isEmpty()) {
-                Join<Product, PropertyValue> propertyValueJoin = root.join("propertyValues", JoinType.LEFT);
-                Join<PropertyValue, Property> propertyJoin = propertyValueJoin.join("property", JoinType.LEFT);
 
-                // Ensure that the product contains all propertyIds
-                for (String propertyId : properties) {
-                    predicates.add(cb.equal(propertyJoin.get("propertyId"), propertyId));
-                }
+            // Subquery for ensuring the product has all properties
+            if (properties != null && !properties.isEmpty()) {
+                Subquery<Long> subquery = query.subquery(Long.class);
+                Root<Product> subRoot = subquery.from(Product.class);
+                Join<Product, PropertyValue> subPropertyValueJoin = subRoot.join("propertyValues", JoinType.LEFT);
+                Join<PropertyValue, Property> subPropertyJoin = subPropertyValueJoin.join("property", JoinType.LEFT);
+
+                Predicate subqueryPredicate = cb.equal(root.get("id"), subRoot.get("id"));
+                Predicate propertiesMatchPredicate = subPropertyJoin.get("propertyId").in(properties);
+
+                subquery.select(cb.countDistinct(subPropertyJoin.get("id")))
+                        .where(cb.and(subqueryPredicate, propertiesMatchPredicate));
+
+                predicates.add(cb.equal(subquery, (long) properties.size()));
             }
 
             return cb.and(predicates.toArray(new Predicate[0]));

@@ -16,6 +16,7 @@ public class Constants {
         public static final String USER_AUTHORITIES = "review:create,product:read,review:update,review:delete";
         public static final String ADMIN_AUTHORITIES = "user:create,user:read,user:update,product:create,product:read,product:update,product:delete";
         public static final String MANAGER_AUTHORITIES = "product:create,product:read,product:update,product:delete,order:read,order:update";
+        public static final String EMPLOYEE_AUTHORITIES = "product:read,product:create,order:read,order:update";
         public static final String[] ALLOWED_PATHS = {
                 "/api/v1/users/login",
                 "/api/v1/users/register",

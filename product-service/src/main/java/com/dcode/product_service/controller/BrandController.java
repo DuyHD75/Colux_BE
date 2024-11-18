@@ -35,6 +35,7 @@ public class BrandController {
     }
 
 
+    // TODO: Authorization
     @PostMapping
     public ResponseEntity<Response> createBrand(@RequestBody @Valid BrandRequest brandRequest, HttpServletRequest request, HttpServletResponse response){
         try {
@@ -52,7 +53,7 @@ public class BrandController {
         }
     }
 
-    @GetMapping
+    @GetMapping("/getAll")
     public ResponseEntity<Response> getAllBrands(HttpServletRequest request, HttpServletResponse response){
         try {
             var brands = brandService.getAllBrands();

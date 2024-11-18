@@ -2,6 +2,7 @@ package com.dcode.product_service.utils;
 
 import com.dcode.product_service.dtoRequest.VariantRequest;
 import com.dcode.product_service.dtoResponse.PaintResponse;
+import com.dcode.product_service.dtoResponse.ProductResponse;
 import com.dcode.product_service.dtoResponse.VariantResponse;
 import com.dcode.product_service.entity.*;
 import com.dcode.product_service.exception.ApiException;
@@ -157,5 +158,10 @@ public class PaintUtils {
         return variantRequestSet.stream().map(
                         VariantRequest::getVariantId)
                 .collect(Collectors.toSet());
+    }
+
+    public static ProductResponse fromPaintToProductResponse(Paint paint) {
+        Product product = paint.getProduct();
+        return fromProductEntity(product);
     }
 }

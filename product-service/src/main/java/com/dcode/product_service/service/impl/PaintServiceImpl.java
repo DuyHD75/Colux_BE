@@ -3,6 +3,7 @@ package com.dcode.product_service.service.impl;
 import com.dcode.product_service.dtoRequest.PaintRequest;
 import com.dcode.product_service.dtoRequest.VariantRequest;
 import com.dcode.product_service.dtoResponse.PaintResponse;
+import com.dcode.product_service.dtoResponse.ProductResponse;
 import com.dcode.product_service.entity.PageResponse;
 import com.dcode.product_service.entity.PageResponseBuilder;
 import com.dcode.product_service.entity.Paint;
@@ -16,6 +17,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
@@ -88,6 +90,18 @@ public class PaintServiceImpl implements IPaintService {
         if (paints.isEmpty()) throw new ApiException("Empty paint!");
         Page<PaintResponse> paintResponsePage = paints.map(PaintUtils::fromPaintEntity);
         return PageResponseBuilder.buildPageResponse(paintResponsePage);
+    }
+
+    @Override
+    public PageResponse<ProductResponse> getPaintsByColor(String colorId, Pageable pageable) {
+        Page<Paint> paintsPage = paintRepository.findAllByColor_ColorId(colorId, pageable);
+
+        if (paintsPage.isEmpty()) {
+            return PageResponseBuilder.buildPageResponse(Page.empty());
+        }
+        Page<ProductResponse> productResponsePage = paintsPage.map(PaintUtils::fromPaintToProductResponse);
+
+        return PageResponseBuilder.buildPageResponse(productResponsePage);
     }
 
     private Paint createAPaintEntity(String productId, PaintRequest paintRequest) {

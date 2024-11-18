@@ -47,7 +47,7 @@ public class CategoryController {
 
     }
 
-    @GetMapping
+    @GetMapping("/getAll")
     public ResponseEntity<Response> getAllCategory(HttpServletRequest request, HttpServletResponse response) {
         try {
             var categories = categoryService.getAllCategory();
@@ -62,7 +62,7 @@ public class CategoryController {
 
     }
 
-    @GetMapping("/{categoryId}")
+    @GetMapping("/categoryId/{categoryId}")
     public ResponseEntity<Response> getCategoryByCategoryId(@PathVariable("categoryId") String categoryId, HttpServletRequest request, HttpServletResponse response) {
         try {
             var category = categoryService.getCategoryByCategoryId(categoryId);

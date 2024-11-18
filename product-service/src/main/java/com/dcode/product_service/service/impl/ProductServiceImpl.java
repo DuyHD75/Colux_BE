@@ -15,9 +15,12 @@ import com.dcode.product_service.exception.BusinessException;
 import com.dcode.product_service.repository.*;
 import com.dcode.product_service.service.IProductService;
 import com.dcode.product_service.utils.ProductUtils;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.Query;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
@@ -53,6 +56,7 @@ public class ProductServiceImpl implements IProductService {
     private final VariantRepository variantRepository;
     private final SupplierRepository supplierRepository;
     private final ReviewRepository reviewRepository;
+    private final EntityManager entityManager;
 
 
     @Override
@@ -147,7 +151,7 @@ public class ProductServiceImpl implements IProductService {
 
     @Override
     public PageResponse<ProductResponse> getAllProduct(Pageable pageable) {
-        Page<Product> products = productRepository.findAll(pageable);
+        Page<Product> products = productRepository.findProductsWithNonNullPaintWallpaperFloor(pageable);
         Page<ProductResponse> productResponses = products.map(this::mapToProductResponse);
         return PageResponseBuilder.buildPageResponse(productResponses);
     }
@@ -193,6 +197,12 @@ public class ProductServiceImpl implements IProductService {
         return dashboardInfo;
     }
 
+    @Override
+    public ProductResponse getProductByProductId(String productId) {
+        return productRepository.findByProductId(productId)
+                .map(this::mapToProductResponse)
+                .orElseThrow(() -> new ApiException("Product not found: " + productId));
+    }
 
 
     @Override
@@ -829,17 +839,18 @@ public class ProductServiceImpl implements IProductService {
         }
     }
 
-    public PageResponse<ProductResponse> filterProducts(String type, List<String> features, List<String> properties, Double rating, Double minPrice, Double maxPrice, Pageable pageable) {
-        Specification<Product> spec = new ProductSpecification(features, properties, rating, minPrice, maxPrice, type);
-        Page<Product> productPage = productRepository.findAll(spec, pageable);
+    public PageResponse<ProductResponse> filterProducts(String type, List<String> features, List<String> properties, Double minPrice, Double maxPrice, Pageable pageable) {
+//        Specification<Product> spec = new ProductSpecification(features, properties, rating, minPrice, maxPrice, type);
+        Page<Product> productPage = productRepository.filterProductsNative(type, minPrice, maxPrice, features, properties, (long) properties.size(), pageable);
 
         if (productPage.isEmpty()) {
-            throw new ApiException("No products found with the given criteria");
+            return PageResponseBuilder.buildPageResponse(Page.empty());
         }
 
         Page<ProductResponse> productResponsePage = productPage.map(ProductUtils::fromProductEntity);
         return PageResponseBuilder.buildPageResponse(productResponsePage);
     }
+
 
     public String orderCancelRestore(List<OrderLineDTO> orderLineDTOList) {
         for (OrderLineDTO dto : orderLineDTOList) {

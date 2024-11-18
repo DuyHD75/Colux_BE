@@ -82,19 +82,6 @@ public class RequestUtils {
                 request.getRequestURI(), HttpStatus.valueOf(status.value()),
                 exception.getMessage(), errorReason.apply(exception, status), emptyMap());
     }
-    public static Response getErrorResponse(HttpServletRequest request, HttpServletResponse response, Exception exception, HttpStatus status, Map<? , ?> data) {
-        response.setContentType(APPLICATION_JSON_VALUE);
-        response.setStatus(status.value());
-        return new Response(
-                LocalDateTime.now().toString(),
-                status.value(),
-                request.getRequestURI(),
-                HttpStatus.valueOf(status.value()),
-                exception.getMessage(),
-                errorReason.apply(exception, status),
-                data
-        );
-    }
 
 
     public static Response getErrorResponse(HttpServletRequest request, HttpServletResponse response, Exception exception, HttpStatus status, Map<? , ?> data) {

@@ -80,7 +80,6 @@ public class ProductController {
             ));
         }
     }
-
     @PostMapping("/getProductByVariant")
     public ResponseEntity<Response> cartVariant(@RequestBody @Valid List<ProductOrderRequest> productOrderRequestList, HttpServletRequest request, HttpServletResponse response) {
         try {
@@ -119,7 +118,7 @@ public class ProductController {
     @PostMapping("/getProductDashboard")
     public ResponseEntity<Response> getProductDashboard(@RequestBody @Valid List<ProductOrderRequest> productDashboardRequests, HttpServletRequest request, HttpServletResponse response) {
         try {
-            List<ProductResponse> productCartResponses = productService.getProductDashboard(productDashboardRequests);
+                List<ProductResponse> productCartResponses = productService.getProductDashboard(productDashboardRequests);
             return ResponseEntity.ok().body(
                     getResponse(request, Map.of("products", productCartResponses),
                             "Retrieve products successfully!", CREATED)
@@ -150,6 +149,8 @@ public class ProductController {
         }
 
     }
+
+    // TODO: Authorize
     @PostMapping("/product")
     public ResponseEntity<Response> createProduct(@RequestBody @Valid ProductRequest productRequest, HttpServletRequest request, HttpServletResponse response) {
         try {
@@ -167,6 +168,7 @@ public class ProductController {
         }
     }
 
+    // TODO: Authorize
     @PostMapping("/product/bulk")
     public ResponseEntity<Response> createProducts(@RequestBody @Valid Set<ProductRequest> productRequest, HttpServletRequest request, HttpServletResponse response) {
         try {
@@ -185,11 +187,27 @@ public class ProductController {
         }
     }
 
-    @GetMapping("/product")
+    @GetMapping("/product/getAll")
     public ResponseEntity<Response> getAllProduct(HttpServletRequest request, HttpServletResponse response) {
         try {
             var products = productService.getAllProduct();
             return ResponseEntity.ok().body(getResponse(request, Map.of("products", products), "Product info retrieved", OK));
+        } catch (BusinessException ex) {
+            return ResponseEntity.status(BAD_REQUEST).body(
+                    getErrorResponse(request, response, ex, BAD_REQUEST, emptyMap())
+            );
+        } catch (Exception ex) {
+            return ResponseEntity.status(INTERNAL_SERVER_ERROR).body(
+                    getErrorResponse(request, response, ex, INTERNAL_SERVER_ERROR, emptyMap())
+            );
+        }
+    }
+
+    @GetMapping("/{productId}")
+    public ResponseEntity<Response> getProductByProductId(@PathVariable String productId, HttpServletRequest request, HttpServletResponse response) {
+        try {
+            var product = productService.getProductByProductId(productId);
+            return ResponseEntity.ok().body(getResponse(request, Map.of("product", product), "Product info retrieved", OK));
         } catch (BusinessException ex) {
             return ResponseEntity.status(BAD_REQUEST).body(
                     getErrorResponse(request, response, ex, BAD_REQUEST, emptyMap())
@@ -220,6 +238,7 @@ public class ProductController {
         }
     }
 
+    // TODO: Authorize
     @PutMapping(value = "/product")
     public ResponseEntity<Response> updateProduct(@RequestBody ProductUpdateRequest productRequest, HttpServletRequest request, HttpServletResponse response) {
         try {
@@ -233,6 +252,7 @@ public class ProductController {
                     .body(getErrorResponse(request, response, new ApiException("An unexpected error occurred."), INTERNAL_SERVER_ERROR));
         }
     }
+
 
     @GetMapping("/filter")
     public ResponseEntity<Response> getAllProductWithFilter(
@@ -248,7 +268,7 @@ public class ProductController {
             HttpServletRequest request) {
         try {
             Pageable pageable = PageRequest.of(page, size);
-            var filteredProducts = productService.filterProducts(type, features, properties, rating, minPrice, maxPrice, pageable);
+            var filteredProducts = productService.filterProducts(type,features, properties, minPrice, maxPrice,  pageable);
             return ResponseEntity.ok().body(getResponse(request, Map.of("products", filteredProducts), "Product retrieve successfully!", OK));
         } catch (ApiException ex) {
             log.error("bad-request: ", ex);

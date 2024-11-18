@@ -68,7 +68,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
     }
 
-    private static Function<String, Boolean> isAllowedPath = requestURI -> Arrays.stream(ALLOWED_PATHS).anyMatch(requestURI::matches);
+    private static final Function<String, Boolean> isAllowedPath = requestURI -> Arrays.stream(ALLOWED_PATHS).anyMatch(requestURI::matches);
 }
 
 

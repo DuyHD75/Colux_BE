@@ -2,6 +2,7 @@ package com.dcode.product_service.service;
 
 import com.dcode.product_service.dtoRequest.PaintRequest;
 import com.dcode.product_service.dtoResponse.PaintResponse;
+import com.dcode.product_service.dtoResponse.ProductResponse;
 import com.dcode.product_service.entity.PageResponse;
 import org.springframework.data.domain.Pageable;
 
@@ -15,4 +16,6 @@ public interface IPaintService {
     void deleteAPaint(String paintId);
 
     PageResponse<PaintResponse> getAllPaintPageable(Pageable pageable);
+
+    PageResponse<ProductResponse> getPaintsByColor(String colorId, Pageable pageable);
 }

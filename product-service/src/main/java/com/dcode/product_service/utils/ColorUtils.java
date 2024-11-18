@@ -40,14 +40,18 @@ public class ColorUtils {
         Set<CollectionResponse> collections = color.getCollections().stream()
                 .map(collection -> {
                     CollectionResponse response = fromCollectionEntity(collection);
-//                    if FE no need these, community with team :V
+                    response.setColors(null);
 //                    collectionResponse.setColorFamily(null);
 //                    collectionResponse.setRoom(null);
 //                    collectionResponse.setRelativeCollection(null);
                     return response;
                 }).collect(Collectors.toSet());
         Set<ColorFamilyResponse> colorFamilyResponses = colorFamily.stream()
-                .map(ColorFamilyUtils::fromColorFamilyEntity).collect(Collectors.toSet());
+                .map(colorFamilyTemp -> {
+                    ColorFamilyResponse response = fromColorFamilyEntity(colorFamilyTemp);
+                    response.setCollections(null);
+                    return response;
+                }).collect(Collectors.toSet());
         return ColorResponse.builder()
                 .name(color.getName())
                 .image(color.getImage())
@@ -62,7 +66,8 @@ public class ColorUtils {
                 .colorFamily(colorFamilyResponses)
                 .build();
     }
-    public static ColorResponse fromColorEntityPartical(Color color){
+
+    public static ColorResponse fromColorEntityPartical(Color color) {
         Set<ColorFamily> colorFamilies = color.getCollections().stream()
                 .map(Collection::getColorFamily)
                 .filter(Objects::nonNull)
@@ -88,6 +93,7 @@ public class ColorUtils {
                 .colorFamily(colorFamilyResponses)
                 .build();
     }
+
     public static Color updateColorEntity(Color color, ColorRequest colorRequest) {
         color.setName(colorRequest.getName());
         color.setCode(colorRequest.getCode());
@@ -95,12 +101,25 @@ public class ColorUtils {
         color.setDescription(colorRequest.getDescription());
         return color;
     }
-    public static ColorResponse simpleColorResponse(Color color){
+
+    public static ColorResponse simpleColorResponse(Color color) {
         return ColorResponse.builder()
                 .hex(color.getHex())
                 .name(color.getName())
                 .colorId(color.getColorId())
                 .code(color.getCode())
+                .colorFamily(color.getCollections().stream()
+                        .map(Collection::getColorFamily)
+                        .filter(Objects::nonNull)
+                        .map(colorFamily -> ColorFamilyResponse.builder()
+                                .colorFamilyId(colorFamily.getColorFamilyId())
+                                .name(colorFamily.getName())
+                                .title(colorFamily.getTitle())
+                                .description(colorFamily.getDescription())
+                                .hex(colorFamily.getHex())
+                                .image(colorFamily.getImage())
+                                .build())
+                        .collect(Collectors.toSet()))
                 .build();
 
     }

@@ -18,6 +18,7 @@ public class FloorUtils {
         Floor floor = Floor.builder()
                 .floorId(UUID.randomUUID().toString())
                 .product(product)
+                .status(1)
                 .foamThickness(floorRequest.getFoamThickness())
                 .numberOfPiecesPerBox(floorRequest.getNumberOfPiecesPerBox())
                 .floorVariants(floorVariants)
