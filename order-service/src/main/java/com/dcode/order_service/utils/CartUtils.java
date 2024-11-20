@@ -72,6 +72,8 @@ public class CartUtils {
                 if (Objects.equals(cartVariant.getVariantId(), clientCartVariantRequest.getVariantId())) {
                     if (cartVariant.getPaintId() != null && cartVariant.getPaintId().equals(clientCartVariantRequest.getPaintId())) {
                         cartVariant.setQuantity(clientCartVariantRequest.getQuantity());
+                    } else if (cartVariant.getPaintId() != null && !cartVariant.getPaintId().equals(clientCartVariantRequest.getPaintId())) {
+                        newCartVariants.add(requestToEntity(clientCartVariantRequest));
                     } else if (cartVariant.getPaintId() == null) {
                         if (request.getUpdateQuantityType() == UpdateQuantityType.OVERRIDE) {
                             cartVariant.setQuantity(clientCartVariantRequest.getQuantity());
