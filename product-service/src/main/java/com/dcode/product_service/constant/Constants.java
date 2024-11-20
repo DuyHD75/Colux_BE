@@ -19,7 +19,9 @@ public class Constants {
         public static final String[] ALLOWED_PATHS = {
                 "/api/v1/products/purchase-order",
                 "/api/v1/products/getProductByVariant",
-                "/api/v1/products/categories/test/123"
+                "/api/v1/products/categories/test/123",
+                "/api/v1/products/product/getAll",
+                "/api/v1/products/reduceProduct"
         };
         //        public static final String FRONTEND_HOST = "https://colux.vercel.app";
         public static final String SERVICE_NAME = "product-service";
