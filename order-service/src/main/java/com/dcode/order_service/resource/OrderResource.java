@@ -101,7 +101,7 @@ public class OrderResource {
 
 
     @PreAuthorize("hasRole('MANAGER')")
-    @GetMapping()
+    @GetMapping("/all")
     public ResponseEntity<Response> getAllOrders(HttpServletRequest request, HttpServletResponse response) {
         try {
             var orders = orderService.getAllOrders();
