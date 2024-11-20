@@ -840,17 +840,19 @@ public class ProductServiceImpl implements IProductService {
     }
 
     public PageResponse<ProductResponse> filterProducts(String type, List<String> features, List<String> properties, Double minPrice, Double maxPrice, Pageable pageable) {
-//        Specification<Product> spec = new ProductSpecification(features, properties, rating, minPrice, maxPrice, type);
-        // TODO: property = null (bug)
-        Page<Product> productPage = productRepository.filterProductsNative(type, minPrice, maxPrice, features, properties, (long) properties.size(), pageable);
+    long propertyCount = properties != null ? properties.size() : 0;
+    long featureCount = features != null ? features.size() : 0;
+    Double minValue = Double.MIN_VALUE;
+    Double maxValue = Double.MAX_VALUE;
+    Page<Product> productPage = productRepository.filterProductsNative(type, minPrice, maxPrice, properties, features, propertyCount, featureCount, pageable);
 
-        if (productPage.isEmpty()) {
-            return PageResponseBuilder.buildPageResponse(Page.empty());
-        }
-
-        Page<ProductResponse> productResponsePage = productPage.map(ProductUtils::fromProductEntity);
-        return PageResponseBuilder.buildPageResponse(productResponsePage);
+    if (productPage.isEmpty()) {
+        return PageResponseBuilder.buildPageResponse(Page.empty());
     }
+
+    Page<ProductResponse> productResponsePage = productPage.map(ProductUtils::fromProductEntity);
+    return PageResponseBuilder.buildPageResponse(productResponsePage);
+}
 
 
     public String orderCancelRestore(List<OrderLineDTO> orderLineDTOList) {

@@ -2,7 +2,6 @@ package com.dcode.product_service.constant;
 
 public class Constants {
 
-
     public class AppConstants {
         public static final String ROLE = "role";
         public static final String DUY_CODE_LLC = "DUY_CODE_LLC";
@@ -14,18 +13,17 @@ public class Constants {
         public static final String AUTHORITIES = "authorities";
         public static final String AUTHORITY_DELIMITER = ",";
         public static final String[] ALLOWED_PATHS = {
-//                "/api/v1/products/search",
-                "/api/v1/products/product",
-//                "/api/v1/products/filter",
-//                "/api/v1/products/brands/getAll",
-//                "/api/v1/products/categories/getAll",
-//                "/api/v1/products/categories/.*",
-//                "/api/v1/products/categories/products",
+//                "/api/v1/brands/public/**",
+//                "/api/v1/categories/public/**",
+//                "/api/v1/collections/public/**",
+//                "/api/v1/collectionsTypes/public/**",
+//                "/api/v1/colors/public/**",
+                "/api/v1/products/**",
+
+
 
         };
-
     }
-
 
     public static final String BUCKET_NAME = "colux-alpha-storage.appspot.com";
     public static final String DOWNLOAD_URL = "https://firebasestorage.googleapis.com/v0/b/";

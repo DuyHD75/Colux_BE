@@ -7,9 +7,17 @@ import org.springframework.web.client.RestTemplate;
 
 @Configuration(proxyBeanMethods = false)
 public class RestTempleConfiguration {
+    private final AuthenticationRequestInterceptorForRestTemplete authenticationRequestInterceptor;
+
+    public RestTempleConfiguration(AuthenticationRequestInterceptorForRestTemplete authenticationRequestInterceptor) {
+        this.authenticationRequestInterceptor = authenticationRequestInterceptor;
+    }
+
     @Bean
     RestTemplate restTemplate(RestTemplateBuilder builder) {
-        return builder.build();
+        return builder
+                .additionalInterceptors(authenticationRequestInterceptor)
+                .build();
     }
 }
 

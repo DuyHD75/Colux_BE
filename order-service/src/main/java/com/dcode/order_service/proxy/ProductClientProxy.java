@@ -1,19 +1,19 @@
 package com.dcode.order_service.proxy;
 
 import com.dcode.order_service.config.AuthenticationRequestInterceptor;
+import com.dcode.order_service.config.AuthenticationRequestInterceptorForRestTemplete;
 import com.dcode.order_service.dto.cart.request.CartVariantRequest;
 import com.dcode.order_service.dto.cart.response.CartVariantResponse;
 import com.dcode.order_service.dto.cart.response.ProductResponseWrapper;
 import com.dcode.order_service.dto.product.PurchaseRequest;
-import com.dcode.order_service.dto.product.PurchaseResponse;
 import com.dcode.order_service.dto.product.PurchaseResponseWrapper;
 import com.dcode.order_service.exception.BusinessException;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
@@ -22,7 +22,6 @@ import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
-import java.util.Set;
 
 import static org.springframework.http.HttpHeaders.CONTENT_TYPE;
 import static org.springframework.http.HttpMethod.POST;

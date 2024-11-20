@@ -366,11 +366,13 @@ public class OrderServiceImpl implements IOrderService {
 
     @PreAuthorize("hasRole('MANAGER')")
     @Override
-    public List<Order> getAllOrders() {
-        return orderRepository.findAll()
-                .stream()
-                .map(OrderUtils::fromOrderEntity)
-                .toList();
+    public List<OrderResponse> getAllOrders() {
+        List<OrderEntity> orders = orderRepository.findAll();
+        if (orders.isEmpty()) {
+            throw new BusinessException("No orders found");
+        }
+
+       return orders.stream().map(this::mapOrderToResponse).collect(Collectors.toList());
     }
 
     @Override
@@ -536,21 +538,17 @@ public class OrderServiceImpl implements IOrderService {
     @Override
     public List<OrderResponse> getOrdersByCustomerId(String customerId, String orderId) {
         if (orderId != null) {
-            // Fetch a single order by orderId
             var order = orderRepository.findByOrderId(orderId)
                     .orElseThrow(() -> new BusinessException("Order not found for ID: " + orderId));
 
-            // Map the single order to OrderResponse
             return List.of(mapOrderToResponse(order));
         }
 
-        // If no orderId is provided, fetch all orders by customerId
         var orders = orderRepository.findByCustomerId(customerId);
         if (orders.isEmpty()) {
             throw new BusinessException("No orders found for customer ID: " + customerId);
         }
 
-        // Map each order to an OrderResponse
         return orders.stream()
                 .map(this::mapOrderToResponse)
                 .collect(Collectors.toList());
