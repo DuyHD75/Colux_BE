@@ -9,6 +9,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
@@ -20,13 +21,14 @@ import static java.util.Collections.emptyMap;
 import static org.springframework.http.HttpStatus.*;
 
 @RestController
-@RequestMapping("/api/v1/products/suppliers")
+@RequestMapping("/api/v1/suppliers")
 @AllArgsConstructor
 @Slf4j
 public class SupplierController {
 
     private final SupplierServiceImpl supplierService;
 
+    @PreAuthorize("hasRole('EMPLOYEE') and hasAuthority('product:create')")
     @PostMapping()
     public ResponseEntity<Response> createSupplier(@RequestBody SupplierRequest supplierRequest, HttpServletRequest request, HttpServletResponse response){
         try{
@@ -45,7 +47,7 @@ public class SupplierController {
         }
 
     }
-    @GetMapping
+    @GetMapping("/public")
     public ResponseEntity<Response> getAllSupplier(HttpServletRequest request, HttpServletResponse response){
         try{
             var suppliers = supplierService.getAllSuppliers();

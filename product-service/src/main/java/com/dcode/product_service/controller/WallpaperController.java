@@ -11,6 +11,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
@@ -24,13 +25,14 @@ import static org.springframework.http.HttpStatus.*;
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 
 @RestController
-@RequestMapping("/api/v1/products/wallpapers")
+@RequestMapping("/api/v1/wallpapers")
 @AllArgsConstructor
 public class WallpaperController {
 
     private final WallpaperServiceImpl wallpaperService;
 
-    @PostMapping("/{productId}")
+    @PreAuthorize("hasRole('EMPLOYEE') and hasAuthority('product:create')")
+    @PostMapping("/productId/{productId}")
     public ResponseEntity<Response> createAWallpaper(@PathVariable("productId") String productId, @RequestBody @Valid WallpaperRequest wallpaperRequest, HttpServletRequest request, HttpServletResponse response) {
         try {
         wallpaperService.createWallpaper(productId, wallpaperRequest);
@@ -44,6 +46,7 @@ public class WallpaperController {
         }
     }
 
+    @PreAuthorize("hasRole('EMPLOYEE') and hasAuthority('product:create')")
     @PostMapping
     public ResponseEntity<Response> createWallpapers(@RequestBody @Valid Set<WallpaperRequest> wallpaperRequests, HttpServletRequest request, HttpServletResponse response) {
         try {
@@ -58,7 +61,7 @@ public class WallpaperController {
         }
     }
 
-    @GetMapping("{wallpaperId}")
+    @GetMapping("/public/wallpaperId/{wallpaperId}")
     public ResponseEntity<Response> getAWallpaper(@PathVariable("wallpaperId") String wallpaperId, HttpServletRequest request, HttpServletResponse response) {
         try {
         var wallpaper = wallpaperService.getAWallpaper(wallpaperId);
@@ -72,7 +75,8 @@ public class WallpaperController {
         }
     }
 
-    @PutMapping("{wallpaperId}")
+    @PreAuthorize("hasRole('EMPLOYEE') and hasAuthority('product:update')")
+    @PutMapping("/wallpaperId/{wallpaperId}")
     public ResponseEntity<Response> updateAWallpaper(@PathVariable("wallpaperId") String wallpaperId, @RequestBody WallpaperRequest wallpaperRequest, HttpServletRequest request, HttpServletResponse response) {
         try {
         wallpaperService.updateAWallpaper(wallpaperId, wallpaperRequest.getArea(), wallpaperRequest.getVariants());
@@ -86,7 +90,8 @@ public class WallpaperController {
         }
     }
 
-    @DeleteMapping("{wallpaperId}")
+    @PreAuthorize("hasRole('EMPLOYEE') and hasAuthority('product:delete')")
+    @DeleteMapping("/wallpaperId/   {wallpaperId}")
     public ResponseEntity<Response> deleteAWallpaper(@PathVariable("wallpaperId") String wallpaperId, HttpServletRequest request, HttpServletResponse response) {
         try {
         wallpaperService.deleteAWallpaper(wallpaperId);
@@ -100,7 +105,7 @@ public class WallpaperController {
         }
     }
 
-    @GetMapping
+    @GetMapping("/public")
     public ResponseEntity<Response> getAllWallpaperPageable(@RequestParam(defaultValue = "0") int page,
                                                             @RequestParam(defaultValue = "10") int size,
                                                             HttpServletRequest request,

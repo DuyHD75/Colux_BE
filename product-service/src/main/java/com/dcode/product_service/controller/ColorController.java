@@ -12,6 +12,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
@@ -25,12 +26,13 @@ import static org.springframework.http.HttpStatus.*;
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 
 @RestController
-@RequestMapping("/api/v1/products/colors")
+@RequestMapping("/api/v1/colors")
 @AllArgsConstructor
 public class ColorController {
 
     private final ColorServiceImpl colorService;
 
+    @PreAuthorize("hasRole('EMPLOYEE') and hasAuthority('product:create')")
     @PostMapping()
     public ResponseEntity<Response> createAColor(@RequestBody @Valid List<ColorRequest> colorRequest, HttpServletRequest request, HttpServletResponse response) {
         try {
@@ -45,7 +47,7 @@ public class ColorController {
         }
     }
 
-    @GetMapping("{colorId}")
+    @GetMapping("/public/colorId/{colorId}")
     public ResponseEntity<Response> getAColor(@PathVariable("colorId") String colorId, HttpServletRequest request, HttpServletResponse response) {
         try {
             var color = colorService.getAColor(colorId);
@@ -58,8 +60,8 @@ public class ColorController {
                     .body(getErrorResponse(request, response, new ApiException("An unexpected error occurred."), INTERNAL_SERVER_ERROR));
         }
     }
-
-    @PutMapping("{colorId}")
+    @PreAuthorize("hasRole('EMPLOYEE') and hasAuthority('product:update')")
+    @PutMapping("/colorId/{colorId}")
     public ResponseEntity<Response> updateAColor(@PathVariable("colorId") String colorId, @RequestBody ColorRequest colorRequest, HttpServletRequest request, HttpServletResponse response) {
         try {
             colorService.updateAColor(colorId, colorRequest);
@@ -72,8 +74,8 @@ public class ColorController {
                     .body(getErrorResponse(request, response, new ApiException("An unexpected error occurred."), INTERNAL_SERVER_ERROR));
         }
     }
-
-    @DeleteMapping("{colorId}")
+    @PreAuthorize("hasRole('EMPLOYEE') and hasAuthority('product:delete')")
+    @DeleteMapping("/colorId/{colorId}")
     public ResponseEntity<Response> deleteAColor(@PathVariable("colorId") String colorId, HttpServletRequest request, HttpServletResponse response) {
         try {
             colorService.deleteAColor(colorId);
@@ -87,7 +89,7 @@ public class ColorController {
         }
     }
 
-    @GetMapping
+    @GetMapping("/public")
     public ResponseEntity<Response> getAllColor(@RequestParam(defaultValue = "0") int page,
                                                 @RequestParam(defaultValue = "10") int size,
                                                 HttpServletRequest request,
@@ -105,7 +107,7 @@ public class ColorController {
         }
     }
 
-    @GetMapping("/color-family/{colorFamilyId}/collection/{collectionId}")
+    @GetMapping("/public/color-family/{colorFamilyId}/collection/{collectionId}")
     public ResponseEntity<Response> getColorByColorFamilyAndCollection(@PathVariable("colorFamilyId") String colorFamilyId,
                                                                        @PathVariable("collectionId") String collectionId,
                                                                        @RequestParam(defaultValue = "0") int page,
@@ -125,7 +127,7 @@ public class ColorController {
         }
 
     }
-    @GetMapping("/collection/{collectionId}/room/{roomId}")
+    @GetMapping("/public/collection/{collectionId}/room/{roomId}")
     public ResponseEntity<Response> getColorByCollectionAndRoomId(@PathVariable("collectionId") String collectionId,
                                                                   @PathVariable("roomId")String roomId,
                                                                   @RequestParam(defaultValue = "0") int page,
@@ -137,15 +139,15 @@ public class ColorController {
             var colors = colorService.getColorByCollectionAndRoom(collectionId, roomId, pageable);
             return ResponseEntity.ok().body(getResponse(request, Map.of("colors", colors), "Retrieve colors by collection and room successfully!", OK));
         }catch (ApiException ex) {
-        return ResponseEntity.status(BAD_REQUEST)
-                .body(getErrorResponse(request, response, ex, BAD_REQUEST));
-    } catch (Exception exception) {
-        return ResponseEntity.status(INTERNAL_SERVER_ERROR)
-                .body(getErrorResponse(request, response, new ApiException("An unexpected error occurred."), INTERNAL_SERVER_ERROR));
-    }
+            return ResponseEntity.status(BAD_REQUEST)
+                    .body(getErrorResponse(request, response, ex, BAD_REQUEST));
+        } catch (Exception exception) {
+            return ResponseEntity.status(INTERNAL_SERVER_ERROR)
+                    .body(getErrorResponse(request, response, new ApiException("An unexpected error occurred."), INTERNAL_SERVER_ERROR));
+        }
     }
 
-    @GetMapping("/getColor")
+    @GetMapping("/public/getColor")
     public ResponseEntity<Response> getColor(
             @RequestParam(value = "interior", required = false) Boolean interior,
             @RequestParam(value = "exterior", required = false) Boolean exterior,
@@ -154,9 +156,9 @@ public class ColorController {
             HttpServletRequest request,
             HttpServletResponse response) {
         try {
-        Pageable pageable = PageRequest.of(page, size);
-        var colors = colorService.getColor(interior, exterior, pageable);
-        return ResponseEntity.ok().body(getResponse(request, Map.of("colors", colors), "Color retrieve successfully!", OK));
+            Pageable pageable = PageRequest.of(page, size);
+            var colors = colorService.getColor(interior, exterior, pageable);
+            return ResponseEntity.ok().body(getResponse(request, Map.of("colors", colors), "Color retrieve successfully!", OK));
         }catch (ApiException ex) {
             return ResponseEntity.status(BAD_REQUEST)
                     .body(getErrorResponse(request, response, ex, BAD_REQUEST));

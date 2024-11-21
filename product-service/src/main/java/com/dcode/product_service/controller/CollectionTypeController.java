@@ -11,6 +11,7 @@ import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -24,12 +25,13 @@ import static java.util.Collections.emptyMap;
 import static org.springframework.http.HttpStatus.*;
 
 @RestController
-@RequestMapping("/api/v1/products/collectionTypes")
+@RequestMapping("/api/v1/collectionTypes")
 @AllArgsConstructor
 public class CollectionTypeController {
 
     private final CollectionTypeServiceImpl collectionTypeService;
 
+    @PreAuthorize("hasRole('EMPLOYEE') and hasAuthority('product:create')")
     @PostMapping
     public ResponseEntity<Response> createACT(@RequestBody @Valid CollectionTypeRequest CTRequest, HttpServletRequest request, HttpServletResponse response){
         try {

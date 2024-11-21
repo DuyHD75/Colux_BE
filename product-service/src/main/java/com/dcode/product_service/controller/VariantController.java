@@ -11,6 +11,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
@@ -23,17 +24,13 @@ import static java.util.Collections.emptyMap;
 import static org.springframework.http.HttpStatus.*;
 
 @RestController
-@RequestMapping("/api/v1/products/variants")
+@RequestMapping("/api/v1/variants")
 @AllArgsConstructor
 public class VariantController {
 
     private final VariantServiceImpl variantService;
 
-    //    @RequestMapping("/paints")
-//    public ResponseEntity<Response> getAllPaintVariant(HttpServletRequest request){
-//       Set<VariantResponse> variantResponseSet = variantService.getAllPaintVariant();
-//        return ResponseEntity.ok().body(getResponse(request, Map.of("variants", variantResponseSet),"Retrieve Paint Variant successfully!", OK));
-//    }
+    @PreAuthorize("hasRole('EMPLOYEE') and hasAuthority('product:create')")
     @PostMapping
     public ResponseEntity<Response> createAVariant(@RequestBody @Valid VariantAttributeRequest variantRequest, HttpServletRequest request, HttpServletResponse response) {
         try {
@@ -50,7 +47,7 @@ public class VariantController {
 
     }
 
-    @GetMapping
+    @GetMapping("/public")
     public ResponseEntity<Response> getAllVariant(HttpServletRequest request, HttpServletResponse response) {
         try {
             Set<VariantResponse> variantResponseSet = variantService.getAllVariant();

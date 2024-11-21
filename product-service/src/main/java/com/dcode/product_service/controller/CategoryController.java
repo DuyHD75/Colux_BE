@@ -11,6 +11,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
@@ -23,16 +24,12 @@ import static org.springframework.http.HttpStatus.*;
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 
 @RestController
-@RequestMapping("/api/v1/products/categories")
+@RequestMapping("/api/v1/categories")
 @AllArgsConstructor
 public class CategoryController {
     private final CategoryServiceImpl categoryService;
 
-    @GetMapping("/test/{testId}")
-    public ResponseEntity<Response> test(@PathVariable("testId") String testId, HttpServletRequest request, HttpServletResponse response) {
-        return ResponseEntity.ok().body(getResponse(request, Map.of("testId", testId), "Test successfully!", OK));
-    }
-
+    @PreAuthorize("hasRole('EMPLOYEE') and hasAuthority('product:create')")
     @PostMapping
     public ResponseEntity<Response> createNewCategory(@RequestBody @Valid CategoryRequest categoryRequest, HttpServletRequest request, HttpServletResponse response) {
         try {
@@ -52,7 +49,7 @@ public class CategoryController {
 
     }
 
-    @GetMapping("/getAll")
+    @GetMapping("/public")
     public ResponseEntity<Response> getAllCategory(HttpServletRequest request, HttpServletResponse response) {
         try {
             var categories = categoryService.getAllCategory();
@@ -67,7 +64,7 @@ public class CategoryController {
 
     }
 
-    @GetMapping("/categoryId/{categoryId}")
+    @GetMapping("/public/categoryId/{categoryId}")
     public ResponseEntity<Response> getCategoryByCategoryId(@PathVariable("categoryId") String categoryId, HttpServletRequest request, HttpServletResponse response) {
         try {
             var category = categoryService.getCategoryByCategoryId(categoryId);
@@ -82,7 +79,7 @@ public class CategoryController {
 
     }
 
-    @GetMapping("/{categoryId}/products")
+    @GetMapping("/public/categoryId/{categoryId}/products")
     public ResponseEntity<Response> getProductByCategory(@PathVariable("categoryId") String categoryId,
                                                          @RequestParam(defaultValue = "0") int page,
                                                          @RequestParam(defaultValue = "10") int size,

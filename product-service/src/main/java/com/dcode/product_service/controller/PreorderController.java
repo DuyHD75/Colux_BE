@@ -21,12 +21,12 @@ import static org.springframework.http.HttpStatus.*;
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 
 @RestController
-@RequestMapping("/api/v1/products/preorders")
+@RequestMapping("/api/v1/preorders")
 @AllArgsConstructor
 public class PreorderController {
     private final PreorderServiceImpl preorderService;
 
-    @PostMapping("")
+    @PostMapping("/public")
     public ResponseEntity<Response> createPreorder(@RequestBody @Valid PreorderRequest preorderRequest, HttpServletRequest request, HttpServletResponse response) {
         try {
             preorderService.createPreorder(preorderRequest);
@@ -41,7 +41,7 @@ public class PreorderController {
                     .body(getErrorResponse(request, response, new ApiException("An unexpected error occurred."), INTERNAL_SERVER_ERROR));
         }
     }
-    @GetMapping("/{preorderId}")
+    @GetMapping("/public/preorderId/{preorderId}")
     public ResponseEntity<Response> getAPreorder(@PathVariable("preorderId") String preorderId, HttpServletRequest request, HttpServletResponse response) {
         try {
         var preorder = preorderService.getAPreorder(preorderId);

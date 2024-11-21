@@ -26,14 +26,14 @@ import static java.util.Collections.emptyMap;
 import static org.springframework.http.HttpStatus.*;
 
 @RestController
-@RequestMapping("/api/v1/products")
+@RequestMapping("/api/v1/reviews")
 @AllArgsConstructor
 @Slf4j
 public class ReviewController {
 
     private final ReviewServiceImpl reviewService;
 
-    @PostMapping("/reviews")
+    @PostMapping
     private ResponseEntity<Response> createAReview(@RequestBody @Valid ReviewRequest reviewRequest, HttpServletRequest request, HttpServletResponse response) {
         try {
             var review = reviewService.createAReview(reviewRequest);
@@ -50,7 +50,7 @@ public class ReviewController {
 
     }
 
-    @GetMapping("/reviews/{productId}")
+    @GetMapping("/public/productId/{productId}")
     public ResponseEntity<Response> getReviewsByProductId(@PathVariable String productId,
                                                           @RequestParam(defaultValue = "0") int page,
                                                           @RequestParam(defaultValue = "10") int size,

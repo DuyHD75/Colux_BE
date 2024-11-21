@@ -42,10 +42,4 @@ public class VariantServiceImpl implements IVariantService {
         return fromAVariantEntity(sizeName, categoryName, packageType);
     }
 
-
-//    @Override
-//    public Set<VariantResponse> getAllPaintVariant() {
-//        Set<Variant> variantSet = variantRepository.findByPaintIsNotNullAndWallpaperIsNullAndFloorIsNull();
-//        return fromVariantEntity(variantSet);
-//    }
 }

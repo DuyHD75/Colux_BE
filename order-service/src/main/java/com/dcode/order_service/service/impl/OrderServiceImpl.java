@@ -540,7 +540,6 @@ public class OrderServiceImpl implements IOrderService {
         if (orderId != null) {
             var order = orderRepository.findByOrderId(orderId)
                     .orElseThrow(() -> new BusinessException("Order not found for ID: " + orderId));
-
             return List.of(mapOrderToResponse(order));
         }
 
@@ -575,6 +574,7 @@ public class OrderServiceImpl implements IOrderService {
                 .tax(order.getTax())
                 .shippingCost(order.getShippingCost())
                 .totalPay(order.getTotalPay())
+                .advancePayment(order.getAdvancePayment())
                 .status(order.getStatus())
                 .paymentStatus(order.getPaymentStatus())
                 .note(order.getNote())

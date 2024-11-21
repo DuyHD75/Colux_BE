@@ -10,6 +10,7 @@ import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -25,12 +26,13 @@ import static org.springframework.http.HttpStatus.*;
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 
 @RestController
-@RequestMapping("/api/v1/products/relativeCollections")
+@RequestMapping("/api/v1/relativeCollections")
 @AllArgsConstructor
 public class RelativeCollectionController {
 
     private final RelativeCollectionServiceImpl relativeCollectionService;
 
+    @PreAuthorize("hasRole('EMPLOYEE') and hasAuthority('product:create')")
     @PostMapping
     public ResponseEntity<Response> createARelativeCollection(@RequestBody @Valid RelativeCollectionRequest rcRequest, HttpServletRequest request, HttpServletResponse response){
         try {

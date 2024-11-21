@@ -11,6 +11,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
@@ -24,12 +25,13 @@ import static org.springframework.http.HttpStatus.*;
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 
 @RestController
-@RequestMapping("/api/v1/products/rooms")
+@RequestMapping("/api/v1/rooms")
 @AllArgsConstructor
 public class RoomController {
 
     private final RoomServiceImpl roomService;
 
+    @PreAuthorize("hasRole('EMPLOYEE') and hasAuthority('product:create')")
     @PostMapping
     public ResponseEntity<Response> createRooms(@RequestBody @Valid List<RoomRequest> roomRequest, HttpServletRequest request, HttpServletResponse response){
         try {
@@ -44,7 +46,8 @@ public class RoomController {
                     .body(getErrorResponse(request, response, new ApiException("An unexpected error occurred."), INTERNAL_SERVER_ERROR));
         }
     }
-    @GetMapping("{roomId}")
+
+    @GetMapping("/public/roomId/{roomId}")
     public ResponseEntity<Response> getARoom(@PathVariable("roomId")String roomId, HttpServletRequest request,HttpServletResponse response){
         try {
             var room = roomService.getARoom(roomId);
@@ -58,7 +61,7 @@ public class RoomController {
     }
 
     }
-    @GetMapping("{roomId}/colors")
+    @GetMapping("/public/roomId/{roomId}/colors")
     public ResponseEntity<Response> getColorByRoom(@PathVariable("roomId")String roomId,
                                                    @RequestParam(defaultValue = "0") int page,
                                                    @RequestParam(defaultValue = "10") int size,
@@ -77,7 +80,7 @@ public class RoomController {
         }
 
     }
-    @GetMapping
+    @GetMapping("/public")
     public ResponseEntity<Response> getAllRoom(HttpServletRequest request, HttpServletResponse response){
         try{
             var rooms = roomService.getAllRoom();

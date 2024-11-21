@@ -20,14 +20,14 @@ import static com.dcode.product_service.utils.RequestUtils.getResponse;
 import static org.springframework.http.HttpStatus.OK;
 
 @RestController
-@RequestMapping("/api/v1/products")
+@RequestMapping("/api/v1/searches")
 @AllArgsConstructor
 @Slf4j
 public class SearchController {
 
     private SearchServiceImpl searchService;
 
-    @GetMapping("/search")
+    @GetMapping("/public")
     public ResponseEntity<Response> search(@RequestParam String keyword,
                                            HttpServletRequest request) {
         Map<String, List<?>> results = searchService.searchByKeyword(keyword);

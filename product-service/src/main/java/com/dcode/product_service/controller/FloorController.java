@@ -11,6 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
@@ -24,13 +25,13 @@ import static org.springframework.http.HttpStatus.*;
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 
 @RestController
-@RequestMapping("/api/v1/products/floors")
+@RequestMapping("/api/v1/floors")
 @AllArgsConstructor
 @Slf4j
 public class FloorController {
     private final FloorServiceImpl floorService;
-
-    @PostMapping("{productId}")
+    @PreAuthorize("hasRole('EMPLOYEE') and hasAuthority('product:create')")
+    @PostMapping("/productId/{productId}")
     public ResponseEntity<Response> createAFloor(@PathVariable("productId") String productId, @RequestBody FloorRequest fRequest, HttpServletRequest request, HttpServletResponse response) {
         try {
         floorService.createFloor(productId, fRequest);
@@ -44,7 +45,7 @@ public class FloorController {
                     .body(getErrorResponse(request, response, new ApiException("An unexpected error occurred."), INTERNAL_SERVER_ERROR));
         }
     }
-
+    @PreAuthorize("hasRole('EMPLOYEE') and hasAuthority('product:create')")
     @PostMapping
     public ResponseEntity<Response> createFloors(@RequestBody Set<FloorRequest> floorRequests, HttpServletRequest request, HttpServletResponse response) {
         try {
@@ -59,7 +60,7 @@ public class FloorController {
         }
     }
 
-    @GetMapping("{floorId}")
+    @GetMapping("/public/floorId/{floorId}")
     public ResponseEntity<Response> getAFloor(@PathVariable("floorId") String floorId, HttpServletRequest request, HttpServletResponse response) {
         try{
         var floor = floorService.getAFloor(floorId);
@@ -72,8 +73,8 @@ public class FloorController {
                     .body(getErrorResponse(request, response, new ApiException("An unexpected error occurred."), INTERNAL_SERVER_ERROR));
         }
     }
-
-    @PutMapping("{floorId}")
+    @PreAuthorize("hasRole('EMPLOYEE') and hasAuthority('product:update')")
+    @PutMapping("/floorId/{floorId}")
     public ResponseEntity<Response> updateAFloor(@PathVariable("floorId") String floorId, @RequestBody FloorRequest fRequest, HttpServletRequest request, HttpServletResponse response) {
         try {
         floorService.updateAFloor(floorId, fRequest);
@@ -86,8 +87,8 @@ public class FloorController {
                     .body(getErrorResponse(request, response, new ApiException("An unexpected error occurred."), INTERNAL_SERVER_ERROR));
         }
     }
-
-    @DeleteMapping("{floorId}")
+    @PreAuthorize("hasRole('EMPLOYEE') and hasAuthority('product:delete')")
+    @DeleteMapping("/floorId/{floorId}")
     public ResponseEntity<Response> deleteAFloor(@PathVariable("floorId") String floorId, HttpServletRequest request, HttpServletResponse response) {
         try {
         floorService.deleteAFloor(floorId);
@@ -101,7 +102,7 @@ public class FloorController {
         }
     }
 
-    @GetMapping
+    @GetMapping("/public")
     public ResponseEntity<Response> getAllFloorPageable(@RequestParam(defaultValue = "0") int page,
                                                         @RequestParam(defaultValue = "10") int size,
                                                         HttpServletRequest request,

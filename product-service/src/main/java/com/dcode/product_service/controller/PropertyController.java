@@ -10,6 +10,7 @@ import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
@@ -23,11 +24,12 @@ import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 
 @RestController
-@RequestMapping("/api/v1/products/properties")
+@RequestMapping("/api/v1/properties")
 @AllArgsConstructor
 public class PropertyController {
     private final PropertyServiceImpl propertyService;
 
+    @PreAuthorize("hasRole('EMPLOYEE') and hasAuthority('product:create')")
     @PostMapping()
     public ResponseEntity<Response> createProperty(@RequestBody @Valid Set<RequestProperty> requestProperty, HttpServletRequest request, HttpServletResponse response) {
         try {
@@ -42,7 +44,7 @@ public class PropertyController {
         }
     }
 
-    @GetMapping("/{propertyId}")
+    @GetMapping("/public/propertyId/{propertyId}")
     public ResponseEntity<Response> getAProperty(@PathVariable("propertyId") String propertyId, HttpServletRequest request, HttpServletResponse response){
         try {
         var property = propertyService.getAProperty(propertyId);
@@ -56,7 +58,7 @@ public class PropertyController {
         }
     }
 
-    @GetMapping
+    @GetMapping("/public")
     public ResponseEntity<Response> getProperties(HttpServletRequest request, HttpServletResponse response){
         try {
             var properties = propertyService.getAllProperty();

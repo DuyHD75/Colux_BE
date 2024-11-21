@@ -17,12 +17,33 @@ public class Constants {
         public static final String ADMIN_AUTHORITIES = "user:create,user:read,user:update,product:create,product:read,product:update,product:delete";
         public static final String MANAGER_AUTHORITIES = "product:create,product:read,product:update,product:delete";
         public static final String[] ALLOWED_PATHS = {
-                "/api/v1/products/**",
+                "/api/v1/brands/public/**",
+                "/api/v1/categories/public/**",
+                "/api/v1/collections/public/**",
+                "/api/v1/collectionsTypes/public/**",
+                "/api/v1/colors/public/**",
+                "/api/v1/colorFamilies/public/**",
+                "/api/v1/features/public/**",
+                "/api/v1/floors/public/**",
+                "/api/v1/images/public/**",
+                "/api/v1/paints/public/**",
+                "/api/v1/preorders/public/**",
+                "/api/v1/products/public/**",
                 "/api/v1/products/purchase-order",
                 "/api/v1/products/getProductByVariant",
-                "/api/v1/products/categories/test/123",
-                "/api/v1/products/product/getAll",
-                "/api/v1/products/reduceProduct"
+                "/api/v1/products/getInfo",
+                "/api/v1/products/getProductDashboard",
+                "/api/v1/products/reduceProduct",
+                "/api/v1/products/getDashboardInfo",
+                "/api/v1/properties/public/**",
+                "/api/v1/relativeCollections/public/**",
+                "/api/v1/reviews/public/**",
+                "/api/v1/rooms/public/**",
+                "/api/v1/searches/public/**",
+                "/api/v1/suppliers/public/**",
+                "/api/v1/variants/public/**",
+                "/api/v1/wallpapers/public/**",
+                "/api/v1/upload/**",
         };
         //        public static final String FRONTEND_HOST = "https://colux.vercel.app";
         public static final String SERVICE_NAME = "product-service";

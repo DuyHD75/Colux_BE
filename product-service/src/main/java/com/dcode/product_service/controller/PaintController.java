@@ -27,24 +27,14 @@ import static java.util.Collections.emptyMap;
 import static org.springframework.http.HttpStatus.*;
 
 @RestController
-@RequestMapping("/api/v1/products/paints")
+@RequestMapping("/api/v1/paints")
 @AllArgsConstructor
 @Slf4j
 public class PaintController {
 
     private final PaintServiceImpl paintService;
 
-    @PreAuthorize("hasRole('ROLE_EMPLOYEE') and hasAuthority('product:create')")
-    @GetMapping("/test")
-    public String createProduct(HttpServletRequest request) {
-        try {
-            return "Product service is up and running, Authorization ok!";
-        } catch (Exception ex) {
-            return "Error: " + ex.getMessage();
-        }
-    }
-
-    @GetMapping("/product/{colorId}")
+    @GetMapping("/public/colorId/{colorId}")
     public ResponseEntity<Response> getPaintsByColor(@PathVariable("colorId") String colorId,
                                                      HttpServletRequest request,
                                                      HttpServletResponse response,
@@ -63,7 +53,8 @@ public class PaintController {
         }
     }
 
-    @PostMapping("{productId}")
+    @PreAuthorize("hasRole('EMPLOYEE') and hasAuthority('product:create')")
+    @PostMapping("/productId/{productId}")
     public ResponseEntity<Response> createAPaint(@PathVariable("productId") String productId,
                                                  @RequestBody @Valid PaintRequest paintRequest,
                                                  HttpServletRequest request, HttpServletResponse response) {
@@ -79,6 +70,7 @@ public class PaintController {
         }
     }
 
+    @PreAuthorize("hasRole('EMPLOYEE') and hasAuthority('product:create')")
     @PostMapping("/bulk")
     public ResponseEntity<Response> createPaints(@RequestBody @Valid Set<PaintRequest> paintRequests, HttpServletRequest request, HttpServletResponse response){
         try{
@@ -93,7 +85,7 @@ public class PaintController {
         }
     }
 
-    @GetMapping("{paintId}")
+    @GetMapping("/public/paintId/{paintId}")
     public ResponseEntity<Response> getAPaint(@PathVariable("paintId")String paintId, HttpServletRequest request, HttpServletResponse response){
         try {
         var paint = paintService.getAPaint(paintId);
@@ -106,8 +98,8 @@ public class PaintController {
                     .body(getErrorResponse(request, response, new ApiException("An unexpected error occurred."), INTERNAL_SERVER_ERROR));
         }
     }
-
-    @PutMapping("{paintId}")
+    @PreAuthorize("hasRole('EMPLOYEE') and hasAuthority('product:update')")
+    @PutMapping("/paintId/{paintId}")
     public ResponseEntity<Response> updateAPaint(@PathVariable("paintId") String paintId, @RequestBody PaintRequest paintRequest, HttpServletRequest request, HttpServletResponse response){
         try {
         paintService.updateAPaint(paintId, paintRequest);
@@ -120,7 +112,9 @@ public class PaintController {
                     .body(getErrorResponse(request, response, new ApiException("An unexpected error occurred."), INTERNAL_SERVER_ERROR));
         }
     }
-    @DeleteMapping("{paintId}")
+
+    @PreAuthorize("hasRole('EMPLOYEE') and hasAuthority('product:delete')")
+    @DeleteMapping("/paintId/{paintId}")
     public ResponseEntity<Response> deleteAPaint(@PathVariable("paintId")String paintId, HttpServletRequest request, HttpServletResponse response){
         try {
         paintService.deleteAPaint(paintId);
@@ -134,7 +128,7 @@ public class PaintController {
         }
     }
 
-    @GetMapping
+    @GetMapping("/public")
     public ResponseEntity<Response> getAllPaintPageable(@RequestParam(defaultValue = "0") int page,
                                                         @RequestParam(defaultValue = "10") int size,
                                                         HttpServletRequest request,

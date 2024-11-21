@@ -36,6 +36,7 @@ public class OrderResponse {
     private BigDecimal tax;
     private BigDecimal shippingCost;
     private BigDecimal totalPay;
+    private BigDecimal advancePayment;
     private PaymentMethod paymentMethod;
     private Integer paymentStatus;
 

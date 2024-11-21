@@ -81,6 +81,7 @@ public class ProductController {
             ));
         }
     }
+
     @PostMapping("/getProductByVariant")
     public ResponseEntity<Response> cartVariant(@RequestBody @Valid List<ProductOrderRequest> productOrderRequestList, HttpServletRequest request, HttpServletResponse response) {
         try {
@@ -119,7 +120,7 @@ public class ProductController {
     @PostMapping("/getProductDashboard")
     public ResponseEntity<Response> getProductDashboard(@RequestBody @Valid List<ProductOrderRequest> productDashboardRequests, HttpServletRequest request, HttpServletResponse response) {
         try {
-                List<ProductResponse> productCartResponses = productService.getProductDashboard(productDashboardRequests);
+            List<ProductResponse> productCartResponses = productService.getProductDashboard(productDashboardRequests);
             return ResponseEntity.ok().body(
                     getResponse(request, Map.of("products", productCartResponses),
                             "Retrieve products successfully!", CREATED)
@@ -151,8 +152,8 @@ public class ProductController {
 
     }
 
-    // TODO: Authorize
-    @PostMapping("/product")
+    @PreAuthorize("hasRole('EMPLOYEE') and hasAuthority('product:create')")
+    @PostMapping
     public ResponseEntity<Response> createProduct(@RequestBody @Valid ProductRequest productRequest, HttpServletRequest request, HttpServletResponse response) {
         try {
             productService.createProduct(productRequest);
@@ -169,8 +170,8 @@ public class ProductController {
         }
     }
 
-    // TODO: Authorize
-    @PostMapping("/product/bulk")
+    @PreAuthorize("hasRole('EMPLOYEE') and hasAuthority('product:create')")
+    @PostMapping("/bulk")
     public ResponseEntity<Response> createProducts(@RequestBody @Valid Set<ProductRequest> productRequest, HttpServletRequest request, HttpServletResponse response) {
         try {
             productService.createProducts(productRequest);
@@ -187,7 +188,8 @@ public class ProductController {
                     .body(getErrorResponse(request, response, new ApiException("An unexpected error occurred."), INTERNAL_SERVER_ERROR));
         }
     }
-    @GetMapping("/product/getAll")
+
+    @GetMapping("/public")
     public ResponseEntity<Response> getAllProduct(HttpServletRequest request, HttpServletResponse response) {
         try {
             var products = productService.getAllProduct();
@@ -203,7 +205,7 @@ public class ProductController {
         }
     }
 
-    @GetMapping("/{productId}")
+    @GetMapping("/public/productId/{productId}")
     public ResponseEntity<Response> getProductByProductId(@PathVariable String productId, HttpServletRequest request, HttpServletResponse response) {
         try {
             var product = productService.getProductByProductId(productId);
@@ -219,7 +221,7 @@ public class ProductController {
         }
     }
 
-    @GetMapping("/product/pageable")
+    @GetMapping("/public/pageable")
     public ResponseEntity<Response> getAllProductWithPagination(@RequestParam(defaultValue = "0") int page,
                                                                 @RequestParam(defaultValue = "10") int size,
                                                                 HttpServletRequest request,
@@ -238,8 +240,8 @@ public class ProductController {
         }
     }
 
-    // TODO: Authorize
-    @PutMapping(value = "/product")
+    @PreAuthorize("hasRole('EMPLOYEE') and hasAuthority('product:update')")
+    @PutMapping
     public ResponseEntity<Response> updateProduct(@RequestBody ProductUpdateRequest productRequest, HttpServletRequest request, HttpServletResponse response) {
         try {
             productService.updateProduct(productRequest);
@@ -254,7 +256,7 @@ public class ProductController {
     }
 
 
-    @GetMapping("/filter")
+    @GetMapping("/public/filter")
     public ResponseEntity<Response> getAllProductWithFilter(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
@@ -268,7 +270,7 @@ public class ProductController {
             HttpServletRequest request) {
         try {
             Pageable pageable = PageRequest.of(page, size);
-            var filteredProducts = productService.filterProducts(type,features, properties, minPrice, maxPrice,  pageable);
+            var filteredProducts = productService.filterProducts(type, features, properties, minPrice, maxPrice, pageable);
             return ResponseEntity.ok().body(getResponse(request, Map.of("products", filteredProducts), "Product retrieve successfully!", OK));
         } catch (ApiException ex) {
             log.error("bad-request: ", ex);

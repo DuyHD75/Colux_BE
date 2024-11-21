@@ -10,5 +10,4 @@ public interface IVariantService {
 
     Set<VariantResponse> getAllVariant();
 
-//    Set<VariantResponse> getAllPaintVariant();
 }

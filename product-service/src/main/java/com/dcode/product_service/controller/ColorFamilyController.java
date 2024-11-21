@@ -11,6 +11,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
@@ -23,12 +24,13 @@ import static org.springframework.http.HttpStatus.*;
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 
 @RestController
-@RequestMapping("/api/v1/products/colorFamilies")
+@RequestMapping("/api/v1/colorFamilies")
 @AllArgsConstructor
 public class ColorFamilyController {
 
     private final ColorFamilyServiceImpl colorFamilyService;
 
+    @PreAuthorize("hasRole('EMPLOYEE') and hasAuthority('product:create')")
     @PostMapping
     public ResponseEntity<Response> createAColorFamily(@RequestBody @Valid ColorFamilyRequest cfRequest, HttpServletRequest request, HttpServletResponse response) {
         try {
@@ -43,7 +45,7 @@ public class ColorFamilyController {
         }
     }
 
-    @GetMapping("/{colorFamilyId}")
+    @GetMapping("/public/colorFamilyId/{colorFamilyId}")
     public ResponseEntity<Response> getAColorFamily(@PathVariable("colorFamilyId") String colorFamilyId, HttpServletRequest request, HttpServletResponse response) {
         try {
         var colorFamily = colorFamilyService.getAColorFamily(colorFamilyId);
@@ -57,7 +59,7 @@ public class ColorFamilyController {
         }
     }
 
-    @GetMapping("/{colorFamilyId}/colors")
+    @GetMapping("/public/colorFamilyId/{colorFamilyId}/colors")
     public ResponseEntity<Response> getColorByColorFamily(@RequestParam(defaultValue = "0") int page,
                                                           @RequestParam(defaultValue = "10") int size,
                                                           @PathVariable("colorFamilyId") String colorFamilyId,
@@ -76,7 +78,7 @@ public class ColorFamilyController {
         }
     }
 
-    @GetMapping
+    @GetMapping("/public")
     public ResponseEntity<Response> getAllColorFamily(HttpServletRequest request, HttpServletResponse response) {
         try{
         var colorFamilies = colorFamilyService.getAllColorFamily();

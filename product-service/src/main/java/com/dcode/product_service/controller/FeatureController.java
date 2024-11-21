@@ -9,6 +9,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -23,13 +24,14 @@ import static org.springframework.http.HttpStatus.*;
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 
 @RestController
-@RequestMapping("/api/v1/products/features")
+@RequestMapping("/api/v1/features")
 @AllArgsConstructor
 @Validated
 public class FeatureController {
 
     private final FeatureServiceImpl featureService;
 
+    @PreAuthorize("hasRole('EMPLOYEE') and hasAuthority('product:create')")
     @PostMapping
     public ResponseEntity<Response> createFeatures(@RequestBody @Valid Set<FeatureRequest> featureRequest, HttpServletRequest request, HttpServletResponse response) {
         try {
@@ -46,8 +48,8 @@ public class FeatureController {
                     .body(getErrorResponse(request, response, new ApiException("An unexpected error occurred."), INTERNAL_SERVER_ERROR));
         }
     }
-
-    @PutMapping("/{featureId}")
+    @PreAuthorize("hasRole('EMPLOYEE') and hasAuthority('product:update')")
+    @PutMapping("/featureId/{featureId}")
     public ResponseEntity<Response> updateFeature(@PathVariable("featureId") String featureId, @RequestBody @Valid FeatureRequest featureRequest, HttpServletRequest request, HttpServletResponse response) {
         try {
             featureService.updateFeature(featureRequest, featureId);
@@ -61,7 +63,7 @@ public class FeatureController {
         }
     }
 
-    @GetMapping("/{featureId}")
+    @GetMapping("/public/featureId/{featureId}")
     public ResponseEntity<Response> getFeature(@PathVariable("featureId") String featureId, HttpServletRequest request, HttpServletResponse response) {
         try {
             var feature = featureService.getFeature(featureId);
@@ -75,7 +77,7 @@ public class FeatureController {
         }
     }
 
-    @GetMapping
+    @GetMapping("/public")
     public ResponseEntity<Response> getFeatures(HttpServletRequest request, HttpServletResponse response) {
         try {
             var features = featureService.getAllFeature();

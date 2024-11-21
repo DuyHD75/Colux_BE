@@ -13,6 +13,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 import java.net.URI;
 import java.util.List;
@@ -24,12 +25,13 @@ import static java.util.Collections.emptyMap;
 import static org.springframework.http.HttpStatus.*;
 
 @RestController
-@RequestMapping("/api/v1/products/collections")
+@RequestMapping("/api/v1/collections")
 @AllArgsConstructor
 public class CollectionController {
 
     private final CollectionServiceImpl collectionService;
 
+    @PreAuthorize("hasRole('EMPLOYEE') and hasAuthority('product:create')")
     @PostMapping
     public ResponseEntity<Response> createCollections(@RequestBody List<CollectionRequest> coRe, HttpServletRequest request, HttpServletResponse response) {
         try {
@@ -45,7 +47,7 @@ public class CollectionController {
 
     }
 
-    @GetMapping("{collectionId}")
+    @GetMapping("/public/collectionId/{collectionId}")
     public ResponseEntity<Response> getACollection(@PathVariable("collectionId")String collectionId, HttpServletRequest request, HttpServletResponse response){
         try {
             CollectionResponse collectionResponse =  collectionService.getACollection(collectionId);
@@ -59,7 +61,7 @@ public class CollectionController {
         }
 
     }
-    @GetMapping
+    @GetMapping("/public")
     public ResponseEntity<Response> getAllCollection(HttpServletRequest request, HttpServletResponse response){
         try {
             var collections = collectionService.getAllCollection();
@@ -74,7 +76,7 @@ public class CollectionController {
 
     }
 
-    @GetMapping("/no-colorFamily-room")
+    @GetMapping("/public/no-colorFamily-room")
     public ResponseEntity<Response> getAllCollectionWithoutColorFamilyAndRoom(HttpServletRequest request, HttpServletResponse response){
         try {
             var collections = collectionService.getAllCollectionWithoutColorFamilyAndRoom();
@@ -86,10 +88,9 @@ public class CollectionController {
             return ResponseEntity.status(INTERNAL_SERVER_ERROR)
                     .body(getErrorResponse(request, response, new ApiException("An unexpected error occurred."), INTERNAL_SERVER_ERROR));
         }
-
     }
 
-    @GetMapping("/{collectionId}/colors")
+    @GetMapping("/public/collectionId/{collectionId}/colors")
     public ResponseEntity<Response> getColorByCollection(@PathVariable("collectionId")String collectionId,
                                                          @RequestParam(defaultValue = "0") int page,
                                                          @RequestParam(defaultValue = "10") int size,

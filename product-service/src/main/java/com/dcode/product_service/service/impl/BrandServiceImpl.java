@@ -1,5 +1,6 @@
 package com.dcode.product_service.service.impl;
 
+import com.dcode.product_service.dtoRequest.BrandRequest;
 import com.dcode.product_service.dtoResponse.BrandResponse;
 import com.dcode.product_service.entity.Brand;
 import com.dcode.product_service.exception.BusinessException;
@@ -39,6 +40,13 @@ public class BrandServiceImpl implements IBrandService {
         }
         return fromEntityToResponse(brands);
     }
+
+    @Override
+    public void createBrands(List<BrandRequest> brandRequest) {
+       brandRepository.saveAll(brandRequest.stream()
+                .map(brand -> createNewBrand(brand.getName(), brand.getCode(), brand.getStatus()))
+                .toList());
+          }
 
     private Brand createNewBrand(String name, String code, String status) {
         log.info(String.format("Creating new brand: %s", name));
