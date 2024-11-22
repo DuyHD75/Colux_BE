@@ -47,6 +47,12 @@ public class OrderEntity extends Auditable {
     @Column(name = "to_name", nullable = false)
     private String toName;
 
+    @Column(name = "employee_name", nullable = false)
+    private String employeeName;
+
+    @Column(name = "cancel_reason")
+    private String cancelReason;
+
     @Column(name = "to_phone", nullable = false)
     private String toPhone;
 
@@ -66,7 +72,14 @@ public class OrderEntity extends Auditable {
     private String toProvinceName;
 
     @Nullable
+    @Column(name = "note")
     private String note;
+
+    @Column(name = "shipping_image_url")
+    private String shippingImageURL;
+
+    @Column(name = "shipper_name")
+    private String shipperName;
 
     @OneToMany(mappedBy = "orderEntity", cascade = CascadeType.ALL)
     private Set<OrderLineEntity> orderLines = new HashSet<>(); // (1) Một đơn hàng có nhiều sản phẩm

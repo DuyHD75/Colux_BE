@@ -32,4 +32,8 @@ public interface IOrderService {
     Map<String, Object> getWard(JsonNode wardId);
 
     Map<String, Object> getServices(JsonNode serviceRequest);
+
+    Order updateOrder(OrderRequest request);
+
+
 }

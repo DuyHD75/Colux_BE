@@ -35,9 +35,14 @@ public class OrderRequest {
     @Nullable
     private String reference;
     @Nullable
-    private String orderCancellationReasonId;
+    private String cancelReason;
     @Nullable
     private String note;
+
+    private String employeeName;
+    private String shippingImageURL;
+
+    private String shipperName;
 
     private String customerId;
 
