@@ -11,6 +11,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
@@ -26,6 +27,7 @@ public class WaybillResource {
 
     private WaybillService waybillService;
 
+    @PreAuthorize("hasAnyRole('EMPLOYEE', 'ADMIN') and hasAuthority('order:create')")
     @PostMapping("/create")
     public ResponseEntity<Response> createWaybill(@RequestBody WaybillRequest waybillRequest,
                                                   HttpServletRequest request,
@@ -36,7 +38,8 @@ public class WaybillResource {
 
     }
 
-    @GetMapping("/{waybillId}")
+
+    @GetMapping("/public/{waybillId}")
     public ResponseEntity<Response> getWaybill(@PathVariable String waybillId,
                                                HttpServletRequest request,
                                                HttpServletResponse response) {

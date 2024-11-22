@@ -49,16 +49,6 @@ public class OrderResource {
     private final IShipmentService shipmentService;
 
 
-    @PreAuthorize("hasRole('ROLE_MANAGER') and hasAuthority('product:create')")
-    @GetMapping("/test")
-    public String createProduct(HttpServletRequest request) {
-        try {
-            return "Order service is up and running!";
-        } catch (Exception ex) {
-            return "Error: " + ex.getMessage();
-        }
-    }
-
     @GetMapping("/topProducts")
     public ResponseEntity<Response> getTopProducts(@RequestParam(defaultValue = "0") int page,
                                                    @RequestParam(defaultValue = "10") int size,
@@ -161,8 +151,8 @@ public class OrderResource {
     }
 
 
-    @PreAuthorize("hasRole('MANAGER')")
-    @GetMapping("/all")
+    @PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE') and hasAuthority('order:read')")
+    @GetMapping("/getAll")
     public ResponseEntity<Response> getAllOrders(HttpServletRequest request, HttpServletResponse response) {
         try {
             var orders = orderService.getAllOrders();
@@ -327,6 +317,7 @@ public class OrderResource {
         }
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE', 'USER') and hasAuthority('order:read')")
     @PostMapping("/shipment/{customerId}/{shipmentId}")
     public ResponseEntity<Response> deleteShipment(@PathVariable("customerId") String customerId, @PathVariable("shipmentId") String shipmentId, HttpServletRequest request, HttpServletResponse response) {
         try {

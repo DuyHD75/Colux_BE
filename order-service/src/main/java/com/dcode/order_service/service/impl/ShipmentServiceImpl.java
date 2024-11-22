@@ -32,6 +32,7 @@ public class ShipmentServiceImpl implements IShipmentService {
         }
 
         shipmentRepository.save(shipmentBeforeSave);
+
         return shipmentUtils.entityToDto(shipmentBeforeSave);
     }
 

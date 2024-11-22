@@ -65,6 +65,7 @@ public class RequestUtils {
         writeResponse.accept(response, getErrorResponse(request, response, exception, status, emptyMap()));
     }
 
+
     public static Response getErrorResponse(HttpServletRequest request, HttpServletResponse response, Exception exception, HttpStatus status, Map<? , ?> data) {
         response.setContentType(APPLICATION_JSON_VALUE);
         response.setStatus(status.value());

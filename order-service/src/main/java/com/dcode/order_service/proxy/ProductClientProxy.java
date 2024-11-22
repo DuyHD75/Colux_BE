@@ -38,7 +38,7 @@ public class ProductClientProxy {
     private final RestTemplate restTemplate;
 
     public PurchaseResponseWrapper purchaseProducts(List<PurchaseRequest> purchaseRequests) {
-        HttpHeaders headers = new HttpHeaders();
+        HttpHeaders headers = new HttpHeaders(); 
         headers.set(CONTENT_TYPE, APPLICATION_JSON_VALUE);
 
         HttpEntity<List<PurchaseRequest>> requestEntity = new HttpEntity<>(purchaseRequests, headers);

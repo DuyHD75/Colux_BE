@@ -17,7 +17,7 @@ import java.util.Optional;
 
 @FeignClient(
         name = "product-service",
-        url = "${application.config.product-url}",
+        url = "http://localhost:8081/api/v1/products",
         configuration = {AuthenticationRequestInterceptor.class}
 )
 public interface IProductClientProxy {

@@ -10,6 +10,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
@@ -31,6 +32,7 @@ public class CartResource {
         return "Cart service is up and running!";
     }
 
+    @PreAuthorize("hasRole('USER')")
     @PostMapping("/add-to-cart")
     public ResponseEntity<Response> createNewCart(
             @RequestBody @Valid CartRequest cartRequest, HttpServletRequest request

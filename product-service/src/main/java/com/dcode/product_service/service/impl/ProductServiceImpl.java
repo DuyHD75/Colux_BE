@@ -151,10 +151,17 @@ public class ProductServiceImpl implements IProductService {
 
     @Override
     public PageResponse<ProductResponse> getAllProduct(Pageable pageable) {
-        Page<Product> products = productRepository.findProductsWithNonNullPaintWallpaperFloor(pageable);
+        try{
+        Page<Product> products = productRepository.findProductsWithAssociations(pageable);
         Page<ProductResponse> productResponses = products.map(this::mapToProductResponse);
         return PageResponseBuilder.buildPageResponse(productResponses);
+
+        }catch (Exception e){
+            log.error("Error sql: " + e.getMessage());
+        }
+        return null;
     }
+
 
     public CategoryType getCategoryTypeFromName(String name) {
         for (CategoryType categoryType : CategoryType.values()) {

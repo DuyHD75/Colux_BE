@@ -32,8 +32,7 @@ public class Paint extends Auditable{
     @JsonIgnore 
     private Product product;
 
-    @OneToOne
-    @JoinColumn(name = "color_id", referencedColumnName = "id")
+    @ManyToOne
     private Color color;
 
     @OneToMany(cascade = {PERSIST, MERGE}, mappedBy = "paint")

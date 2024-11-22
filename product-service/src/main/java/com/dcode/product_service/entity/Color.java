@@ -36,7 +36,7 @@ public class Color extends Auditable{
     )
     private List<Collection> collections;
 
-    @OneToOne(mappedBy = "color")
-    private Paint paint;
+    @OneToMany(mappedBy = "color")
+    private List<Paint> paints;
 }
 

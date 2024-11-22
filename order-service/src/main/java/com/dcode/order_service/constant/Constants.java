@@ -14,7 +14,21 @@ public class Constants {
         public static final String AUTHORITIES = "authorities";
         public static final String AUTHORITY_DELIMITER = ",";
         public static final String[] ALLOWED_PATHS = {
+                "/api/v1/orders/payment/**",
+                "/api/v1/orders/payment/success",
                 "/api/v1/orders/create",
+                "/api/v1/orders/topProducts",
+                "/api/v1/orders/shipping/calculateFee",
+                "/api/v1/orders/shipping/province",
+                "/api/v1/orders/shipping/district",
+                "/api/v1/orders/shipping/ward",
+                "/api/v1/orders/shipping/services",
+                "/api/v1/orders/customerId/**",
+                "/api/v1/orders/order/**",
+                "/api/v1/orders/cancel/**",
+                "/api/v1/orders/getAll",
+                "/api/v1/waybills/**",
+
         };
         public static final String PAYPAL_BASE_URL = "https://api-m.sandbox.paypal.com";
         public static final double DEFAULT_TAX = 0.1;

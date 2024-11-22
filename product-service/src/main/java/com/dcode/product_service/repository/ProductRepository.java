@@ -12,25 +12,24 @@ import java.lang.Double;
 import java.util.List;
 import java.util.Optional;
 
-public interface ProductRepository extends JpaRepository<Product, Long> , JpaSpecificationExecutor<Product> {
+public interface ProductRepository extends JpaRepository<Product, Long> {
 
   Optional<Product> findByProductId(String productId);
+
   @Query("SELECT p FROM Product p " +
-          "LEFT JOIN p.paints pa " +
-          "LEFT JOIN p.wallpapers w " +
-          "LEFT JOIN p.floors f " +
           "WHERE p.category.categoryId = :categoryId " +
-          "AND (pa IS NOT NULL OR w IS NOT NULL OR f IS NOT NULL)")
+          "AND (EXISTS (SELECT pa FROM Paint pa WHERE pa.product.id = p.id) " +
+          "OR EXISTS (SELECT w FROM Wallpaper w WHERE w.product.id = p.id) " +
+          "OR EXISTS (SELECT f FROM Floor f WHERE f.product.id = p.id))")
   Page<Product> findAllByCategory_categoryIdAndNonNullFields(@Param("categoryId") String categoryId, Pageable pageable);
 
   List<Product> findAllByProductIdIn (List<String> productIds);
 
   @Query("SELECT p FROM Product p " +
-          "LEFT JOIN p.paints pa " +
-          "LEFT JOIN p.wallpapers w " +
-          "LEFT JOIN p.floors f " +
-          "WHERE (pa IS NOT NULL OR w IS NOT NULL OR f IS NOT NULL)")
-  Page<Product> findProductsWithNonNullPaintWallpaperFloor(Pageable pageable);
+          "WHERE EXISTS (SELECT pa FROM Paint pa WHERE pa.product.id = p.id) " +
+          "OR EXISTS (SELECT w FROM Wallpaper w WHERE w.product.id = p.id) " +
+          "OR EXISTS (SELECT f FROM Floor f WHERE f.product.id = p.id)")
+  Page<Product> findProductsWithAssociations(Pageable pageable);
 
 
   @Query(value = "SELECT p.* " +
