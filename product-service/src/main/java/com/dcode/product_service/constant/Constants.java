@@ -47,9 +47,7 @@ public class Constants {
         };
         //        public static final String FRONTEND_HOST = "https://colux.vercel.app";
         public static final String SERVICE_NAME = "product-service";
-
     }
-
 
     public static final String BUCKET_NAME = "colux-alpha-storage.appspot.com";
     public static final String DOWNLOAD_URL = "https://firebasestorage.googleapis.com/v0/b/";

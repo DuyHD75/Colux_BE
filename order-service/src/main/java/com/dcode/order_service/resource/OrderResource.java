@@ -2,6 +2,7 @@ package com.dcode.order_service.resource;
 
 
 import com.dcode.order_service.domain.Response;
+import com.dcode.order_service.dto.order.Order;
 import com.dcode.order_service.dto.order.request.GhnCalculateFeeRequest;
 import com.dcode.order_service.dto.order.request.OrderCancellationReasonRequest;
 import com.dcode.order_service.dto.order.request.OrderRequest;
@@ -115,6 +116,24 @@ public class OrderResource {
             ConfirmedOrderResponse orderResult = orderService.createClientOrder(orderRequest);
             return ResponseEntity.created(getUri()).body(
                     getResponse(request, "Order created successfully!", CREATED, Map.of("data", orderResult))
+            );
+        } catch (BusinessException ex) {
+            return ResponseEntity.internalServerError().body(
+                    getErrorResponse(request, response, ex, INTERNAL_SERVER_ERROR, Map.of("errorData", ex.getData()))
+            );
+        } catch (Exception ex) {
+            return ResponseEntity.internalServerError().body(
+                    getErrorResponse(request, response, ex, INTERNAL_SERVER_ERROR, emptyMap())
+            );
+        }
+    }
+
+    @PostMapping("/update")
+    public ResponseEntity<Response> updateOrder(@RequestBody @Valid OrderRequest orderRequest, HttpServletRequest request, HttpServletResponse response) {
+        try {
+            Order orderResult = orderService.updateOrder(orderRequest);
+            return ResponseEntity.created(getUri()).body(
+                    getResponse(request, "Order updated successfully!", CREATED, Map.of("data", orderResult))
             );
         } catch (BusinessException ex) {
             return ResponseEntity.internalServerError().body(

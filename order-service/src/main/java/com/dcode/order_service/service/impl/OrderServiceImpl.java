@@ -618,5 +618,31 @@ public class OrderServiceImpl implements IOrderService {
         return orderResponseBuilder.build();
     }
 
+    @Override
+    public Order updateOrder(OrderRequest request) {
+        OrderEntity order = orderRepository.findByCode(request.getCode())
+                .orElseThrow(() -> new BusinessException("Order not found with code: " + request.getCode()));
 
+        if(order.getStatus() > 3) {
+            throw new BusinessException("Cannot update order with status confirmed or delivered");
+        }
+
+        if(request.getStatus() != null) {
+            order.setStatus(request.getStatus());
+            order.setShippingImageURL(request.getShippingImageURL() != null ? request.getShippingImageURL() : order.getShippingImageURL());
+            order.setToName(request.getToName() != null ? request.getToName() : order.getToName());
+            order.setToPhone(request.getToPhone() != null ? request.getToPhone() : order.getToPhone());
+            order.setEmployeeName(request.getEmployeeName() != null ? request.getEmployeeName() : order.getEmployeeName());
+            order.setShipperName(request.getShipperName() != null ? request.getShipperName() : order.getShipperName());
+            order.setNote(request.getNote() != null ? request.getNote() : order.getNote());
+            order.setToDistrictName(request.getToDistrictName() != null ? request.getToDistrictName() : order.getToDistrictName());
+            order.setToProvinceName(request.getToProvinceName() != null ? request.getToProvinceName() : order.getToProvinceName());
+            order.setToWardName(request.getToWardName() != null ? request.getToWardName() : order.getToWardName());
+            order.setToAddress(request.getToAddress() != null ? request.getToAddress() : order.getToAddress());
+        }
+
+        orderRepository.save(order);
+
+        return fromOrderEntity(order);
+    }
 }

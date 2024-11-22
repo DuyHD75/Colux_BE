@@ -13,6 +13,8 @@ public class ShipmentUtils {
 
     public ShipmentEntity creatNewShipment(ShipmentDto shipmentDto) {
         return ShipmentEntity.builder()
+                .customerName(shipmentDto.getCustomerName())
+                .customerPhone(shipmentDto.getCustomerPhone())
                 .shipmentId(UUID.randomUUID().toString())
                 .customerName(shipmentDto.getCustomerName())
                 .customerPhone(shipmentDto.getCustomerPhone())

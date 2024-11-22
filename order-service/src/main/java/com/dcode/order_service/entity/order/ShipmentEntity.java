@@ -20,6 +20,12 @@ import lombok.experimental.Accessors;
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 public class ShipmentEntity extends Auditable {
 
+    @Column(name = "customer_name", nullable = false)
+    private String customerName;
+
+    @Column(name = "customer_phone", nullable = false)
+    private String customerPhone;
+
     @Column(name = "shipment_id", updatable = false, nullable = false, unique = true)
     private String shipmentId;
 

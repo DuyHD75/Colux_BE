@@ -41,4 +41,8 @@ public interface IOrderService {
     List<OrderResponse> getOrdersByCustomerId(String customerId, String orderId);
 
     PageResponse<DashboardResponse.ProductDto> getTopProducts(Pageable pageable);
+
+    Order updateOrder(OrderRequest request);
+
+
 }
