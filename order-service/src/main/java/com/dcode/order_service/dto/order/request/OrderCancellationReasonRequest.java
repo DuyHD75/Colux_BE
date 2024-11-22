@@ -6,8 +6,6 @@ import lombok.Data;
 
 @Data
 public class OrderCancellationReasonRequest {
-    private String name;
-    @Nullable
-    private String note;
-    private Integer status;
+    private String code;
+    private String cancelReason;
 }

@@ -189,6 +189,7 @@ public class WaybillServiceImpl implements WaybillService {
                 // (1) Tạo waybill
                 Waybill waybill = WaybillUtils.requestToEntity(waybillRequest);
 
+                waybill.setWaybillId(UUID.randomUUID().toString());
                 waybill.setCode(ghnCreateOrderResponse.getData().getOrderCode());
                 waybill.setOrder(order);
                 waybill.setExpectedDeliveryTime(ghnCreateOrderResponse.getData().getExpectedDeliveryTime());
@@ -213,9 +214,16 @@ public class WaybillServiceImpl implements WaybillService {
 
                 // (2.1) Thêm waybill log
                 WaybillLog waybillLog = new WaybillLog();
+                waybillLog.setWaybillLogId(UUID.randomUUID().toString());
                 waybillLog.setWaybill(waybillAfterSave);
+                waybillLog.setPreviousStatus(0); // Status 0: Chưa xác nhận
                 waybillLog.setCurrentStatus(1); // Status 1: Đang đợi lấy hàng
 
+                // Kiểm tra và khởi tạo danh sách waybillLogs nếu cần
+                if (waybillAfterSave.getWaybillLogs() == null) {
+                    waybillAfterSave.setWaybillLogs(new ArrayList<>());
+                }
+                waybillAfterSave.getWaybillLogs().add(waybillLog);
                 waybillLogRepository.save(waybillLog);
 
                 // (3) Thông báo cho người dùng về việc đơn hàng đã được duyệt

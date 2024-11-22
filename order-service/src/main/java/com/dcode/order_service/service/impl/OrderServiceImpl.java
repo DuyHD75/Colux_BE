@@ -9,6 +9,7 @@ import com.dcode.order_service.dto.cart.response.CartVariantResponse;
 import com.dcode.order_service.dto.dashboard.response.DashboardResponse;
 import com.dcode.order_service.dto.order.Order;
 import com.dcode.order_service.dto.order.request.GhnCalculateFeeRequest;
+import com.dcode.order_service.dto.order.request.OrderCancellationReasonRequest;
 import com.dcode.order_service.dto.order.request.OrderRequest;
 import com.dcode.order_service.dto.order.response.ConfirmedOrderResponse;
 import com.dcode.order_service.dto.order.response.GhnCalculateFeeResponse;
@@ -68,10 +69,7 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -111,13 +109,14 @@ public class OrderServiceImpl implements IOrderService {
 //    private final OrderProducer orderProducer;
 
     @Override
-    public void cancelOrder(String code) {
-        OrderEntity order = orderRepository.findByCode(code)
-                .orElseThrow(() -> new BusinessException("Order not found with code: " + code));
+    public void cancelOrder(OrderCancellationReasonRequest requestCancel) {
+        OrderEntity order = orderRepository.findByCode(requestCancel.getCode())
+                .orElseThrow(() -> new BusinessException("Order not found with code: " + requestCancel.getCode()));
 
         // Hủy đơn hàng khi status = 1 hoặc 2
         if (order.getStatus() < 3) {
             order.setStatus(5); // Status 5 là trạng thái Hủy
+            order.setCancelReason(requestCancel.getCancelReason());
             orderRepository.save(order);
 
             sendEmail(order, EventType.ORDER_CANCELLED);
@@ -147,6 +146,7 @@ public class OrderServiceImpl implements IOrderService {
                     for (var data : response.getBody().getData()) {
                         if (data.getResult()) {
                             WaybillLog waybillLog = new WaybillLog();
+                            waybillLog.setWaybillLogId(UUID.randomUUID().toString());
                             waybillLog.setWaybill(waybill);
                             waybillLog.setPreviousStatus(waybill.getStatus()); // Status 1: Đang đợi lấy hàng
                             waybillLog.setCurrentStatus(4);
@@ -160,7 +160,7 @@ public class OrderServiceImpl implements IOrderService {
             }
         } else {
             throw new RuntimeException(String
-                    .format("Order with code %s is in delivery or has been cancelled. Please check again!", code));
+                    .format("Order with code %s is in delivery or has been cancelled. Please check again!", requestCancel.getCode()));
         }
     }
 
@@ -324,8 +324,10 @@ public class OrderServiceImpl implements IOrderService {
             // (2) Cập nhật order
             if (order.getPaymentMethod() == PaymentMethod.COD) {
                 order.setPaymentStatus(3); // Status 3: Đã thanh toán đặt cọc (25%)
+                order.setPaypalOrderStatus(PaypalStatus.SUCCESS.getStatus());
             } else {
                 order.setPaymentStatus(2); // Status 2: Đã thanh toán
+                order.setPaypalOrderStatus(PaypalStatus.SUCCESS.getStatus());
             }
             order.setPaypalOrderStatus(OrderStatus.COMPLETED.toString());
 
@@ -364,7 +366,6 @@ public class OrderServiceImpl implements IOrderService {
         }
     }
 
-    @PreAuthorize("hasRole('MANAGER')")
     @Override
     public List<OrderResponse> getAllOrders() {
         List<OrderEntity> orders = orderRepository.findAll();
@@ -563,6 +564,7 @@ public class OrderServiceImpl implements IOrderService {
     private OrderResponse mapOrderToResponse(OrderEntity order) {
         // Create OrderResponse for each order
         OrderResponse.OrderResponseBuilder orderResponseBuilder = OrderResponse.builder()
+                .orderId(order.getOrderId())
                 .toName(order.getToName())
                 .toAddress(order.getToAddress())
                 .toWardName(order.getToWardName())

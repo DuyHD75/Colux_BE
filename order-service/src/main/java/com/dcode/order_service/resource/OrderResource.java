@@ -3,6 +3,7 @@ package com.dcode.order_service.resource;
 
 import com.dcode.order_service.domain.Response;
 import com.dcode.order_service.dto.order.request.GhnCalculateFeeRequest;
+import com.dcode.order_service.dto.order.request.OrderCancellationReasonRequest;
 import com.dcode.order_service.dto.order.request.OrderRequest;
 import com.dcode.order_service.dto.order.response.ConfirmedOrderResponse;
 import com.dcode.order_service.dto.shipment.ShipmentDto;
@@ -127,10 +128,10 @@ public class OrderResource {
     }
 
 
-    @PutMapping("/cancel/{code}")
-    public ResponseEntity<Response> cancelOrder(@PathVariable("code") String code, HttpServletRequest request, HttpServletResponse response) {
+    @PostMapping("/cancel")
+    public ResponseEntity<Response> cancelOrder(@RequestBody OrderCancellationReasonRequest requestCancel, HttpServletRequest request, HttpServletResponse response) {
         try {
-            orderService.cancelOrder(code);
+            orderService.cancelOrder(requestCancel);
             return ResponseEntity.ok().body(
                     getResponse(request, "Order cancelled successfully!", OK, emptyMap())
             );

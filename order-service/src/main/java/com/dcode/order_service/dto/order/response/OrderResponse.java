@@ -17,6 +17,7 @@ import java.util.List;
 @Builder
 public class OrderResponse {
     private Long id;
+    private String orderId;
     private Instant createdAt;
     private Instant updatedAt;
     private String code;

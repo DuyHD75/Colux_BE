@@ -26,8 +26,8 @@ public class Constants {
                 "/api/v1/orders/customerId/**",
                 "/api/v1/orders/order/**",
                 "/api/v1/orders/cancel/**",
-                "/api/v1/orders/getAll",
-                "/api/v1/waybills/**",
+                "/api/v1/waybills/public/**",
+                "/api/v1/orders/cancel",
 
         };
         public static final String PAYPAL_BASE_URL = "https://api-m.sandbox.paypal.com";

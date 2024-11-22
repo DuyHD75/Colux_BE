@@ -23,7 +23,7 @@ import java.util.List;
 @Table(name = "waybill")
 public class Waybill extends Auditable {
 
-    @Column(name = "waybill_id)", nullable = false, updatable = false)
+    @Column(name = "waybill_id", nullable = false, updatable = false)
     private String waybillId;
 
     @Column(name = "code", nullable = false, unique = true)
@@ -74,4 +74,5 @@ public class Waybill extends Auditable {
     @OneToMany(mappedBy = "waybill", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
     private List<WaybillLog> waybillLogs = new ArrayList<>();
+
 }

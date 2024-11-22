@@ -4,6 +4,7 @@ package com.dcode.order_service.service;
 import com.dcode.order_service.dto.dashboard.response.DashboardResponse;
 import com.dcode.order_service.dto.order.Order;
 import com.dcode.order_service.dto.order.request.GhnCalculateFeeRequest;
+import com.dcode.order_service.dto.order.request.OrderCancellationReasonRequest;
 import com.dcode.order_service.dto.order.request.OrderRequest;
 import com.dcode.order_service.dto.order.response.ConfirmedOrderResponse;
 import com.dcode.order_service.dto.order.response.GhnCalculateFeeResponse;
@@ -17,7 +18,7 @@ import java.util.List;
 import java.util.Map;
 
 public interface IOrderService {
-    void cancelOrder(String code);
+    void cancelOrder(OrderCancellationReasonRequest request);
 
     ConfirmedOrderResponse createClientOrder(OrderRequest request);
 
