@@ -13,6 +13,8 @@ public class ShipmentUtils {
 
     public ShipmentEntity creatNewShipment(ShipmentDto shipmentDto) {
         return ShipmentEntity.builder()
+                .customerName(shipmentDto.getCustomerName())
+                .customerPhone(shipmentDto.getCustomerPhone())
                 .shipmentId(UUID.randomUUID().toString())
                 .customerId(shipmentDto.getCustomerId())
                 .toAddress(shipmentDto.getToAddress())
@@ -25,6 +27,8 @@ public class ShipmentUtils {
 
     public ShipmentEntity partialUpdate(ShipmentEntity existingEntity, ShipmentDto shipmentDto) {
         existingEntity.setCustomerId(shipmentDto.getCustomerId());
+        existingEntity.setCustomerName(shipmentDto.getCustomerName());
+        existingEntity.setCustomerPhone(shipmentDto.getCustomerPhone());
         existingEntity.setToAddress(shipmentDto.getToAddress());
         existingEntity.setToWardName(shipmentDto.getToWardName());
         existingEntity.setToDistrictName(shipmentDto.getToDistrictName());
@@ -36,6 +40,8 @@ public class ShipmentUtils {
     public ShipmentDto entityToDto(ShipmentEntity shipmentEntity) {
         ShipmentDto shipmentDto = new ShipmentDto();
         shipmentDto.setCustomerId(shipmentEntity.getCustomerId());
+        shipmentDto.setCustomerName(shipmentEntity.getCustomerName());
+        shipmentDto.setCustomerPhone(shipmentEntity.getCustomerPhone());
         shipmentDto.setShipmentId(shipmentEntity.getShipmentId());
         shipmentDto.setToAddress(shipmentEntity.getToAddress());
         shipmentDto.setToWardName(shipmentEntity.getToWardName());

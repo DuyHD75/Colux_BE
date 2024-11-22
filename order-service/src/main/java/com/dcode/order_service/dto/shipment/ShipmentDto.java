@@ -7,6 +7,8 @@ import lombok.Data;
 public class ShipmentDto {
     @NotNull(message = "CustomerId is required")
     private String customerId;
+    private String customerName;
+    private String customerPhone;
     private String shipmentId;
     private String toAddress;
     private String toWardName;
