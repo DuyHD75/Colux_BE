@@ -10,8 +10,6 @@ public class ShipmentDto {
     private String customerName;
     private String customerPhone;
     private String shipmentId;
-    private String customerName;
-    private String customerPhone;
     private String toAddress;
     private String toWardName;
     private String toDistrictName;

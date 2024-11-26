@@ -16,13 +16,10 @@ import com.dcode.product_service.repository.*;
 import com.dcode.product_service.service.IProductService;
 import com.dcode.product_service.utils.ProductUtils;
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.Query;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -851,7 +848,7 @@ public class ProductServiceImpl implements IProductService {
     long featureCount = features != null ? features.size() : 0;
     Double minValue = Double.MIN_VALUE;
     Double maxValue = Double.MAX_VALUE;
-    Page<Product> productPage = productRepository.filterProductsNative(type, minPrice, maxPrice, properties, features, propertyCount, featureCount, pageable);
+    Page<Product> productPage = productRepository.filterProducts(type, minPrice, maxPrice, properties, features, propertyCount, featureCount, pageable);
 
     if (productPage.isEmpty()) {
         return PageResponseBuilder.buildPageResponse(Page.empty());

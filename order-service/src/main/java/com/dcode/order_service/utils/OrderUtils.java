@@ -4,6 +4,7 @@ import com.dcode.order_service.dto.order.Order;
 import com.dcode.order_service.dto.order.request.OrderLineRequest;
 import com.dcode.order_service.dto.order.request.OrderRequest;
 import com.dcode.order_service.dto.order.response.OrderLineResponse;
+import com.dcode.order_service.dto.order.response.OrderResponse;
 import com.dcode.order_service.dto.product.OrderLineDTO;
 import com.dcode.order_service.dto.product.PurchaseResponse;
 import com.dcode.order_service.entity.order.OrderLineEntity;
@@ -17,6 +18,8 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.Instant;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -80,11 +83,29 @@ public class OrderUtils {
                 .add(totalAmount.multiply(BigDecimal.valueOf(DEFAULT_TAX)).setScale(0, RoundingMode.HALF_UP));
     }
 
-    public static Order fromOrderEntity(OrderEntity orderEntity) {
-        Order order = new Order();
-        BeanUtils.copyProperties(orderEntity, order);
-        order.setCode(orderEntity.getCode());
-        return null;
+    public static OrderResponse fromOrderEntity(OrderEntity orderEntity) {
+        return OrderResponse.builder()
+                .shippingImageURL(orderEntity.getShippingImageURL())
+                .shipperName(orderEntity.getShipperName())
+                .advancePayment(orderEntity.getAdvancePayment())
+                .code(orderEntity.getCode())
+                .createdAt(orderEntity.getCreatedAt().atZone(ZoneOffset.UTC).toInstant())
+                .employeeName(orderEntity.getEmployeeName())
+                .id(orderEntity.getId())
+                .note(orderEntity.getNote())
+                .paymentMethod(orderEntity.getPaymentMethod())
+                .paymentStatus(orderEntity.getPaymentStatus())
+                .shippingCost(orderEntity.getShippingCost())
+                .status(orderEntity.getStatus())
+                .tax(orderEntity.getTax())
+                .toAddress(orderEntity.getToAddress())
+                .toDistrictName(orderEntity.getToDistrictName())
+                .toName(orderEntity.getToName())
+                .toPhone(orderEntity.getToPhone())
+                .toProvinceName(orderEntity.getToProvinceName())
+                .totalAmount(orderEntity.getTotalAmount())
+                .totalPay(orderEntity.getTotalPay())
+                .build();
     }
 
 

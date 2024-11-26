@@ -6,7 +6,9 @@ import com.dcode.order_service.dto.order.Order;
 import com.dcode.order_service.dto.order.request.GhnCalculateFeeRequest;
 import com.dcode.order_service.dto.order.request.OrderCancellationReasonRequest;
 import com.dcode.order_service.dto.order.request.OrderRequest;
+import com.dcode.order_service.dto.order.request.OrderUpdateRequest;
 import com.dcode.order_service.dto.order.response.ConfirmedOrderResponse;
+import com.dcode.order_service.dto.order.response.OrderResponse;
 import com.dcode.order_service.dto.shipment.ShipmentDto;
 import com.dcode.order_service.exception.BusinessException;
 import com.dcode.order_service.exception.ResourceNotFoundException;
@@ -51,7 +53,7 @@ public class OrderResource {
     private final IShipmentService shipmentService;
 
 
-    @GetMapping("/topProducts")
+    @GetMapping("/public/topProducts")
     public ResponseEntity<Response> getTopProducts(@RequestParam(defaultValue = "0") int page,
                                                    @RequestParam(defaultValue = "10") int size,
                                                    HttpServletRequest request,
@@ -129,11 +131,11 @@ public class OrderResource {
     }
 
     @PostMapping("/update")
-    public ResponseEntity<Response> updateOrder(@RequestBody @Valid OrderRequest orderRequest, HttpServletRequest request, HttpServletResponse response) {
+    public ResponseEntity<Response> updateOrder(@RequestBody @Valid OrderUpdateRequest orderRequest, HttpServletRequest request, HttpServletResponse response) {
         try {
-            Order orderResult = orderService.updateOrder(orderRequest);
-            return ResponseEntity.created(getUri()).body(
-                    getResponse(request, "Order updated successfully!", CREATED, Map.of("data", orderResult))
+            OrderResponse orderResult = orderService.updateOrder(orderRequest);
+            return ResponseEntity.ok().body(
+                    getResponse(request, "Order updated successfully!", OK, Map.of("data", orderResult))
             );
         } catch (BusinessException ex) {
             return ResponseEntity.internalServerError().body(

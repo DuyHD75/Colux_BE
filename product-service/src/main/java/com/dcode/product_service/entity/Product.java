@@ -16,7 +16,10 @@ import java.util.Set;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "products")
+@Table(name = "products", indexes = {
+        @Index(name = "idx_product_name", columnList = "productName"),
+        @Index(name = "idx_fulltext", columnList = "productName, description", unique = true)
+})
 //@Inheritance(strategy = InheritanceType.JOINED)
 public class Product extends Auditable{
 

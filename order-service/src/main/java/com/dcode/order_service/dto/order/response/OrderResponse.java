@@ -18,6 +18,7 @@ import java.util.List;
 public class OrderResponse {
     private Long id;
     private String orderId;
+    private String customerId;
     private Instant createdAt;
     private Instant updatedAt;
     private String code;
@@ -28,9 +29,11 @@ public class OrderResponse {
     private String toWardName;
     private String toDistrictName;
     private String toProvinceName;
-    @Nullable
+    private String employeeName;
+    private String shippingImageURL;
+    private String shipperName;
+    private String email;
     private OrderCancellationReasonResponse orderCancellationReason;
-    @Nullable
     private String note;
     private UserResponse customer;
     private BigDecimal totalAmount;
@@ -40,6 +43,7 @@ public class OrderResponse {
     private BigDecimal advancePayment;
     private PaymentMethod paymentMethod;
     private Integer paymentStatus;
+    private String waybillId;
 
     private List<CartVariantResponse.ClientVariantResponse> products;
 

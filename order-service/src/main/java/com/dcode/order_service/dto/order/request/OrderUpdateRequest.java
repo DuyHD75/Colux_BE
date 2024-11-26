@@ -5,7 +5,10 @@ import com.dcode.order_service.entity.order.ShipmentEntity;
 import com.dcode.order_service.enumuration.PaymentMethod;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import jakarta.persistence.OneToOne;
-import jakarta.validation.constraints.*;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 import lombok.Data;
 import org.springframework.lang.Nullable;
 
@@ -14,7 +17,7 @@ import java.util.List;
 
 @Data
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class OrderRequest {
+public class OrderUpdateRequest {
     private String orderId;
     private String code;
     private Integer status;
@@ -33,11 +36,8 @@ public class OrderRequest {
     private String toDistrictName;
     @NotBlank(message = "To province name must not be blank")
     private String toProvinceName;
-    @Nullable
     private String reference;
-    @Nullable
     private String cancelReason;
-    @Nullable
     private String note;
 
     private String employeeName;
@@ -49,17 +49,9 @@ public class OrderRequest {
     private BigDecimal totalPay;
     private String customerId;
 
-    @OneToOne(targetEntity = ShipmentEntity.class)
-    private ShipmentEntity shipment;
 
     private BigDecimal advancePayment;
-
-    @NotNull(message = "You should at least purchase one product")
-    private List<PurchaseRequest> purchaseProducts;
-
-    @Positive(message = "Shipping cost must be positive number")
     private BigDecimal shippingCost;
-
     @NotNull(message = "Payment method type must not be precised")
     private PaymentMethod paymentMethod;
 

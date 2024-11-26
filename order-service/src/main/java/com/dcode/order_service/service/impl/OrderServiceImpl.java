@@ -11,6 +11,7 @@ import com.dcode.order_service.dto.order.Order;
 import com.dcode.order_service.dto.order.request.GhnCalculateFeeRequest;
 import com.dcode.order_service.dto.order.request.OrderCancellationReasonRequest;
 import com.dcode.order_service.dto.order.request.OrderRequest;
+import com.dcode.order_service.dto.order.request.OrderUpdateRequest;
 import com.dcode.order_service.dto.order.response.ConfirmedOrderResponse;
 import com.dcode.order_service.dto.order.response.GhnCalculateFeeResponse;
 import com.dcode.order_service.dto.order.response.OrderResponse;
@@ -381,7 +382,7 @@ public class OrderServiceImpl implements IOrderService {
         return orderLineRepository.existsByOrderEntity_customerIdAndProductId(customerId, productId);
     }
 
-    @Scheduled(fixedRate = 120000)
+    @Scheduled(fixedRate = 60000)
     public void checkOrderPaymentStatus() {
         List<OrderEntity> orders = orderRepository.findAllByPaypalOrderStatus(PaypalStatus.CREATED.getStatus()); // Tìm các đơn hàng chưa thanh toán
 
@@ -401,7 +402,7 @@ public class OrderServiceImpl implements IOrderService {
 
                     long timeDifference = ChronoUnit.MINUTES.between(createdTime, currentTime);
 
-                    if (timeDifference > 10) { // Nếu đã hơn 10 phút
+                    if (timeDifference > 4) { // Nếu đã hơn 10 phút
                         updateOrderStatusToFailed(lockedOrder);
                     }
                 }
@@ -562,10 +563,12 @@ public class OrderServiceImpl implements IOrderService {
     }
 
     private OrderResponse mapOrderToResponse(OrderEntity order) {
-        // Create OrderResponse for each order
+        Waybill waybill = waybillRepository.findByOrder_OrderId(order.getOrderId()).orElse(null);
+
         OrderResponse.OrderResponseBuilder orderResponseBuilder = OrderResponse.builder()
                 .orderId(order.getOrderId())
                 .toName(order.getToName())
+                .customerId(order.getCustomerId())
                 .toAddress(order.getToAddress())
                 .toWardName(order.getToWardName())
                 .toDistrictName(order.getToDistrictName())
@@ -573,6 +576,10 @@ public class OrderServiceImpl implements IOrderService {
                 .toPhone(order.getToPhone())
                 .paymentMethod(order.getPaymentMethod())
                 .totalAmount(order.getTotalAmount())
+                .shipperName(order.getShipperName())
+                .email(order.getToEmail())
+                .shippingImageURL(order.getShippingImageURL())
+                .employeeName(order.getEmployeeName())
                 .tax(order.getTax())
                 .shippingCost(order.getShippingCost())
                 .totalPay(order.getTotalPay())
@@ -583,6 +590,7 @@ public class OrderServiceImpl implements IOrderService {
                 .createdAt(order.getCreatedAt().atZone(ZoneOffset.UTC).toInstant())
                 .updatedAt(order.getUpdatedAt().atZone(ZoneOffset.UTC).toInstant())
                 .code(order.getCode())
+                .waybillId(waybill != null ? waybill.getWaybillId() : null)
                 .id(order.getId());
 
         // Map order lines to CartVariantRequests to send to product service
@@ -619,8 +627,8 @@ public class OrderServiceImpl implements IOrderService {
     }
 
     @Override
-    public Order updateOrder(OrderRequest request) {
-        OrderEntity order = orderRepository.findByCode(request.getCode())
+    public OrderResponse updateOrder(OrderUpdateRequest request) {
+            OrderEntity order = orderRepository.findByCode(request.getCode())
                 .orElseThrow(() -> new BusinessException("Order not found with code: " + request.getCode()));
 
         if(order.getStatus() > 3) {

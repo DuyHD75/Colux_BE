@@ -6,6 +6,7 @@ import com.dcode.order_service.dto.order.Order;
 import com.dcode.order_service.dto.order.request.GhnCalculateFeeRequest;
 import com.dcode.order_service.dto.order.request.OrderCancellationReasonRequest;
 import com.dcode.order_service.dto.order.request.OrderRequest;
+import com.dcode.order_service.dto.order.request.OrderUpdateRequest;
 import com.dcode.order_service.dto.order.response.ConfirmedOrderResponse;
 import com.dcode.order_service.dto.order.response.GhnCalculateFeeResponse;
 import com.dcode.order_service.dto.order.response.OrderResponse;
@@ -42,7 +43,7 @@ public interface IOrderService {
 
     PageResponse<DashboardResponse.ProductDto> getTopProducts(Pageable pageable);
 
-    Order updateOrder(OrderRequest request);
+    OrderResponse updateOrder(OrderUpdateRequest request);
 
 
 }

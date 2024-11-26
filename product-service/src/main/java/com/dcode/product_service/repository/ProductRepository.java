@@ -4,7 +4,6 @@ import com.dcode.product_service.entity.Product;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import java.lang.Double;
@@ -32,18 +31,16 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
   Page<Product> findProductsWithAssociations(Pageable pageable);
 
 
-  @Query(value = "SELECT p.* " +
-          "FROM products p " +
-          "LEFT JOIN brands b ON p.brand_id = b.id " +
-          "LEFT JOIN paints pa ON p.id = pa.product_id " +
-          "LEFT JOIN colors c ON pa.color_id = c.id " +
-          "WHERE (:keyword IS NULL OR " +
-          "LOWER(p.product_name) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
-          "LOWER(b.name) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
-          "LOWER(c.name) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
-          "LOWER(c.hex) LIKE LOWER(CONCAT('%', :keyword, '%')))",
+  @Query(value = "SELECT * FROM products WHERE MATCH(product_name, description) AGAINST (:keyword IN BOOLEAN MODE)",
           nativeQuery = true)
   List<Product> searchProductsByKeyword(@Param("keyword") String keyword);
+
+
+  @Query("SELECT DISTINCT p FROM Product p " +
+       "LEFT JOIN p.paints pa " +
+       "LEFT JOIN pa.color c " +
+       "WHERE c.hex IN :keywords")
+List<Product> searchProductsByColors(@Param("keywords") List<String> keywords);
 
 
   @Query("SELECT DISTINCT p FROM Product p " +
@@ -60,14 +57,14 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
        "EXISTS (SELECT 1 FROM floor.floorVariants fv WHERE fv.price BETWEEN :minPrice AND :maxPrice)) " +
        "AND (:properties IS NULL OR :propertyCount = (SELECT COUNT(DISTINCT pv.property.propertyId) FROM p.propertyValues pv WHERE pv.property.propertyId IN :properties AND pv.property.propertyId IS NOT NULL)) " +
        "AND (:features IS NULL OR :featureCount = (SELECT COUNT(DISTINCT fv.feature.featureId) FROM p.featureValues fv WHERE fv.feature.featureId IN :features AND fv.feature.featureId IS NOT NULL))")
-Page<Product> filterProductsNative(@Param("type") String type,
-                                   @Param("minPrice") Double minPrice,
-                                   @Param("maxPrice") Double maxPrice,
-                                   @Param("properties") List<String> properties,
-                                   @Param("features") List<String> features,
-                                   @Param("propertyCount") long propertyCount,
-                                   @Param("featureCount") long featureCount,
-                                   Pageable pageable);
+Page<Product> filterProducts(@Param("type") String type,
+                             @Param("minPrice") Double minPrice,
+                             @Param("maxPrice") Double maxPrice,
+                             @Param("properties") List<String> properties,
+                             @Param("features") List<String> features,
+                             @Param("propertyCount") long propertyCount,
+                             @Param("featureCount") long featureCount,
+                             Pageable pageable);
 
 
 

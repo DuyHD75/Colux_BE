@@ -29,12 +29,6 @@ public class ShipmentEntity extends Auditable {
     @Column(name = "shipment_id", updatable = false, nullable = false, unique = true)
     private String shipmentId;
 
-    @Column(name = "customer_name", nullable = false)
-    private String customerName;
-
-    @Column(name = "customer_phone", nullable = false)
-    private String customerPhone;
-
     @Column(name = "customer_id", nullable = false)
     private String customerId;
 

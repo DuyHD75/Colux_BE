@@ -73,7 +73,7 @@ public class WaybillServiceImpl implements WaybillService {
     @Autowired
     private ObjectMapper objectMapper;
 
-    @Scheduled(fixedRate = 300000)
+    @Scheduled(fixedRate = 30000)
     public void checkOrderShipmentStatus() {
         List<Waybill> waybills = waybillRepository.findAllByStatusIn(List.of(1, 2));
         if (!waybills.isEmpty()) {

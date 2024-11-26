@@ -34,6 +34,13 @@ public class SearchController {
         return ResponseEntity.ok().body(getResponse(request, Map.of("Results", results), "Search results fetched successfully!", OK));
     }
 
+    @GetMapping("/public/bulk")
+    public ResponseEntity<Response> bulkSearch(@RequestParam List<String> keywords,
+                                               HttpServletRequest request) {
+        Map<String, List<?>> results = searchService.bulkSearchByKeywords(keywords);
+        return ResponseEntity.ok().body(getResponse(request, Map.of("Results", results), "Search results fetched successfully!", OK));
+    }
+
 
 
 }

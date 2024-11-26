@@ -10,6 +10,9 @@ public class Constants {
                 "/order-service/api/v1/orders/create",
                 "/order-service/api/v1/chats/.*",
                 "/order-service/api/v1/orders/payment/.*",
+                "/order-service/api/v1/orders/update",
+                "/order-service/api/v1/orders/public/.*",
+                "/order-service/api/v1/orders/getAll/.*",
                 "/order-service/api/v1/waybills/public/.*",
                 "/product-service/api/v1/products/categories/.*"
 //                "/order-service/ws/.*",
