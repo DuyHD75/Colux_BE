@@ -8,6 +8,7 @@ import java.util.Optional;
 
 @Repository
 public interface BrandRepository extends JpaRepository<Brand, Long> {
+    Optional<Brand> findByCode(String brandCode);
     Optional<Brand> findBrandByBrandId(String brandId);
 
 }

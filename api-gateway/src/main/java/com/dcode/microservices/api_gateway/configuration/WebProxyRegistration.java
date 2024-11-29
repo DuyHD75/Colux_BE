@@ -30,7 +30,7 @@ public class WebProxyRegistration {
     @Bean
     CorsWebFilter corsWebFilter() {
         CorsConfiguration corsConfiguration = new CorsConfiguration();
-        corsConfiguration.setAllowedOrigins(List.of("https://colux.vercel.app", "http://localhost:3000", "http://localhost:3001", "https://colux-admin.vercel.app"));
+        corsConfiguration.setAllowedOrigins(List.of("https://colux.vercel.app", "http://localhost:3000", "http://localhost:3001", "https://colux-admin.vercel.app", "http://localhost:5173", "https://colux-tool.vercel.app"));
         corsConfiguration.setAllowedHeaders(List.of("Content-Type"));
         corsConfiguration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE"));
         corsConfiguration.setAllowCredentials(true);

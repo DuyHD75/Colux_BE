@@ -13,6 +13,8 @@ import java.util.Optional;
 
 public interface ProductRepository extends JpaRepository<Product, Long> {
 
+  Optional<Product> findByCode(String code);
+
   Optional<Product> findByProductId(String productId);
 
   @Query("SELECT p FROM Product p " +
@@ -36,12 +38,11 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
   List<Product> searchProductsByKeyword(@Param("keyword") String keyword);
 
 
-  @Query("SELECT DISTINCT p FROM Product p " +
-       "LEFT JOIN p.paints pa " +
-       "LEFT JOIN pa.color c " +
+ @Query("SELECT DISTINCT p FROM Product p " +
+       "JOIN p.paints pa " +
+       "JOIN pa.color c " +
        "WHERE c.hex IN :keywords")
 List<Product> searchProductsByColors(@Param("keywords") List<String> keywords);
-
 
   @Query("SELECT DISTINCT p FROM Product p " +
        "LEFT JOIN p.paints paint " +

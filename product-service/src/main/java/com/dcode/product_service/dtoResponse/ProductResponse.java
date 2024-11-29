@@ -32,6 +32,7 @@ public class ProductResponse {
     private List<ImageResponse> images;
     private Set<FeatureValueResponse> features;
     private Set<PropertyValueResponse> properties;
+    private Integer reviewCount;
 
 
     @JsonInclude(JsonInclude.Include.NON_EMPTY)

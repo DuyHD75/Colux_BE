@@ -20,7 +20,7 @@ import com.dcode.product_service.service.IReviewService;
 import com.dcode.product_service.utils.ReviewUtils;
 import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
-import lombok.RequiredArgsConstructor;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Session;
 import org.springframework.data.domain.Page;
@@ -32,10 +32,10 @@ import java.util.stream.Collectors;
 
 import static com.dcode.product_service.utils.ReviewUtils.fromReviewEntity;
 
-@Service
 @Transactional(rollbackOn = Exception.class)
-@RequiredArgsConstructor
+@AllArgsConstructor
 @Slf4j
+@Service
 public class ReviewServiceImpl implements IReviewService {
 
     private final ReviewRepository reviewRepository;
@@ -44,6 +44,8 @@ public class ReviewServiceImpl implements IReviewService {
     private final UserClientProxy userClientProxy;
     private final IOrderClientProxy orderClientProxy;
     private final EntityManager entityManager;
+
+
 
     public ReviewResponse createAReview(ReviewRequest reviewRequest) {
 
@@ -121,15 +123,25 @@ public class ReviewServiceImpl implements IReviewService {
             throw new BusinessException("Product not found");
         }
         Page<Review> reviewsPage = reviewRepository.findAllByProduct_ProductId(productId, pageable);
-        if (reviewsPage.isEmpty()) {
+        return convertReviews(reviewsPage, pageable, reviewsPage.getTotalElements());
+        }
+
+    @Override
+    public PageResponse<ReviewResponse> getReviewsByUserId(String userId, Pageable pageable) {
+        Page<Review> reviewPage = reviewRepository.findAllByCustomerId(userId, pageable);
+        return convertReviews(reviewPage, pageable, reviewPage.getTotalElements());
+    }
+
+    private PageResponse<ReviewResponse> convertReviews(Page<Review> reviews, Pageable pageable, long totalElements) {
+        if (reviews.isEmpty()) {
             throw new BusinessException("No comments found for the product");
         }
-        List<Review> reviews = reviewsPage.getContent();
-        List<Review> rootReviews = reviews.stream()
+        List<Review> reviewList = reviews.getContent();
+        List<Review> rootReviews = reviewList.stream()
                 .filter(review -> review.getParent() == null)
                 .toList();
         List<ReviewResponse> reviewResponses = rootReviews.stream()
-                .map(review -> convertToDto(review, reviews))
+                .map(review -> convertToDto(review, reviewList))
                 .toList();
 
         List<UserRequest> userRequestList = reviewResponses.stream().map(
@@ -147,11 +159,12 @@ public class ReviewServiceImpl implements IReviewService {
                 reviewResponse.setUserInfo(userResponse);
             } else {
                 log.warn("No user information found for customerId: {}", reviewResponse.getCustomerId());
-                throw new BusinessException("No user information found for customerId: {}", reviewResponse.getCustomerId());
+//                throw new BusinessException("No user information found for customerId: {}", reviewResponse.getCustomerId());
             }
         });
 
-        return PageResponseBuilder.buildPageResponseFromList(reviewResponses, pageable, reviewsPage.getTotalElements());
+        return PageResponseBuilder.buildPageResponseFromList(reviewResponses, pageable, totalElements);
+
     }
 
     private ReviewResponse convertToDto(Review review, List<Review> allReviews) {
@@ -189,5 +202,7 @@ public class ReviewServiceImpl implements IReviewService {
         }
         return true;
     }
+
+
 }
 

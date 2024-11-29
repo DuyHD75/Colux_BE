@@ -423,7 +423,7 @@ public class OrderServiceImpl implements IOrderService {
             order.setVersion(0L);
         }
         order.setPaypalOrderStatus(PaypalStatus.FAILED.getStatus());
-        order.setStatus(3);
+        order.setStatus(OrderStatus.CANCELLED.getValue());
 
         List<OrderLineDTO> orderLineRequests = order.getOrderLines().stream()
                 .map(OrderUtils::fromOrderLineEntityToDTO)

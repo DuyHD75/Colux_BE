@@ -12,6 +12,7 @@ import java.util.Optional;
 import java.util.Set;
 
 public interface ColorRepository extends JpaRepository<Color, Long> {
+    Optional<Color> findByHex(String hex);
     Optional<Color> findByColorId(String colorId);
     Optional<Color> deleteColorByColorId(String colorId);
     Set<Color>  findByColorIdIn(Set<String> colorIds);

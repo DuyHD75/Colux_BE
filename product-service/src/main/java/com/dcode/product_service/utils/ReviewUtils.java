@@ -24,6 +24,7 @@ public class ReviewUtils {
                 .productId(review.getProduct().getProductId())
                 .score(review.getScore())
                 .content(review.getContent())
+                .updatedAt(review.getUpdatedAt())
                 .build();
         if (review.getParent() == null){
             response.setParentId(null);

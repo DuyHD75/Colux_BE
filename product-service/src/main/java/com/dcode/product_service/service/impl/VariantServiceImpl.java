@@ -38,7 +38,7 @@ public class VariantServiceImpl implements IVariantService {
         return fromVariantEntity(variantSet);
     }
 
-    private Variant createAVariantEntity(String sizeName, String categoryName, String packageType) {
+    Variant createAVariantEntity(String sizeName, String categoryName, String packageType) {
         return fromAVariantEntity(sizeName, categoryName, packageType);
     }
 

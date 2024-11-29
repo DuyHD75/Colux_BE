@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Optional;
 
 public interface PaintRepository extends JpaRepository<Paint, Long> {
-    Optional<Paint> findPaintByProductAndAndColor(Product product, Color color);
+    Optional<Paint> findByProduct_ProductIdAndColor_Hex(String productId, String Hex);
     Optional<Paint> findByPaintId(String paintId);
     Page<Paint> findAllByColor_ColorId(String colorId, Pageable pageable);
 }

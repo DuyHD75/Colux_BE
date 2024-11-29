@@ -62,24 +62,28 @@ public class SearchServiceImpl implements ISearchService {
         return results;
     }
 
-    @Override
-    public Map<String, List<?>> bulkSearchByKeywords(List<String> keywords) {
-        if (keywords == null || keywords.isEmpty()) {
-            return new HashMap<>();
-        }
-
-        List<Product> products = productRepository.searchProductsByColors(keywords);
-
-        List<ProductResponse> productResponseList = products.stream()
-                .filter(product -> (product.getPaints() != null && !product.getPaints().isEmpty()) ||
-                        (product.getWallpapers() != null && !product.getWallpapers().isEmpty()) ||
-                        (product.getFloors() != null && !product.getFloors().isEmpty()))
-                .map(ProductUtils::fromProductEntity)
-                .toList();
-
-        Map<String, List<?>> results = new HashMap<>();
-        results.put("products", productResponseList);
-
-        return results;
+   @Override
+public Map<String, List<?>> bulkSearchByKeywords(List<String> keywords) {
+    if (keywords == null || keywords.isEmpty()) {
+        return new HashMap<>();
     }
+
+    List<String> formattedKeywords = keywords.stream()
+            .map(keyword -> "#" + keyword)
+            .toList();
+
+    List<Product> products = productRepository.searchProductsByColors(formattedKeywords);
+
+    List<ProductResponse> productResponseList = products.stream()
+            .filter(product -> (product.getPaints() != null && !product.getPaints().isEmpty()) ||
+                    (product.getWallpapers() != null && !product.getWallpapers().isEmpty()) ||
+                    (product.getFloors() != null && !product.getFloors().isEmpty()))
+            .map(ProductUtils::fromProductEntity)
+            .toList();
+
+    Map<String, List<?>> results = new HashMap<>();
+    results.put("products", productResponseList);
+
+    return results;
+}
 }

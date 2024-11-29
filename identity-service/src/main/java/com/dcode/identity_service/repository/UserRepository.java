@@ -21,6 +21,9 @@ public interface UserRepository extends JpaRepository<UserEntity, Long> {
     @Query("SELECT COUNT(u) FROM UserEntity u WHERE u.role.name = 'USER'")
     long countUsersWithUserRole();
 
+    @Query("SELECT u FROM UserEntity u where u.role.name = 'USER'")
+    List<UserEntity> findUsersWithRole();
+
     @Query("SELECT COUNT(u) FROM UserEntity u WHERE u.createdAt BETWEEN :start AND :end")
     long countByCreatedAtBetween(LocalDateTime start, LocalDateTime end);
 }

@@ -75,4 +75,8 @@ public class Waybill extends Auditable {
     @JsonManagedReference
     private List<WaybillLog> waybillLogs = new ArrayList<>();
 
+    public void addWaybillLog(WaybillLog log) {
+        waybillLogs.add(log);
+        log.setWaybill(this); // Đảm bảo ánh xạ hai chiều
+    }
 }

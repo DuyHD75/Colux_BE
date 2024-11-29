@@ -188,7 +188,7 @@ public class OrderResource {
         }
     }
 
-    @GetMapping("/{customer-id}/{product-id}")
+    @GetMapping("/public/{customer-id}/{product-id}")
     public boolean hasCustomerPurchasedProduct(@PathVariable("customer-id") String customerId, @PathVariable("product-id") String productId) {
         try {
             return orderService.hasCustomerPurchasedProduct(customerId, productId);

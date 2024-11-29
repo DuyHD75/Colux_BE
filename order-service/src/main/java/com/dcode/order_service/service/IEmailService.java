@@ -9,5 +9,8 @@ import java.util.Map;
 public interface IEmailService {
     void sendOrderPlacedEmail(OrderEntity orderEntity, List<CartVariantResponse.ClientVariantResponse> productLines, Map<?, ?> data);
     void sendOrderCancelledEmail(OrderEntity orderEntity, List<CartVariantResponse.ClientVariantResponse> productLines, Map<?, ?> data);
-    void sendOrderCompletedEmail(OrderEntity orderEntity, List<CartVariantResponse.ClientVariantResponse> productLines, Map<?, ?> data);
+
+    default void sendOrderCompletedEmail(OrderEntity orderEntity, List<CartVariantResponse.ClientVariantResponse> productLines, Map<?, ?> data) {
+
+    }
 }

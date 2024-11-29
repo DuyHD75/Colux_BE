@@ -1,6 +1,7 @@
 package com.dcode.product_service.service;
 
 import com.dcode.product_service.dto.CartDtoBase;
+import com.dcode.product_service.dtoRequest.ProductExcelRequest;
 import com.dcode.product_service.dtoRequest.ProductOrderRequest;
 import com.dcode.product_service.dtoRequest.ProductRequest;
 import com.dcode.product_service.dtoRequest.ProductUpdateRequest;
@@ -10,6 +11,7 @@ import com.dcode.product_service.entity.PageResponse;
 import org.springframework.data.domain.Pageable;
 
 import java.util.List;
+import java.util.Set;
 
 public interface IProductService {
     //    void createPaint(PaintRequest paintRequest);
@@ -31,6 +33,8 @@ public interface IProductService {
     Object getDashboardInfo();
 
     ProductResponse getProductByProductId(String productId);
+
+    void saveProductsFromExcel(Set<ProductExcelRequest> productRequest);
 
 
 //    void createProduct(ProductRequest productRequest);

@@ -3,9 +3,7 @@ package com.dcode.product_service.service.impl;
 import com.dcode.product_service.dto.BuildNameGHN;
 import com.dcode.product_service.dto.CartDto;
 import com.dcode.product_service.dto.CartDtoBase;
-import com.dcode.product_service.dtoRequest.ProductOrderRequest;
-import com.dcode.product_service.dtoRequest.ProductRequest;
-import com.dcode.product_service.dtoRequest.ProductUpdateRequest;
+import com.dcode.product_service.dtoRequest.*;
 import com.dcode.product_service.dtoRequest.order_service.OrderLineDTO;
 import com.dcode.product_service.dtoResponse.*;
 import com.dcode.product_service.entity.*;
@@ -54,6 +52,8 @@ public class ProductServiceImpl implements IProductService {
     private final SupplierRepository supplierRepository;
     private final ReviewRepository reviewRepository;
     private final EntityManager entityManager;
+    private final VariantServiceImpl variantService;
+    private final PaintServiceImpl paintService;
 
 
     @Override
@@ -65,12 +65,124 @@ public class ProductServiceImpl implements IProductService {
         productRepository.saveAll(createNewProducts(productRequest));
     }
 
+    @Override
+    public void saveProductsFromExcel(Set<ProductExcelRequest> productExcelRequests) {
+        for (ProductExcelRequest productExcelRequest : productExcelRequests) {
+            Brand brand = brandRepository.findByCode(productExcelRequest.getBrandCode()).orElseThrow(() -> new BusinessException("Error: Brand code not found:" + productExcelRequest.getBrandCode()));
+            Category category = categoryRepository.findByName(productExcelRequest.getCategoryName()).orElseThrow(() -> new BusinessException("Error: Category name not found:" + productExcelRequest.getCategoryName() +
+                    "there only have: " + categoryRepository.findAll().stream().map(Category::getName).toList()));
+            var featureValues = getFeatureValueByFeatureValueIds(productExcelRequest.getFeatureValueIds());
+            var propertyValues = getPropertyValueByPropertyValueIds(productExcelRequest.getPropertyValueIds());
+            var supplier = getProductSupplier(productExcelRequest.getSupplierId());
+            Product product = productRepository.findByCode(productExcelRequest.getCode()).orElse(
+                    ProductUtils.createNewProductEntity(ProductRequest.builder()
+                                    .productName(productExcelRequest.getProductName())
+                                    .description(productExcelRequest.getDescription())
+                                    .code(productExcelRequest.getCode())
+                                    .placeOfOrigin(productExcelRequest.getPlaceOfOrigin())
+                                    .warranty(productExcelRequest.getWarranty())
+                                    .applicableSurface(productExcelRequest.getApplicableSurface())
+                                    .build(),
+                            brand, category, featureValues, propertyValues, supplier)
+            );
+            // product đã tồn tại
+            if (productRepository.findByCode(productExcelRequest.getCode()).isPresent()) {
+                if (productExcelRequest.getColor().getHex() != null) {
+                    // kiểm tra xem paintVariant đã tồn tại chưa
+                    PaintVariant paintVariant = paintVariantRepository.findByPaint_Product_productIdAndPaint_Color_hexAndVariant_sizeNameAndVariant_categoryName(
+                                    product.getProductId(), productExcelRequest.getColor().getHex(), productExcelRequest.getSizeName(), productExcelRequest.getCategoryName())
+                            .orElse(null);
+
+                    if (paintVariant != null) {// ton tai paintVariant -> update quantity
+                        paintVariant.setQuantity(productExcelRequest.getQuantity());
+                    } else if (paintRepository.findByProduct_ProductIdAndColor_Hex( // paint đã tồn tại nhưng paintVariant chưa tồn tại
+                            product.getProductId(), productExcelRequest.getColor().getHex()).isPresent()) {
+                        Paint paint = paintRepository.findByProduct_ProductIdAndColor_Hex(product.getProductId(), productExcelRequest.getColor().getHex()).orElseThrow(() -> new BusinessException("Error: Paint not found"));
+                        Variant variant = variantRepository.findBySizeNameAndCategoryName(productExcelRequest.getSizeName(), productExcelRequest.getCategoryName()).orElse(
+                                variantService.createAVariantEntity(productExcelRequest.getSizeName(), productExcelRequest.getCategoryName(), productExcelRequest.getPackageType(
+                                )));
+                        variantRepository.save(variant);
+                        PaintVariant pVariant = PaintVariant.builder()
+                                .paintVariantId(UUID.randomUUID().toString())
+                                .paint(paint)
+                                .variant(variant)
+                                .quantity(productExcelRequest.getQuantity())
+                                .price(productExcelRequest.getPrice())
+                                .build();
+                        paint.getPaintVariants().add(pVariant);
+                        paintVariantRepository.save(pVariant);
+                        paintRepository.save(paint);
+                    } else {// paint chưa tồn tại
+                        // tao moi color neu chua co
+                        Color color = colorRepository.findByHex(productExcelRequest.getColor().getHex()).orElse(
+                                Color.builder()
+                                        .colorId(UUID.randomUUID().toString())
+                                        .name(productExcelRequest.getColor().getName())
+                                        .image(productExcelRequest.getColor().getImage())
+                                        .code(productExcelRequest.getColor().getCode())
+                                        .hex(productExcelRequest.getColor().getHex())
+                                        .LRV(productExcelRequest.getColor().getLRV())
+                                        .interior(productExcelRequest.getColor().isInterior())
+                                        .exterior(productExcelRequest.getColor().isExterior())
+                                        .description(productExcelRequest.getColor().getDescription())
+                                        .colorTypeId(productExcelRequest.getColor().getColorTypeId())
+                                        .build()
+                        );
+                        colorRepository.save(color);
+                        //tao moi variant neu chua co
+                        Variant variant = variantRepository.findBySizeNameAndCategoryName(productExcelRequest.getSizeName(), productExcelRequest.getCategoryName()).orElse(
+                                variantService.createAVariantEntity(productExcelRequest.getSizeName(), productExcelRequest.getCategoryName(), productExcelRequest.getPackageType())
+                        );
+
+                        variantRepository.save(variant);
+
+                        paintService.createPaint(product.getProductId(), PaintRequest.builder()
+                                .color(color.getColorId())
+                                .variants(Set.of(VariantRequest.builder()
+                                        .variantId(variant.getVariantId())
+                                        .quantity(productExcelRequest.getQuantity())
+                                        .price(productExcelRequest.getPrice())
+                                        .build())).build());
+
+
+                        paintVariant.setQuantity(productExcelRequest.getQuantity());
+                    }
+                } else if (productExcelRequest.getNumberPiecesPerBox() != null) {
+                    FloorVariant floorVariant = floorVariantRepository.findByFloor_Product_productIdAndFloor_numberOfPiecesPerBoxAndVariant_sizeNameAndVariant_categoryName(
+                                    product.getProductId(), productExcelRequest.getNumberPiecesPerBox(), productExcelRequest.getSizeName(), productExcelRequest.getCategoryName())
+                            .orElseThrow(() -> new BusinessException("Error: FloorVariant not found"));
+                    floorVariant.setQuantity(productExcelRequest.getQuantity());
+                } else {
+                    WallpaperVariant wallpaperVariant = wallpaperVariantRepository.findByWallpaper_Product_productIdAndVariant_sizeNameAndVariant_categoryName(
+                                    product.getProductId(), productExcelRequest.getSizeName(), productExcelRequest.getCategoryName())
+                            .orElseThrow(() -> new BusinessException("Error: WallpaperVariant not found"));
+                    wallpaperVariant.setQuantity(productExcelRequest.getQuantity());
+                }
+                // product chưa tồn tại
+            } else {
+                Set<Image> images = productExcelRequest.getImages().stream()
+                        .map(imageRequest -> Image.builder()
+                                .imageId(UUID.randomUUID().toString())
+                                .url(imageRequest)
+                                .product(product)
+                                .build())
+                        .collect(Collectors.toSet());
+                product.setImages(images);
+                imageRepository.saveAll(images);
+
+            }
+            productRepository.save(product);
+
+        }
+
+    }
+
     private Product createNewProduct(ProductRequest productRequest) {
         var brand = getBrandByBrandId(productRequest.getBrandId());
         var category = getCategoryByCategoryId(productRequest.getCategoryId());
         var featureValues = getFeatureValueByFeatureValueIds(productRequest.getFeatureValueIds());
         var propertyValues = getPropertyValueByPropertyValueIds(productRequest.getPropertyValueIds());
-        var supplier = getProductSupplier(productRequest);
+        var supplier = getProductSupplier(productRequest.getSupplierId());
         Product product = createNewProductEntity(productRequest, brand, category, featureValues, propertyValues, supplier);
         Set<Image> images = productRequest.getImages().stream()
                 .map(imageRequest -> Image.builder()
@@ -84,9 +196,9 @@ public class ProductServiceImpl implements IProductService {
         return product;
     }
 
-    private ProductSupplier getProductSupplier(ProductRequest productRequest) {
-        return supplierRepository.findBySupplierId(productRequest.getSupplierId())
-                .orElseThrow(() -> new ApiException("Error: Supplier not found"));
+    private ProductSupplier getProductSupplier(String supplierId) {
+        return supplierRepository.findBySupplierId(supplierId)
+                .orElseThrow(() -> new BusinessException("Error: Supplier not found"));
     }
 
     private Set<Product> createNewProducts(Set<ProductRequest> productRequests) {
@@ -118,7 +230,7 @@ public class ProductServiceImpl implements IProductService {
                 .filter(id -> !foundIds.contains(id))
                 .collect(Collectors.toSet());
         if (!missingIds.isEmpty()) {
-            throw new ApiException("Feature not found with featureValueIds: " + missingIds);
+            throw new BusinessException("Feature not found with featureValueIds: " + missingIds);
         }
         return featureValues;
     }
@@ -138,9 +250,9 @@ public class ProductServiceImpl implements IProductService {
         var products = productRepository.findAll();
         try {
             return products.stream()
-                .map(this::mapToProductResponse)
-                .toList();
-        }catch (BusinessException e){
+                    .map(this::mapToProductResponse)
+                    .toList();
+        } catch (BusinessException e) {
             throw new BusinessException("Error: Product not found");
         }
 
@@ -148,12 +260,12 @@ public class ProductServiceImpl implements IProductService {
 
     @Override
     public PageResponse<ProductResponse> getAllProduct(Pageable pageable) {
-        try{
-        Page<Product> products = productRepository.findProductsWithAssociations(pageable);
-        Page<ProductResponse> productResponses = products.map(this::mapToProductResponse);
-        return PageResponseBuilder.buildPageResponse(productResponses);
+        try {
+            Page<Product> products = productRepository.findProductsWithAssociations(pageable);
+            Page<ProductResponse> productResponses = products.map(this::mapToProductResponse);
+            return PageResponseBuilder.buildPageResponse(productResponses);
 
-        }catch (Exception e){
+        } catch (Exception e) {
             log.error("Error sql: " + e.getMessage());
         }
         return null;
@@ -176,7 +288,7 @@ public class ProductServiceImpl implements IProductService {
     @Override
     public List<ProductResponse> getProductDashboard(List<ProductOrderRequest> productDashboardRequests) {
 
-        List<Product> products = productRepository.findAllByProductIdIn (
+        List<Product> products = productRepository.findAllByProductIdIn(
                 productDashboardRequests.stream()
                         .map(ProductOrderRequest::getProductId)
                         .collect(Collectors.toList())
@@ -232,6 +344,7 @@ public class ProductServiceImpl implements IProductService {
                 if (variantOpt.isPresent()) {
                     PaintVariant variant = variantOpt.get();
                     cartDto.setVariantDescription(variant.getVariant().getSizeName());
+                    cartDto.setCategoryId(variant.getPaint().getProduct().getCategory().getCategoryId());
                     cartDto.setCategoryName(variant.getVariant().getCategoryName());
                     cartDto.setPackageType(variant.getVariant().getPackageType());
                     cartDto.setVariantInventory(variant.getQuantity());
@@ -260,6 +373,7 @@ public class ProductServiceImpl implements IProductService {
                 if (variantOpt.isPresent()) {
                     FloorVariant variant = variantOpt.get();
                     cartDto.setVariantDescription(variant.getVariant().getSizeName());
+                    cartDto.setCategoryId(variant.getFloor().getProduct().getCategory().getCategoryId());
                     cartDto.setCategoryName(variant.getVariant().getCategoryName());
                     cartDto.setPackageType(variant.getVariant().getPackageType());
                     cartDto.setVariantInventory(variant.getQuantity());
@@ -285,6 +399,7 @@ public class ProductServiceImpl implements IProductService {
                 if (variantOpt.isPresent()) {
                     WallpaperVariant variant = variantOpt.get();
                     cartDto.setVariantDescription(variant.getVariant().getSizeName());
+                    cartDto.setCategoryId(variant.getWallpaper().getProduct().getCategory().getCategoryId());
                     cartDto.setCategoryName(variant.getVariant().getCategoryName());
                     cartDto.setPackageType(variant.getVariant().getPackageType());
                     cartDto.setVariantInventory(variant.getQuantity());
@@ -425,16 +540,13 @@ public class ProductServiceImpl implements IProductService {
         }
 
 
-
         updatePaints(productRequest.getPaints(), product);
         updateWallpapers(productRequest.getWallpapers(), product);
         updateFloors(productRequest.getFloors(), product);
 
 
-
         productRepository.save(product);
     }
-
 
 
     private void updatePaints(Set<PaintResponse> paintRequests, Product product) {
@@ -490,7 +602,6 @@ public class ProductServiceImpl implements IProductService {
             }
         }
     }
-
 
 
     private void updatePaintVariants(List<VariantResponse> paintVariantRequests, Paint paint) {
@@ -704,7 +815,6 @@ public class ProductServiceImpl implements IProductService {
     }
 
 
-
     @Override
     public List<ProductOrderResponse> purchaseOrder(List<ProductOrderRequest> productOrderRequestList) {
         List<ProductOrderResponse> orderResponses = new ArrayList<>();
@@ -844,19 +954,19 @@ public class ProductServiceImpl implements IProductService {
     }
 
     public PageResponse<ProductResponse> filterProducts(String type, List<String> features, List<String> properties, Double minPrice, Double maxPrice, Pageable pageable) {
-    long propertyCount = properties != null ? properties.size() : 0;
-    long featureCount = features != null ? features.size() : 0;
-    Double minValue = Double.MIN_VALUE;
-    Double maxValue = Double.MAX_VALUE;
-    Page<Product> productPage = productRepository.filterProducts(type, minPrice, maxPrice, properties, features, propertyCount, featureCount, pageable);
+        long propertyCount = properties != null ? properties.size() : 0;
+        long featureCount = features != null ? features.size() : 0;
+        Double minValue = Double.MIN_VALUE;
+        Double maxValue = Double.MAX_VALUE;
+        Page<Product> productPage = productRepository.filterProducts(type, minPrice, maxPrice, properties, features, propertyCount, featureCount, pageable);
 
-    if (productPage.isEmpty()) {
-        return PageResponseBuilder.buildPageResponse(Page.empty());
+        if (productPage.isEmpty()) {
+            return PageResponseBuilder.buildPageResponse(Page.empty());
+        }
+
+        Page<ProductResponse> productResponsePage = productPage.map(ProductUtils::fromProductEntity);
+        return PageResponseBuilder.buildPageResponse(productResponsePage);
     }
-
-    Page<ProductResponse> productResponsePage = productPage.map(ProductUtils::fromProductEntity);
-    return PageResponseBuilder.buildPageResponse(productResponsePage);
-}
 
 
     public String orderCancelRestore(List<OrderLineDTO> orderLineDTOList) {
@@ -880,7 +990,6 @@ public class ProductServiceImpl implements IProductService {
         }
         return "Order cancel restore successful";
     }
-
 
 
 }

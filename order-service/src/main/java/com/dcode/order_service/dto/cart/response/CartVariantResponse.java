@@ -11,6 +11,7 @@ public class CartVariantResponse {
     public static class ClientVariantResponse {
         private String variantId;
         private String variantDescription;
+        private String categoryId;
         private String categoryName;
         private String packageType;
         private Integer variantInventory;

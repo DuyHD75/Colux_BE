@@ -47,6 +47,7 @@ public class ProductUtils {
                 .brand(fromEntityToResponse(Collections.singleton(product.getBrand())).stream().findFirst().orElseThrow(() -> new BusinessException("Brand not found")))
                 .ratingAverage(product.getRatingAverage())
                 .code(product.getCode())
+                .reviewCount(product.getReview().size())
                 .placeOfOrigin(product.getPlaceOfOrigin())
                 .warranty(product.getWarranty())
                 .applicableSurface(product.getApplicableSurface())
@@ -57,6 +58,7 @@ public class ProductUtils {
                 .paints(product.getPaints().stream().map(PaintUtils::fromPaintEntity).toList())
                 .wallpapers(product.getWallpapers().stream().map(WallpaperUtils::fromWallpaperEntity).toList())
                 .floors(product.getFloors().stream().map(FloorUtils::fromFloorEntity).toList());
+
 
         // Only set the supplier if it's not null
         if (product.getProductSupplier() != null) {

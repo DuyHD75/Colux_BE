@@ -14,6 +14,7 @@ import com.dcode.order_service.entity.order.OrderEntity;
 import com.dcode.order_service.entity.order.OrderLineEntity;
 import com.dcode.order_service.entity.waybill.Waybill;
 import com.dcode.order_service.entity.waybill.WaybillLog;
+import com.dcode.order_service.enumuration.OrderStatus;
 import com.dcode.order_service.enumuration.PaymentMethod;
 import com.dcode.order_service.enumuration.WaybillCallbackConstants;
 import com.dcode.order_service.event.OrderEvent;
@@ -68,6 +69,7 @@ public class WaybillServiceImpl implements WaybillService {
     private final IWaybillLogRepository waybillLogRepository;
     private final IProductClientProxy IProductClientProxy;
     private final ApplicationEventPublisher publisher;
+    private final OrderServiceImpl orderService;
 
 
     @Autowired
@@ -75,7 +77,7 @@ public class WaybillServiceImpl implements WaybillService {
 
     @Scheduled(fixedRate = 30000)
     public void checkOrderShipmentStatus() {
-        List<Waybill> waybills = waybillRepository.findAllByStatusIn(List.of(1, 2));
+        List<Waybill> waybills = waybillRepository.findAllByStatusIn(List.of(OrderStatus.CREATED.getValue(), OrderStatus.PENDING.getValue()));
         if (!waybills.isEmpty()) {
             String checkGhnOrderApiPath = ghnApiPath + "/v2/shipping-order/detail";
 
@@ -91,7 +93,8 @@ public class WaybillServiceImpl implements WaybillService {
                 var response = restTemplate.postForEntity(checkGhnOrderApiPath, request, GhnDetailOrderResponse.class);
 
                 if (response.getStatusCode() != HttpStatus.OK) {
-                    throw new RuntimeException("Error when calling status Order GHN API");
+                    log.error("Failed to fetch status for waybill: {}", waybill.getCode());
+                    return;
                 }
 
                 if (response.getBody() != null) {
@@ -100,6 +103,7 @@ public class WaybillServiceImpl implements WaybillService {
                     OrderEntity order = waybill.getOrder();
 
                     WaybillLog waybillLog = new WaybillLog();
+                    waybillLog.setWaybillLogId(UUID.randomUUID().toString());
                     waybillLog.setWaybill(waybill);
                     waybillLog.setPreviousStatus(waybill.getStatus());
 
@@ -111,19 +115,19 @@ public class WaybillServiceImpl implements WaybillService {
                             case WaybillCallbackConstants.WAITING:
                                 waybillLog.setCurrentStatus(1);
                                 waybill.setStatus(1);
-                                order.setStatus(2);
+                                order.setStatus(OrderStatus.APPROVED.getValue());
                                 break;
                             case WaybillCallbackConstants.SHIPPING:
                                 waybillLog.setCurrentStatus(2);
                                 waybill.setStatus(2);
-                                order.setStatus(3);
+                                order.setStatus(OrderStatus.APPROVED.getValue());
                                 break;
                             case WaybillCallbackConstants.SUCCESS:
                                 // Gửi mail khi success
-                                publisher.publishEvent(new OrderEvent(order, ORDER_COMPLETED, emptyList(), emptyMap()));
+                                orderService.sendEmail(order, EventType.ORDER_COMPLETED);
                                 waybillLog.setCurrentStatus(3);
                                 waybill.setStatus(3);
-                                order.setStatus(4);
+                                order.setStatus(OrderStatus.COMPLETED.getValue());
                                 // Status 2: Đã thanh toán (giả định giao thành công thì
                                 // cũng có nghĩa khách hàng đã thanh toán tiền mặt)
                                 order.setPaymentStatus(2);
@@ -141,10 +145,11 @@ public class WaybillServiceImpl implements WaybillService {
                             default:
                                 throw new RuntimeException("There is no waybill status corresponding to GHN status code");
                         }
-
+                        waybill.getWaybillLogs().add(waybillLog);
+                        waybillLogRepository.save(waybillLog);
                         waybillRepository.save(waybill);
                         orderRepository.save(order);
-                        waybillLogRepository.save(waybillLog);
+
                     }
 
                 } else {
@@ -165,7 +170,7 @@ public class WaybillServiceImpl implements WaybillService {
                 .orElseThrow(() -> new BusinessException("Order not found!"));
 
         // tạo waybill khi order.status = 1
-        if (order.getStatus() == 1) {
+        if (order.getStatus() == OrderStatus.CREATED.getValue() || order.getStatus() == OrderStatus.PENDING.getValue()) {
             String createGhnOrderApiPath = ghnApiPath + "/v2/shipping-order/create";
 
             HttpHeaders headers = new HttpHeaders();
@@ -193,7 +198,7 @@ public class WaybillServiceImpl implements WaybillService {
                 waybill.setCode(ghnCreateOrderResponse.getData().getOrderCode());
                 waybill.setOrder(order);
                 waybill.setExpectedDeliveryTime(ghnCreateOrderResponse.getData().getExpectedDeliveryTime());
-                waybill.setStatus(1); // Status 1: Đang đợi lấy hàng
+                waybill.setStatus(WaybillCallbackConstants.WAITING);
                 waybill.setCodAmount(
                         order.getPaymentMethod() == PaymentMethod.CASH
                                 ? order.getTotalPay().intValue()
@@ -208,7 +213,7 @@ public class WaybillServiceImpl implements WaybillService {
                 order.setShippingCost(BigDecimal.valueOf(ghnCreateOrderResponse.getData().getTotalFee()));
                 order.setTotalPay(BigDecimal.valueOf(
                         order.getTotalPay().intValue() + ghnCreateOrderResponse.getData().getTotalFee()));
-                order.setStatus(2); // Status 2: Đang xử lý
+                order.setStatus(OrderStatus.APPROVED.getValue());
 
                 orderRepository.save(order);
 

@@ -13,4 +13,6 @@ public interface VariantRepository extends JpaRepository<Variant, Long> {
 //    Set<Variant> findByWallpaperIsNotNullAndPaintIsNullAndFloorIsNull();
     Optional<Variant> findByVariantId(String variantId);
     Set<Variant> findAllByVariantIdIn(Set<String> variantIds);
+
+    Optional<Variant> findBySizeNameAndCategoryName(String sizeName, String categoryName);
 }

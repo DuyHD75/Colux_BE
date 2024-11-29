@@ -189,6 +189,25 @@ public class ProductController {
         }
     }
 
+    @PreAuthorize("hasRole('EMPLOYEE') and hasAuthority('product:create')")
+    @PostMapping("/excel")
+    public ResponseEntity<Response> createProductsFromExcel(@RequestBody Set<ProductExcelRequest> productRequest, HttpServletRequest request,
+                                                            HttpServletResponse response) {
+        try {
+            productService.saveProductsFromExcel(productRequest);
+            return ResponseEntity.created(getUri()).body(
+                    getResponse(request, emptyMap(),
+                            "Product save successfully!", CREATED)
+            );
+        } catch (BusinessException ex) {
+            return ResponseEntity.status(BAD_REQUEST)
+                    .body(getErrorResponse(request, response, ex, BAD_REQUEST));
+        } catch (Exception exception) {
+            return ResponseEntity.status(INTERNAL_SERVER_ERROR)
+                    .body(getErrorResponse(request, response, new ApiException("An unexpected error occurred."), INTERNAL_SERVER_ERROR));
+        }
+    }
+
     @GetMapping("/public")
     public ResponseEntity<Response> getAllProduct(HttpServletRequest request, HttpServletResponse response) {
         try {

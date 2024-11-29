@@ -6,6 +6,7 @@ import lombok.*;
 public class CartDtoBase {
 
     private String variantDescription; //variantName
+    private String categoryId;
     private String categoryName;
     private String packageType;
     private Integer variantInventory;

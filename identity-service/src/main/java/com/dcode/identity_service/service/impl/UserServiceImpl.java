@@ -35,6 +35,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import static com.dcode.identity_service.enumeration.EventType.REGISTRATION;
 import static com.dcode.identity_service.enumeration.EventType.RESET_PASSWORD;
@@ -117,6 +118,24 @@ public class UserServiceImpl implements IUserService {
     @Override
     public User getUserByUserId(String userId) {
         var userEntity = userRepository.findUserByUserId(userId).orElseThrow(() -> new ApiException("Error: User is not found."));
+        return fromUserEntity(userEntity, userEntity.getRole(), getUserCredentialById(userEntity.getId()));
+    }
+
+    @Override
+    public List<User> getAllUsers() {
+        var userEntityList = userRepository.findUsersWithRole();
+        if (userEntityList.isEmpty()) {
+            throw new ApiException("Error: User is not found.");
+        }
+        return userEntityList.stream().map(
+                userEntity -> fromUserEntity(userEntity, userEntity.getRole(), getUserCredentialById(userEntity.getId()))
+        ).collect(Collectors.toList());
+    }
+
+    @Override
+    public User updateUserStatus(String userId) {
+        UserEntity userEntity = userRepository.findUserByUserId(userId).orElseThrow(() -> new ApiException("Error: User is not found."));
+        userEntity.setEnabled(!userEntity.isEnabled());
         return fromUserEntity(userEntity, userEntity.getRole(), getUserCredentialById(userEntity.getId()));
     }
 
@@ -220,6 +239,8 @@ public class UserServiceImpl implements IUserService {
 
         return monthlyUserData;
     }
+
+
 
     private UserEntity getUserEntityByEmail(String email) {
         return userRepository.findByEmailIgnoreCase(email).orElseThrow(() -> new ApiException("Error: User is not found."));

@@ -87,7 +87,7 @@ public class EmailTemplateUtils {
         String items = mapProductLineToString(productLines, order);
 
         return String.format(
-                "Subject: Order Confirmation - Order ID: %s\n\n" +
+                "Subject: Order Completed - Order ID: %s\n\n" +
                         "Dear %s,\n\n" +
                         "Thank you for shopping with Colux Alpha.\n\n" +
                         "We are pleased to inform you that your order has been successfully confirmed. Here are the details:\n\n" +

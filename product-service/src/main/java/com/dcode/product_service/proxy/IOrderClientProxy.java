@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.PathVariable;
         url = "${application.config.order-url:http://localhost}:8082"
 )
 public interface IOrderClientProxy {
-    @GetMapping("/api/v1/orders/{customer-id}/{product-id}")
+    @GetMapping("/api/v1/orders/public/{customer-id}/{product-id}")
     Boolean hasCustomerPurchasedProduct(@PathVariable("customer-id") String customerId, @PathVariable("product-id") String productId);
 }
 

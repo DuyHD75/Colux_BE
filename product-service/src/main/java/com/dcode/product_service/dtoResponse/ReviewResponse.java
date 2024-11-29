@@ -24,19 +24,4 @@ public class ReviewResponse {
     private LocalDateTime updatedAt;
     private UserResponse userInfo;
 
-    public static ReviewResponse fromReviewEntity(Review review) {
-        ReviewResponse response = ReviewResponse.builder()
-                .reviewId(review.getReviewId())
-                .customerId(review.getCustomerId())
-                .productId(review.getProduct().getProductId())
-                .score(review.getScore())
-                .content(review.getContent())
-                .build();
-        if (review.getParent() == null) {
-            response.setParentId(null);
-        } else {
-            response.setParentId(review.getParent().getReviewId());
-        }
-        return response;
-    }
 }

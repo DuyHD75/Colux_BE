@@ -14,6 +14,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
+import org.springframework.util.AntPathMatcher;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
@@ -30,6 +31,7 @@ import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final IJwtService jwtService;
+    private final AntPathMatcher pathMatcher = new AntPathMatcher();
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
@@ -51,7 +53,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             }
 
             TokenData tokenData = jwtService.getTokenData(token, data -> data);
-            if (!tokenData.isValidToken()) {
+                if (!tokenData.isValidToken()) {
                 writeErrorResponse(request, response, new JwtException("Invalid token !"), UNAUTHORIZED);
                 return;
             }
@@ -69,8 +71,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
     }
 
-    private static Function<String, Boolean> isAllowedPath = requestURI -> Arrays.stream(ALLOWED_PATHS).anyMatch(requestURI::matches);
-}
+    private final Function<String, Boolean> isAllowedPath = requestURI ->
+            Arrays.stream(ALLOWED_PATHS).anyMatch(pattern -> pathMatcher.match(pattern, requestURI));}
 
 
 

@@ -43,4 +43,8 @@ public interface IUserService {
     Object getTotalUser();
 
     List<Map<String, Object>> getMonthlyUser(int months);
+
+    List<User> getAllUsers();
+
+    User updateUserStatus(String userId);
 }

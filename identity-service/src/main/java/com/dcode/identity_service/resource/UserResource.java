@@ -17,6 +17,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
@@ -175,6 +176,18 @@ public class UserResource {
         }
 
         return ResponseEntity.ok().body(getResponse(request, Map.of("tokenData", tokenData), "Token introspected.", OK));
+    }
+
+    @GetMapping("/getAll")
+    public ResponseEntity<Response> getAllUsers(HttpServletRequest request, HttpServletResponse response) {
+        var users = userService.getAllUsers();
+        return ResponseEntity.ok().body(getResponse(request, Map.of("users", users), "Users retrieve successfully!", OK));
+    }
+
+    @PutMapping("/status/{userId}")
+    public ResponseEntity<Response> updateUser(@PathVariable("userId") String userId,  HttpServletRequest request, HttpServletResponse response){
+        var user = userService.updateUserStatus(userId);
+        return ResponseEntity.ok().body(getResponse(request, Map.of("user", user), "User status updated successfully!", OK));
     }
 
     @GetMapping("/{customer-id}")

@@ -14,5 +14,7 @@ public interface IReviewService {
 
     boolean canReply(Review review);
 
+    PageResponse<ReviewResponse> getReviewsByUserId(String userId, Pageable pageable);
+
 //    PageResponse<ReviewResponse> getReviewsByProductId(String productId, Pageable pageable);
 }

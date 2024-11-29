@@ -28,6 +28,7 @@ public class Constants {
                 "/api/v1/users/refresh-token",
                 "/api/v1/users/logout",
                 "/api/v1/users/reviews/info",
+                "/api/v1/users/**",
 //                "/ws/**"
         };
     }
