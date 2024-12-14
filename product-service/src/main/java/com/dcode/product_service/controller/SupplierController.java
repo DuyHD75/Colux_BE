@@ -28,7 +28,7 @@ public class SupplierController {
 
     private final SupplierServiceImpl supplierService;
 
-    @PreAuthorize("hasRole('EMPLOYEE') and hasAuthority('product:create')")
+    @PreAuthorize("hasAnyRole('EMPLOYEE', 'ADMIN')")
     @PostMapping()
     public ResponseEntity<Response> createSupplier(@RequestBody SupplierRequest supplierRequest, HttpServletRequest request, HttpServletResponse response){
         try{

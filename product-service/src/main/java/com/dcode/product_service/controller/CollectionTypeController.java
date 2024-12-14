@@ -31,7 +31,7 @@ public class CollectionTypeController {
 
     private final CollectionTypeServiceImpl collectionTypeService;
 
-    @PreAuthorize("hasRole('EMPLOYEE') and hasAuthority('product:create')")
+    @PreAuthorize("hasAnyRole('EMPLOYEE', 'ADMIN')")
     @PostMapping
     public ResponseEntity<Response> createACT(@RequestBody @Valid CollectionTypeRequest CTRequest, HttpServletRequest request, HttpServletResponse response){
         try {

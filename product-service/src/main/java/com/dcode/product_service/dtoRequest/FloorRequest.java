@@ -1,10 +1,12 @@
 package com.dcode.product_service.dtoRequest;
 
+import lombok.Builder;
 import lombok.Data;
 
 import java.util.Set;
 
 @Data
+@Builder
 public class FloorRequest {
     private String productId;
     private Double foamThickness;

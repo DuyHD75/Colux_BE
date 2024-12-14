@@ -70,27 +70,12 @@ public class CartUtils {
         for (CartVariantEntity cartVariant : entity.getCartVariants()) {
             for (CartVariantRequest clientCartVariantRequest : request.getCartItems()) {
                 if (Objects.equals(cartVariant.getVariantId(), clientCartVariantRequest.getVariantId())) {
-                    if (cartVariant.getPaintId() != null && cartVariant.getPaintId().equals(clientCartVariantRequest.getPaintId())) {
-                        cartVariant.setQuantity(clientCartVariantRequest.getQuantity());
-                    } else if (cartVariant.getPaintId() != null && !cartVariant.getPaintId().equals(clientCartVariantRequest.getPaintId())) {
-                        newCartVariants.add(requestToEntity(clientCartVariantRequest));
-                    } else if (cartVariant.getPaintId() == null) {
-                        if (request.getUpdateQuantityType() == UpdateQuantityType.OVERRIDE) {
-                            cartVariant.setQuantity(clientCartVariantRequest.getQuantity());
-                        } else if (request.getUpdateQuantityType() == UpdateQuantityType.DECREMENTAL) {
-                            if (cartVariant.getQuantity() - clientCartVariantRequest.getQuantity() < 0) {
-                                cartVariant.setQuantity(0);
-                            } else {
-                                cartVariant.setQuantity(cartVariant.getQuantity() - clientCartVariantRequest.getQuantity());
-                            }
-                        } else {
-                            cartVariant.setQuantity(cartVariant.getQuantity() + clientCartVariantRequest.getQuantity());
-                        }
-                        break;
-                    }
+                    handleCartVariantUpdate(cartVariant, clientCartVariantRequest, request.getUpdateQuantityType(), newCartVariants);
+                    break;
                 }
             }
         }
+
 
         for (CartVariantRequest cartVariantRequest : request.getCartItems()) {
             if (!currentVariantIds.contains(cartVariantRequest.getVariantId())) {
@@ -108,6 +93,29 @@ public class CartUtils {
         cartEntity.getCartVariants().forEach(cartVariant -> {
             cartVariant.setCart(cartEntity);
         });
+    }
+
+    private void handleCartVariantUpdate(CartVariantEntity cartVariant, CartVariantRequest clientCartVariantRequest, UpdateQuantityType updateQuantityType, Set<CartVariantEntity> newCartVariants) {
+        if (cartVariant.getPaintId() != null) {
+            if (cartVariant.getPaintId().equals(clientCartVariantRequest.getPaintId())) {
+                updateCartVariantQuantity(cartVariant, clientCartVariantRequest, updateQuantityType);
+            } else {
+                newCartVariants.add(requestToEntity(clientCartVariantRequest));
+            }
+        } else {
+            updateCartVariantQuantity(cartVariant, clientCartVariantRequest, updateQuantityType);
+        }
+    }
+
+    private void updateCartVariantQuantity(CartVariantEntity cartVariant, CartVariantRequest clientCartVariantRequest, UpdateQuantityType updateQuantityType) {
+        if (updateQuantityType == UpdateQuantityType.OVERRIDE) {
+            cartVariant.setQuantity(clientCartVariantRequest.getQuantity());
+        } else if (updateQuantityType == UpdateQuantityType.DECREMENTAL) {
+            int newQuantity = cartVariant.getQuantity() - clientCartVariantRequest.getQuantity();
+            cartVariant.setQuantity(Math.max(newQuantity, 0));
+        } else {
+            cartVariant.setQuantity(cartVariant.getQuantity() + clientCartVariantRequest.getQuantity());
+        }
     }
 
 

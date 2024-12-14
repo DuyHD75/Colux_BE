@@ -25,14 +25,15 @@ import static org.springframework.http.HttpStatus.*;
 
 @RestController
 @RequestMapping("/api/v1/reviews")
-@AllArgsConstructor
+@RequiredArgsConstructor
 @Slf4j
 public class ReviewController {
 
     private final ReviewServiceImpl reviewService;
 
-    @PostMapping("/public/create")
-    private ResponseEntity<Response> createAReview(@RequestBody @Valid ReviewRequest reviewRequest, HttpServletRequest request, HttpServletResponse response) {
+    @PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE', 'USER')")
+    @PostMapping("/create")
+    public ResponseEntity<Response> createAReview(@RequestBody @Valid ReviewRequest reviewRequest, HttpServletRequest request, HttpServletResponse response) {
         try {
             var reviewCreated = reviewService.createAReview(reviewRequest);
             return ResponseEntity.ok().body(

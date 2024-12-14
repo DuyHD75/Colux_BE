@@ -152,7 +152,7 @@ public class ProductController {
 
     }
 
-    @PreAuthorize("hasRole('EMPLOYEE') and hasAuthority('product:create')")
+    @PreAuthorize("hasAnyRole('EMPLOYEE', 'ADMIN')")
     @PostMapping
     public ResponseEntity<Response> createProduct(@RequestBody @Valid ProductRequest productRequest, HttpServletRequest request, HttpServletResponse response) {
         try {
@@ -170,7 +170,7 @@ public class ProductController {
         }
     }
 
-    @PreAuthorize("hasRole('EMPLOYEE') and hasAuthority('product:create')")
+    @PreAuthorize("hasAnyRole('EMPLOYEE', 'ADMIN')")
     @PostMapping("/bulk")
     public ResponseEntity<Response> createProducts(@RequestBody @Valid Set<ProductRequest> productRequest, HttpServletRequest request, HttpServletResponse response) {
         try {
@@ -189,22 +189,40 @@ public class ProductController {
         }
     }
 
-    @PreAuthorize("hasRole('EMPLOYEE') and hasAuthority('product:create')")
+    @PreAuthorize("hasAnyRole('EMPLOYEE', 'ADMIN')")
     @PostMapping("/excel")
-    public ResponseEntity<Response> createProductsFromExcel(@RequestBody Set<ProductExcelRequest> productRequest, HttpServletRequest request,
+    public ResponseEntity<Response> createProductsFromExcel(@RequestBody ExcelRequest excelRequest, HttpServletRequest request,
                                                             HttpServletResponse response) {
         try {
-            productService.saveProductsFromExcel(productRequest);
+            productService.saveProductsFromExcel(excelRequest.getProducts(), excelRequest.getImages(), excelRequest.getBillCode());
             return ResponseEntity.created(getUri()).body(
                     getResponse(request, emptyMap(),
                             "Product save successfully!", CREATED)
             );
-        } catch (BusinessException ex) {
+        } catch (BusinessException | ApiException ex) {
             return ResponseEntity.status(BAD_REQUEST)
                     .body(getErrorResponse(request, response, ex, BAD_REQUEST));
         } catch (Exception exception) {
+            log.error("here: ", exception);
             return ResponseEntity.status(INTERNAL_SERVER_ERROR)
                     .body(getErrorResponse(request, response, new ApiException("An unexpected error occurred."), INTERNAL_SERVER_ERROR));
+        }
+    }
+
+    @PreAuthorize("hasAnyRole('EMPLOYEE', 'ADMIN')")
+    @GetMapping("/upStockHistory")
+    public ResponseEntity<Response> getUpStockHistory(HttpServletRequest request, HttpServletResponse response){
+        try {
+            var upStockHistory = productService.getUpStockHistory();
+            return ResponseEntity.ok().body(getResponse(request, Map.of("upStockHistory", upStockHistory), "Up stock history retrieved", OK));
+        } catch (BusinessException ex) {
+            return ResponseEntity.status(BAD_REQUEST).body(
+                    getErrorResponse(request, response, ex, BAD_REQUEST, emptyMap())
+            );
+        } catch (Exception ex) {
+            return ResponseEntity.status(INTERNAL_SERVER_ERROR).body(
+                    getErrorResponse(request, response, ex, INTERNAL_SERVER_ERROR, emptyMap())
+            );
         }
     }
 
@@ -259,7 +277,7 @@ public class ProductController {
         }
     }
 
-    @PreAuthorize("hasRole('EMPLOYEE') and hasAuthority('product:update')")
+    @PreAuthorize("hasAnyRole('EMPLOYEE', 'ADMIN')")
     @PutMapping
     public ResponseEntity<Response> updateProduct(@RequestBody ProductUpdateRequest productRequest, HttpServletRequest request, HttpServletResponse response) {
         try {

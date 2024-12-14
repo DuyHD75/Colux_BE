@@ -18,4 +18,6 @@ public interface ICollectionService {
     PageResponse<ColorResponse> getColorByCollection(String collectionId, Pageable pageable);
 
     List<CollectionResponse> getAllCollectionWithoutColorFamilyAndRoom();
+
+    void updateCollections(List<CollectionRequest> coRe);
 }

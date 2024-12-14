@@ -21,7 +21,7 @@ import java.util.Optional;
         configuration = {AuthenticationRequestInterceptor.class}
 )
 public interface IProductClientProxy {
-    @GetMapping("/getInfo")
+    @PostMapping("/getInfo")
     Optional<Response> findProductInfo(@RequestBody List<CartVariantRequest> productOrderRequests);
 
     @GetMapping("/reduceProduct")

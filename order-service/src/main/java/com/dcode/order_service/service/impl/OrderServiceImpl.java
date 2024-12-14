@@ -139,7 +139,7 @@ public class OrderServiceImpl implements IOrderService {
                 var response = restTemplate.postForEntity(cancelOrderApiPath, request, GhnCancelOrderResponse.class);
 
                 if (response.getStatusCode() != HttpStatus.OK) {
-                    throw new RuntimeException("Error when calling Cancel Order GHN API");
+                    throw new BusinessException("Error when calling Cancel Order GHN API");
                 }
 
                 // Integrated with GHN API
@@ -160,7 +160,7 @@ public class OrderServiceImpl implements IOrderService {
                 }
             }
         } else {
-            throw new RuntimeException(String
+            throw new BusinessException(String
                     .format("Order with code %s is in delivery or has been cancelled. Please check again!", requestCancel.getCode()));
         }
     }
@@ -326,9 +326,11 @@ public class OrderServiceImpl implements IOrderService {
             if (order.getPaymentMethod() == PaymentMethod.COD) {
                 order.setPaymentStatus(3); // Status 3: Đã thanh toán đặt cọc (25%)
                 order.setPaypalOrderStatus(PaypalStatus.SUCCESS.getStatus());
+                order.setStatus(OrderStatus.PENDING.getValue());
             } else {
                 order.setPaymentStatus(2); // Status 2: Đã thanh toán
                 order.setPaypalOrderStatus(PaypalStatus.SUCCESS.getStatus());
+                order.setStatus(OrderStatus.PENDING.getValue());
             }
             order.setPaypalOrderStatus(OrderStatus.COMPLETED.toString());
 

@@ -17,7 +17,7 @@ import java.util.Optional;
         configuration = {AuthenticationRequestInterceptor.class}
 )
 public interface ICustomerClientProxy {
-    @GetMapping("/api/v1/users/{customer-id}")
+    @GetMapping("/api/v1/users/public/{customer-id}")
     Optional<UserResponse> findUserByUserId(@PathVariable("customer-id") String customerId);
 
     @PostMapping("/api/v1/users/reviews/info")

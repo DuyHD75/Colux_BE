@@ -53,7 +53,7 @@ public class PaintController {
         }
     }
 
-    @PreAuthorize("hasRole('EMPLOYEE') and hasAuthority('product:create')")
+    @PreAuthorize("hasAnyRole('EMPLOYEE', 'ADMIN')")
     @PostMapping("/productId/{productId}")
     public ResponseEntity<Response> createAPaint(@PathVariable("productId") String productId,
                                                  @RequestBody @Valid PaintRequest paintRequest,
@@ -70,7 +70,7 @@ public class PaintController {
         }
     }
 
-    @PreAuthorize("hasRole('EMPLOYEE') and hasAuthority('product:create')")
+    @PreAuthorize("hasAnyRole('EMPLOYEE', 'ADMIN')")
     @PostMapping("/bulk")
     public ResponseEntity<Response> createPaints(@RequestBody @Valid Set<PaintRequest> paintRequests, HttpServletRequest request, HttpServletResponse response){
         try{
@@ -98,7 +98,7 @@ public class PaintController {
                     .body(getErrorResponse(request, response, new ApiException("An unexpected error occurred."), INTERNAL_SERVER_ERROR));
         }
     }
-    @PreAuthorize("hasRole('EMPLOYEE') and hasAuthority('product:update')")
+    @PreAuthorize("hasAnyRole('EMPLOYEE', 'ADMIN')")
     @PutMapping("/paintId/{paintId}")
     public ResponseEntity<Response> updateAPaint(@PathVariable("paintId") String paintId, @RequestBody PaintRequest paintRequest, HttpServletRequest request, HttpServletResponse response){
         try {
@@ -113,7 +113,7 @@ public class PaintController {
         }
     }
 
-    @PreAuthorize("hasRole('EMPLOYEE') and hasAuthority('product:delete')")
+    @PreAuthorize("hasAnyRole('EMPLOYEE', 'ADMIN')")
     @DeleteMapping("/paintId/{paintId}")
     public ResponseEntity<Response> deleteAPaint(@PathVariable("paintId")String paintId, HttpServletRequest request, HttpServletResponse response){
         try {

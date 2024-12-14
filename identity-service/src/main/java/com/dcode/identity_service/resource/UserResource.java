@@ -14,6 +14,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -43,6 +44,9 @@ public class UserResource {
 
     private final IJwtService jwtService;
 
+    @Value("${spring.google.front-end-home}")
+    private String FRONT_END_HOME;
+
     @GetMapping("/test")
     public String test() {
         String[] activeProfiles = env.getActiveProfiles();
@@ -50,7 +54,38 @@ public class UserResource {
         return "Hello World!";
     }
 
-    @PostMapping("/register")
+    @GetMapping("/public/grantcode")
+    public ResponseEntity<Void> grantCode(
+            @RequestParam("code") String code,
+            @RequestParam("scope") String scope,
+            @RequestParam("authuser") String authUser,
+            @RequestParam("prompt") String prompt,
+            HttpServletRequest request,
+            HttpServletResponse response) {
+
+        try{
+            // Xử lý mã code (ví dụ: lưu code hoặc lấy access token)
+            User user = userService.processGrantCode(code);
+
+            sendResponse(request, response, user);
+
+            String redirectUrl = FRONT_END_HOME + "/login?status=success";
+            return ResponseEntity.status(HttpStatus.FOUND).header("Location", redirectUrl).build();
+        }catch (Exception e){
+            String redirectUrl = FRONT_END_HOME + "/login?status=failed";
+            return ResponseEntity.status(HttpStatus.FOUND).header("Location", redirectUrl).build();
+        }
+    }
+    private void sendResponse(HttpServletRequest request, HttpServletResponse response, User user) {
+        // Thêm cookies chứa Access Token và Refresh Token
+        jwtService.addCookie(response, user, ACCESS_TOKEN);
+        jwtService.addCookie(response, user, REFRESH_TOKEN);
+
+        getResponse(request, Map.of("user", user), "Login success !", HttpStatus.OK);
+    }
+
+
+    @PostMapping("/public/register")
     public ResponseEntity<Response> registerUser(@RequestBody @Valid UserRequest user, HttpServletRequest request) {
 
         userService.createUser(user.getFirstName(), user.getLastName(), user.getEmail(), user.getPassword(), user.getRole());
@@ -61,7 +96,17 @@ public class UserResource {
         );
     }
 
-    @GetMapping("/verify/account")
+    @PreAuthorize("hasAnyRole('EMPLOYEE', 'ADMIN')")
+    @PostMapping("/register/employee")
+    public ResponseEntity<Response> registerEmployee(@RequestBody UserRequest user, HttpServletRequest request) {
+        userService.createEmployee(user.getFirstName(), user.getLastName(), user.getEmail(), user.getPhone(), user.getRole());
+        return ResponseEntity.created(getUri()).body(
+                getResponse(request, emptyMap(),
+                        "Employee created successfully! Check your email to enable your account.", CREATED)
+        );
+    }
+
+    @GetMapping("/public/verify/account")
     public ResponseEntity<Response> verifyAccount(@RequestParam("key") String key, HttpServletRequest request) {
         userService.verifyAccountKey(key);
         return ResponseEntity.ok().body(getResponse(request, emptyMap(), "Account verified.", OK));
@@ -84,6 +129,7 @@ public class UserResource {
         return ResponseEntity.ok().body(getResponse(request, emptyMap(), "Token refreshed.", OK));
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN','USER', 'EMPLOYEE')")
     @PostMapping("/change-password")
     public ResponseEntity<Response> changePassword(HttpServletRequest request, HttpServletResponse response, @RequestBody @Valid ChangePasswordRequest data) {
         try {
@@ -116,7 +162,7 @@ public class UserResource {
         }
     }
 
-    @GetMapping("/password/reset")
+    @GetMapping("/public/password/reset")
     public ResponseEntity<Response> resetPassword(HttpServletRequest request, HttpServletResponse response, @RequestParam("email") String email) {
         try {
             userService.sendResetPasswordUri(email);
@@ -130,7 +176,7 @@ public class UserResource {
         }
     }
 
-    @GetMapping("/password/reset/verify")
+    @GetMapping("/public/password/reset/verify")
     public ResponseEntity<Response> verifyResetPasswordKey(@RequestParam("key") String key, HttpServletRequest request, HttpServletResponse response)  {
         try {
             userService.verifyResetPasswordKey(key);
@@ -144,7 +190,7 @@ public class UserResource {
         }
     }
 
-    @PostMapping("/password/reset")
+    @PostMapping("/public/password/reset")
     public ResponseEntity<Response> resetPassword(HttpServletRequest request, HttpServletResponse response, @RequestBody @Valid ResetPasswordRequest data) {
         try {
             if (!data.getNewPassword().equals(data.getConfirmPassword())) {
@@ -177,20 +223,21 @@ public class UserResource {
 
         return ResponseEntity.ok().body(getResponse(request, Map.of("tokenData", tokenData), "Token introspected.", OK));
     }
-
+    @PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE')")
     @GetMapping("/getAll")
     public ResponseEntity<Response> getAllUsers(HttpServletRequest request, HttpServletResponse response) {
         var users = userService.getAllUsers();
         return ResponseEntity.ok().body(getResponse(request, Map.of("users", users), "Users retrieve successfully!", OK));
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE') and hasAuthority('user:update')")
     @PutMapping("/status/{userId}")
     public ResponseEntity<Response> updateUser(@PathVariable("userId") String userId,  HttpServletRequest request, HttpServletResponse response){
         var user = userService.updateUserStatus(userId);
         return ResponseEntity.ok().body(getResponse(request, Map.of("user", user), "User status updated successfully!", OK));
     }
 
-    @GetMapping("/{customer-id}")
+    @GetMapping("/public/{customer-id}")
     public ResponseEntity<Response> getUserInfoById(@PathVariable("customer-id") String userId, HttpServletRequest request) {
         var user = userService.getUserByUserId(userId);
         return ResponseEntity.ok().body(getResponse(request, Map.of("user", user), "User info retrieved.", OK));
@@ -206,7 +253,7 @@ public class UserResource {
         var user = (User) authentication.getPrincipal();
         return ResponseEntity.ok().body(getResponse(request, Map.of("user", user), "User info retrieved.", OK));
     }
-
+    @PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE', 'USER')")
     @PostMapping("/update-profile")
     public ResponseEntity<Response> updateUserProfile(@RequestBody @Valid UpdateProfileRequest user, HttpServletRequest request, HttpServletResponse response) {
         var authentication = SecurityContextHolder.getContext().getAuthentication();

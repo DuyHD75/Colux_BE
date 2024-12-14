@@ -61,6 +61,7 @@
 						<name>coluxalpha/mmv3-${project.artifactId}:${project.version}</name>
 					</image>
 					<pullPolicy>IF_NOT_PRESENT</pullPolicy>
+					<finalName>config-service</finalName>
 				</configuration>
 			</plugin>
 		</plugins>

@@ -20,15 +20,16 @@ public class Constants {
 //        public static final String EMPLOYEE_AUTHORITIES = "product:read,product:create,order:read,order:update";
         public static final String[] ALLOWED_PATHS = {
                 "/api/v1/users/login",
-                "/api/v1/users/register",
+                "/api/v1/users/logout",
+                "/api/v1/users/grantcode",
                 "/api/v1/users/verify/account",
                 "/api/v1/users/introspect",
                 "/api/v1/users/password/reset",
                 "/api/v1/users/password/reset/verify",
-                "/api/v1/users/refresh-token",
-                "/api/v1/users/logout",
-                "/api/v1/users/reviews/info",
-                "/api/v1/users/**",
+                "/api/v1/users/getTotalUser",
+                "/api/v1/users/monthlyUser",
+                "/api/v1/users/public/**",
+
 //                "/ws/**"
         };
     }

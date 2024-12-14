@@ -72,12 +72,32 @@ public class CollectionServiceImpl implements ICollectionService {
 
     @Override
     public List<CollectionResponse> getAllCollectionWithoutColorFamilyAndRoom() {
-        var collections = collectionRepository.findByColorFamilyIdIsNullAndRoomIdIsNull();
+        var collections = collectionRepository.findAllByColorFamilyIsNullAndRoomIsNull();
         if (collections.isEmpty()) throw new ApiException("Empty collection without color family - room!");
         return collections.stream().map(
                         CollectionUtils::fromCollectionEntity
-                ).limit(5)
+                )
+//                .limit(5)
                 .toList();
+    }
+
+    @Override
+    public void updateCollections(List<CollectionRequest> coRe) {
+        coRe.forEach(collectionRequest -> {
+            Collection collection = collectionRepository.findByCollectionId(collectionRequest.getCollectionId())
+                    .orElseThrow(() -> new ApiException("Collection not found!"));
+            updateCollectionEntity(collection, collectionRequest);
+        });
+    }
+
+    private void updateCollectionEntity(Collection collection, CollectionRequest collectionRequest) {
+        Set<Color> colorSet = getColorsFromNames(collectionRequest.getColors(), colorRepository.findByColorIdIn(collectionRequest.getColors()));
+        collection.removeColorAssociations();
+        collection.setColors(colorSet);
+        for (Color color : colorSet) {
+            color.getCollections().add(collection);
+        }
+        collectionRepository.save(collection);
     }
 
     private Collection createACollectionEntity(CollectionRequest collectionRequest) {

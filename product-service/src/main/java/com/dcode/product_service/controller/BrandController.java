@@ -28,7 +28,7 @@ public class BrandController {
 
     private final BrandServiceImpl brandService;
 
-    @PreAuthorize("hasRole('EMPLOYEE') and hasAuthority('product:create')")
+    @PreAuthorize("hasAnyRole('EMPLOYEE', 'ADMIN')")
     @PostMapping
     public ResponseEntity<Response> createBrand(@RequestBody @Valid BrandRequest brandRequest, HttpServletRequest request, HttpServletResponse response){
         try {
@@ -46,7 +46,7 @@ public class BrandController {
         }
     }
 
-    @PreAuthorize("hasRole('EMPLOYEE') and hasAuthority('product:create')")
+    @PreAuthorize("hasAnyRole('EMPLOYEE', 'ADMIN')")
     @PostMapping("/bulk")
     public ResponseEntity<Response> createBrands(@RequestBody @Valid List<BrandRequest> brandRequest, HttpServletRequest request, HttpServletResponse response){
         try {

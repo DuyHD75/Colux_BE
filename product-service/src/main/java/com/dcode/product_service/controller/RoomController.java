@@ -31,7 +31,7 @@ public class RoomController {
 
     private final RoomServiceImpl roomService;
 
-    @PreAuthorize("hasRole('EMPLOYEE') and hasAuthority('product:create')")
+    @PreAuthorize("hasAnyRole('EMPLOYEE', 'ADMIN')")
     @PostMapping
     public ResponseEntity<Response> createRooms(@RequestBody @Valid List<RoomRequest> roomRequest, HttpServletRequest request, HttpServletResponse response){
         try {

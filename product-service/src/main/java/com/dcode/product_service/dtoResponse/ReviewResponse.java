@@ -16,6 +16,8 @@ public class ReviewResponse {
     @JsonProperty("id")
     private String reviewId;
     private String customerId;
+    private String productName;
+    private String productImage;
     private String productId;
     private Integer score;
     private String content;

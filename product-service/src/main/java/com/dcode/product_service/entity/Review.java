@@ -22,6 +22,7 @@ public class Review extends Auditable{
     @JoinColumn(name = "product_id")
     private Product product;
     private Integer score;
+    @Column(columnDefinition = "TEXT")
     private String content;
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)

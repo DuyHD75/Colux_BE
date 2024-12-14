@@ -21,6 +21,7 @@ import com.dcode.product_service.utils.ReviewUtils;
 import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Session;
 import org.springframework.data.domain.Page;
@@ -33,7 +34,7 @@ import java.util.stream.Collectors;
 import static com.dcode.product_service.utils.ReviewUtils.fromReviewEntity;
 
 @Transactional(rollbackOn = Exception.class)
-@AllArgsConstructor
+@RequiredArgsConstructor
 @Slf4j
 @Service
 public class ReviewServiceImpl implements IReviewService {
@@ -44,7 +45,6 @@ public class ReviewServiceImpl implements IReviewService {
     private final UserClientProxy userClientProxy;
     private final IOrderClientProxy orderClientProxy;
     private final EntityManager entityManager;
-
 
 
     public ReviewResponse createAReview(ReviewRequest reviewRequest) {
@@ -124,7 +124,7 @@ public class ReviewServiceImpl implements IReviewService {
         }
         Page<Review> reviewsPage = reviewRepository.findAllByProduct_ProductId(productId, pageable);
         return convertReviews(reviewsPage, pageable, reviewsPage.getTotalElements());
-        }
+    }
 
     @Override
     public PageResponse<ReviewResponse> getReviewsByUserId(String userId, Pageable pageable) {
@@ -134,7 +134,7 @@ public class ReviewServiceImpl implements IReviewService {
 
     private PageResponse<ReviewResponse> convertReviews(Page<Review> reviews, Pageable pageable, long totalElements) {
         if (reviews.isEmpty()) {
-            throw new BusinessException("No comments found for the product");
+            throw new BusinessException("No comments found!");
         }
         List<Review> reviewList = reviews.getContent();
         List<Review> rootReviews = reviewList.stream()

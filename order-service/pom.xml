@@ -246,6 +246,7 @@
                             <artifactId>lombok</artifactId>
                         </exclude>
                     </excludes>
+                    <finalName>order-service</finalName>
                 </configuration>
             </plugin>
         </plugins>

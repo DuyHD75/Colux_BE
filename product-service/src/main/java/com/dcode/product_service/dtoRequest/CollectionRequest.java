@@ -8,6 +8,7 @@ import java.util.Set;
 @Data
 @Builder
 public class CollectionRequest {
+    private String collectionId;
     private String name;
     private String title;
     private String description;

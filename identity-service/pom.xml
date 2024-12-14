@@ -136,6 +136,10 @@
             <groupId>io.micrometer</groupId>
             <artifactId>micrometer-tracing-bridge-otel</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
+        </dependency>
 
         <!-- <dependency>
              <groupId>io.opentelemetry</groupId>
@@ -193,6 +197,7 @@
                             <artifactId>lombok</artifactId>
                         </exclude>
                     </excludes>
+                    <finalName>identity-service</finalName>
                 </configuration>
             </plugin>
             <plugin>

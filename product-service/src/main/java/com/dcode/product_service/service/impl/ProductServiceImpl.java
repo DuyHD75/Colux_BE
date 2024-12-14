@@ -1,8 +1,10 @@
 package com.dcode.product_service.service.impl;
 
+import com.dcode.product_service.domain.RequestContext;
 import com.dcode.product_service.dto.BuildNameGHN;
 import com.dcode.product_service.dto.CartDto;
 import com.dcode.product_service.dto.CartDtoBase;
+import com.dcode.product_service.dto.user.UserResponse;
 import com.dcode.product_service.dtoRequest.*;
 import com.dcode.product_service.dtoRequest.order_service.OrderLineDTO;
 import com.dcode.product_service.dtoResponse.*;
@@ -10,9 +12,13 @@ import com.dcode.product_service.entity.*;
 import com.dcode.product_service.enumeration.CategoryType;
 import com.dcode.product_service.exception.ApiException;
 import com.dcode.product_service.exception.BusinessException;
+import com.dcode.product_service.proxy.UserClientProxy;
 import com.dcode.product_service.repository.*;
 import com.dcode.product_service.service.IProductService;
+import com.dcode.product_service.utils.FloorUtils;
+import com.dcode.product_service.utils.PaintUtils;
 import com.dcode.product_service.utils.ProductUtils;
+import com.dcode.product_service.utils.WallpaperUtils;
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,6 +31,7 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
+import static com.dcode.product_service.utils.ColorUtils.createNewColorEntityFromExcel;
 import static com.dcode.product_service.utils.PaintUtils.convertVariantToVResponse;
 import static com.dcode.product_service.utils.ProductUtils.createNewProductEntity;
 import static com.dcode.product_service.utils.ProductUtils.fromProductEntity;
@@ -54,6 +61,11 @@ public class ProductServiceImpl implements IProductService {
     private final EntityManager entityManager;
     private final VariantServiceImpl variantService;
     private final PaintServiceImpl paintService;
+    private final PaintServiceImpl paintServiceImpl;
+    private final FloorServiceImpl floorServiceImpl;
+    private final WallpaperServiceImpl wallpaperServiceImpl;
+    private final StockImportHistoryRepository stockImportHistoryRepository;
+    private final UserClientProxy userClientProxy;
 
 
     @Override
@@ -65,7 +77,7 @@ public class ProductServiceImpl implements IProductService {
         productRepository.saveAll(createNewProducts(productRequest));
     }
 
-    @Override
+    /*@Override
     public void saveProductsFromExcel(Set<ProductExcelRequest> productExcelRequests) {
         for (ProductExcelRequest productExcelRequest : productExcelRequests) {
             Brand brand = brandRepository.findByCode(productExcelRequest.getBrandCode()).orElseThrow(() -> new BusinessException("Error: Brand code not found:" + productExcelRequest.getBrandCode()));
@@ -85,81 +97,8 @@ public class ProductServiceImpl implements IProductService {
                                     .build(),
                             brand, category, featureValues, propertyValues, supplier)
             );
-            // product đã tồn tại
+            productRepository.save(product);
             if (productRepository.findByCode(productExcelRequest.getCode()).isPresent()) {
-                if (productExcelRequest.getColor().getHex() != null) {
-                    // kiểm tra xem paintVariant đã tồn tại chưa
-                    PaintVariant paintVariant = paintVariantRepository.findByPaint_Product_productIdAndPaint_Color_hexAndVariant_sizeNameAndVariant_categoryName(
-                                    product.getProductId(), productExcelRequest.getColor().getHex(), productExcelRequest.getSizeName(), productExcelRequest.getCategoryName())
-                            .orElse(null);
-
-                    if (paintVariant != null) {// ton tai paintVariant -> update quantity
-                        paintVariant.setQuantity(productExcelRequest.getQuantity());
-                    } else if (paintRepository.findByProduct_ProductIdAndColor_Hex( // paint đã tồn tại nhưng paintVariant chưa tồn tại
-                            product.getProductId(), productExcelRequest.getColor().getHex()).isPresent()) {
-                        Paint paint = paintRepository.findByProduct_ProductIdAndColor_Hex(product.getProductId(), productExcelRequest.getColor().getHex()).orElseThrow(() -> new BusinessException("Error: Paint not found"));
-                        Variant variant = variantRepository.findBySizeNameAndCategoryName(productExcelRequest.getSizeName(), productExcelRequest.getCategoryName()).orElse(
-                                variantService.createAVariantEntity(productExcelRequest.getSizeName(), productExcelRequest.getCategoryName(), productExcelRequest.getPackageType(
-                                )));
-                        variantRepository.save(variant);
-                        PaintVariant pVariant = PaintVariant.builder()
-                                .paintVariantId(UUID.randomUUID().toString())
-                                .paint(paint)
-                                .variant(variant)
-                                .quantity(productExcelRequest.getQuantity())
-                                .price(productExcelRequest.getPrice())
-                                .build();
-                        paint.getPaintVariants().add(pVariant);
-                        paintVariantRepository.save(pVariant);
-                        paintRepository.save(paint);
-                    } else {// paint chưa tồn tại
-                        // tao moi color neu chua co
-                        Color color = colorRepository.findByHex(productExcelRequest.getColor().getHex()).orElse(
-                                Color.builder()
-                                        .colorId(UUID.randomUUID().toString())
-                                        .name(productExcelRequest.getColor().getName())
-                                        .image(productExcelRequest.getColor().getImage())
-                                        .code(productExcelRequest.getColor().getCode())
-                                        .hex(productExcelRequest.getColor().getHex())
-                                        .LRV(productExcelRequest.getColor().getLRV())
-                                        .interior(productExcelRequest.getColor().isInterior())
-                                        .exterior(productExcelRequest.getColor().isExterior())
-                                        .description(productExcelRequest.getColor().getDescription())
-                                        .colorTypeId(productExcelRequest.getColor().getColorTypeId())
-                                        .build()
-                        );
-                        colorRepository.save(color);
-                        //tao moi variant neu chua co
-                        Variant variant = variantRepository.findBySizeNameAndCategoryName(productExcelRequest.getSizeName(), productExcelRequest.getCategoryName()).orElse(
-                                variantService.createAVariantEntity(productExcelRequest.getSizeName(), productExcelRequest.getCategoryName(), productExcelRequest.getPackageType())
-                        );
-
-                        variantRepository.save(variant);
-
-                        paintService.createPaint(product.getProductId(), PaintRequest.builder()
-                                .color(color.getColorId())
-                                .variants(Set.of(VariantRequest.builder()
-                                        .variantId(variant.getVariantId())
-                                        .quantity(productExcelRequest.getQuantity())
-                                        .price(productExcelRequest.getPrice())
-                                        .build())).build());
-
-
-                        paintVariant.setQuantity(productExcelRequest.getQuantity());
-                    }
-                } else if (productExcelRequest.getNumberPiecesPerBox() != null) {
-                    FloorVariant floorVariant = floorVariantRepository.findByFloor_Product_productIdAndFloor_numberOfPiecesPerBoxAndVariant_sizeNameAndVariant_categoryName(
-                                    product.getProductId(), productExcelRequest.getNumberPiecesPerBox(), productExcelRequest.getSizeName(), productExcelRequest.getCategoryName())
-                            .orElseThrow(() -> new BusinessException("Error: FloorVariant not found"));
-                    floorVariant.setQuantity(productExcelRequest.getQuantity());
-                } else {
-                    WallpaperVariant wallpaperVariant = wallpaperVariantRepository.findByWallpaper_Product_productIdAndVariant_sizeNameAndVariant_categoryName(
-                                    product.getProductId(), productExcelRequest.getSizeName(), productExcelRequest.getCategoryName())
-                            .orElseThrow(() -> new BusinessException("Error: WallpaperVariant not found"));
-                    wallpaperVariant.setQuantity(productExcelRequest.getQuantity());
-                }
-                // product chưa tồn tại
-            } else {
                 Set<Image> images = productExcelRequest.getImages().stream()
                         .map(imageRequest -> Image.builder()
                                 .imageId(UUID.randomUUID().toString())
@@ -169,12 +108,261 @@ public class ProductServiceImpl implements IProductService {
                         .collect(Collectors.toSet());
                 product.setImages(images);
                 imageRepository.saveAll(images);
+            }
+            if (productExcelRequest.getColor().getHex() != null) {
+                // kiểm tra xem paintVariant đã tồn tại chưa
+                PaintVariant paintVariant = paintVariantRepository.findByPaint_Product_productIdAndPaint_Color_hexAndVariant_sizeNameAndVariant_categoryName(
+                                product.getProductId(), productExcelRequest.getColor().getHex(), productExcelRequest.getSizeName(), productExcelRequest.getCategoryName())
+                        .orElse(null);
 
+                if (paintVariant != null) {// ton tai paintVariant -> update quantity
+                    paintVariant.setQuantity(productExcelRequest.getQuantity());
+                } else if (paintRepository.findByProduct_ProductIdAndColor_Hex( // paint đã tồn tại nhưng chua co variant trong request
+                        product.getProductId(), productExcelRequest.getColor().getHex()).isPresent()) {
+                    Paint paint = paintRepository.findByProduct_ProductIdAndColor_Hex(product.getProductId(), productExcelRequest.getColor().getHex()).orElseThrow(() -> new BusinessException("Error: Paint not found"));
+                    Variant variant = variantRepository.findBySizeNameAndCategoryName(productExcelRequest.getSizeName(), productExcelRequest.getCategoryName()).orElse(
+                            variantService.createAVariantEntity(productExcelRequest.getSizeName(), productExcelRequest.getCategoryName(), productExcelRequest.getPackageType(
+                            )));
+                    variantRepository.save(variant);
+                    PaintVariant pVariant = PaintUtils.createPaintVariant(paint, variant, productExcelRequest.getQuantity(), productExcelRequest.getPrice());
+                    paint.getPaintVariants().add(pVariant);
+                    paintVariantRepository.save(pVariant);
+                    paintRepository.save(paint);
+                } else {// paint chưa tồn tại
+                    // tao moi color neu chua co
+                    Color color = colorRepository.findByHex(productExcelRequest.getColor().getHex()).orElse(
+                            createNewColorEntityFromExcel(productExcelRequest)
+                    );
+                    // tao moi variant neu chua co
+                    Variant variant = variantRepository.findBySizeNameAndCategoryName(productExcelRequest.getSizeName(), productExcelRequest.getCategoryName()).orElse(
+                            variantService.createAVariantEntity(productExcelRequest.getSizeName(), productExcelRequest.getCategoryName(), productExcelRequest.getPackageType())
+                    );
+                    colorRepository.save(color);
+                    variantRepository.save(variant);
+                    PaintRequest paintRequest = PaintUtils.createPaintRequest(product.getProductId(), color.getColorId(), variant.getVariantId(), productExcelRequest.getQuantity(), productExcelRequest.getPrice());
+                    paintServiceImpl.createPaint(product.getProductId(), paintRequest);
+
+                }
+            } else if (productExcelRequest.getNumberPiecesPerBox() != null) {
+                FloorVariant floorVariant = floorVariantRepository.findByFloor_Product_productIdAndFloor_numberOfPiecesPerBoxAndVariant_sizeNameAndVariant_categoryName(
+                                product.getProductId(), productExcelRequest.getNumberPiecesPerBox(), productExcelRequest.getSizeName(), productExcelRequest.getCategoryName())
+                        .orElse(null);
+                if (floorVariant != null) { // floor da ton tai -> cap nhat quantity
+                    floorVariant.setQuantity(productExcelRequest.getQuantity());
+                } else if (floorRepository.findByProduct_ProductIdAndNumberOfPiecesPerBox( // da ton tai floor, chua co variant
+                        product.getProductId(), productExcelRequest.getNumberPiecesPerBox()).isPresent()) {
+                    Floor floor = floorRepository.findByProduct_ProductIdAndNumberOfPiecesPerBox(
+                            product.getProductId(), productExcelRequest.getNumberPiecesPerBox()).orElseThrow(() -> new BusinessException("floor with product code: " + productExcelRequest.getCode() + " not found"));
+                    Variant variant = variantRepository.findBySizeNameAndCategoryName(productExcelRequest.getSizeName(), productExcelRequest.getCategoryName()).orElse(
+                            variantService.createAVariantEntity(productExcelRequest.getSizeName(), productExcelRequest.getCategoryName(), productExcelRequest.getPackageType(
+                            )));
+                    variantRepository.save(variant);
+                    FloorVariant fVariant = FloorUtils.createNewFloorVariant(floor, variant, productExcelRequest.getQuantity(), productExcelRequest.getPrice());
+                    floor.getFloorVariants().add(fVariant);
+                    floorVariantRepository.save(fVariant);
+                    floorRepository.save(floor);
+                } else { // floor chua ton tai
+                    // tao moi variant neu chua co
+                    Variant variant = variantRepository.findBySizeNameAndCategoryName(productExcelRequest.getSizeName(), productExcelRequest.getCategoryName()).orElse(
+                            variantService.createAVariantEntity(productExcelRequest.getSizeName(), productExcelRequest.getCategoryName(), productExcelRequest.getPackageType())
+                    );
+                    variantRepository.save(variant);
+                    FloorRequest floorRequest = FloorUtils.createFloorRequest(product.getProductId(), productExcelRequest.getFoamThickness(), productExcelRequest.getNumberPiecesPerBox(), variant.getVariantId(), productExcelRequest.getQuantity(), productExcelRequest.getPrice());
+                    floorServiceImpl.createFloor(product.getProductId(), floorRequest);
+                }
+            } else {
+                WallpaperVariant wallpaperVariant = wallpaperVariantRepository.findByWallpaper_Product_productIdAndVariant_sizeNameAndVariant_categoryName(
+                                product.getProductId(), productExcelRequest.getSizeName(), productExcelRequest.getCategoryName())
+                        .orElse(null);
+                if (wallpaperVariant != null) {
+                    wallpaperVariant.setQuantity(productExcelRequest.getQuantity());
+                } else {
+                    Variant variant = variantRepository.findBySizeNameAndCategoryName(productExcelRequest.getSizeName(), productExcelRequest.getCategoryName()).orElse(
+                            variantService.createAVariantEntity(productExcelRequest.getSizeName(), productExcelRequest.getCategoryName(), productExcelRequest.getPackageType())
+                    );
+                    variantRepository.save(variant);
+                    WallpaperRequest wallpaperRequest = WallpaperUtils.createWallpaperRequest(product.getProductId(), variant.getVariantId(), productExcelRequest.getQuantity(), productExcelRequest.getPrice());
+                    wallpaperServiceImpl.createWallpaper(product.getProductId(), wallpaperRequest);
+                }
             }
             productRepository.save(product);
 
         }
 
+    }*/
+
+    @Override
+    public void saveProductsFromExcel(Set<ExcelRequest.ProductExcelRequest> productExcelRequests, String images, String billCode) {
+        for (ExcelRequest.ProductExcelRequest productExcelRequest : productExcelRequests) {
+            getProductFromRequest(productExcelRequest);
+        }
+        String employeeId = RequestContext.getUserId();
+        StockImportHistory stockImportHistory = StockImportHistory.builder()
+                .stockImportHistoryId(UUID.randomUUID().toString())
+                .images(images)
+                .billCode(billCode)
+                .employeeId(employeeId)
+                .build();
+        stockImportHistoryRepository.save(stockImportHistory);
+
+    }
+
+    @Override
+public List<StockImportHistoryResponse> getUpStockHistory() {
+    var stockImportHistory = stockImportHistoryRepository.findAll();
+    List<String> employeeIds = stockImportHistory.stream()
+            .map(StockImportHistory::getEmployeeId)
+            .distinct()
+            .toList();
+
+    List<UserResponse> userResponseList = userClientProxy.findUserReviewInfos(
+            employeeIds.stream().map(UserRequest::new).toList()
+    );
+
+    Map<String, UserResponse> userResponseMap = userResponseList.stream()
+            .collect(Collectors.toMap(UserResponse::getUserId, userResponse -> userResponse));
+
+    return stockImportHistory.stream().map(
+            history -> {
+                UserResponse userResponse = userResponseMap.get(history.getEmployeeId());
+                return StockImportHistoryResponse.builder()
+                        .images(history.getImages())
+                        .billCode(history.getBillCode())
+                        .customerId(history.getEmployeeId())
+                        .stockImportHistoryId(history.getStockImportHistoryId())
+                        .userInfo(userResponse)
+                        .build();
+            }
+    ).toList();
+}
+
+    private Product getProductFromRequest(ExcelRequest.ProductExcelRequest productExcelRequest) {
+        Product existProduct = productRepository.findByCode(productExcelRequest.getCode()).orElse(null);
+        if (existProduct != null) {
+            return existProduct;
+        }
+        Brand brand = brandRepository.findByCode(productExcelRequest.getBrandCode())
+                .orElseThrow(() -> new BusinessException("Error: Brand code not found:" + productExcelRequest.getBrandCode()));
+        Category category = categoryRepository.findByName(productExcelRequest.getCategoryName())
+                .orElseThrow(() -> new BusinessException("Error: Category name not found:" + productExcelRequest.getCategoryName() +
+                        " there only have: " + categoryRepository.findAll().stream().map(Category::getName).toList()));
+        var featureValues = getFeatureValueByFeatureValueIds(productExcelRequest.getFeatureValueIds());
+        var propertyValues = getPropertyValueByPropertyValueIds(productExcelRequest.getPropertyValueIds());
+        var supplier = getProductSupplier(productExcelRequest.getSupplierId());
+        Product product = ProductUtils.createNewProductEntity(ProductRequest.builder()
+                        .productName(productExcelRequest.getProductName())
+                        .description(productExcelRequest.getDescription())
+                        .code(productExcelRequest.getCode())
+                        .placeOfOrigin(productExcelRequest.getPlaceOfOrigin())
+                        .warranty(productExcelRequest.getWarranty())
+                        .applicableSurface(productExcelRequest.getApplicableSurface())
+                        .build(),
+                brand, category, featureValues, propertyValues, supplier);
+        productRepository.save(product);
+        saveProductImages(product, productExcelRequest.getImages());
+        saveProductVariants(product, productExcelRequest);
+        return product;
+    }
+
+    private void saveProductImages(Product product, Set<String> imageUrls) {
+        Set<Image> images = imageUrls.stream()
+                .map(imageUrl -> Image.builder()
+                        .imageId(UUID.randomUUID().toString())
+                        .url(imageUrl)
+                        .product(product)
+                        .build())
+                .collect(Collectors.toSet());
+        product.setImages(images);
+        imageRepository.saveAll(images);
+    }
+
+    private void saveProductVariants(Product product, ExcelRequest.ProductExcelRequest productExcelRequest) {
+        if (Objects.equals(productExcelRequest.getCategoryName(), CategoryType.PAINT.getName())) {
+            savePaintVariant(product, productExcelRequest);
+        } else if (Objects.equals(productExcelRequest.getCategoryName(), CategoryType.FLOOR.getName())) {
+            saveFloorVariant(product, productExcelRequest);
+        } else {
+            saveWallpaperVariant(product, productExcelRequest);
+        }
+    }
+
+    private void savePaintVariant(Product product, ExcelRequest.ProductExcelRequest productExcelRequest) {
+        PaintVariant paintVariant = paintVariantRepository.findByPaint_Product_productIdAndPaint_Color_hexAndVariant_sizeNameAndVariant_categoryName(
+                        product.getProductId(), productExcelRequest.getColor().getHex(), productExcelRequest.getSizeName(), productExcelRequest.getCategoryName())
+                .orElse(null);
+
+        if (paintVariant != null) {
+            paintVariant.setQuantity(paintVariant.getQuantity() + productExcelRequest.getQuantity());
+            paintVariant.setPrice(productExcelRequest.getPrice());
+        } else if (paintRepository.findByProduct_ProductIdAndColor_Hex(product.getProductId(), productExcelRequest.getColor().getHex()).isPresent()) {
+            Paint paint = paintRepository.findByProduct_ProductIdAndColor_Hex(product.getProductId(), productExcelRequest.getColor().getHex())
+                    .orElseThrow(() -> new BusinessException("Error: Paint not found"));
+            Variant variant = getOrCreateVariant(productExcelRequest);
+            PaintVariant pVariant = PaintUtils.createPaintVariant(paint, variant, productExcelRequest.getQuantity(), productExcelRequest.getPrice());
+            paint.getPaintVariants().add(pVariant);
+            paintVariantRepository.save(pVariant);
+            paintRepository.save(paint);
+        } else {
+            createNewPaint(product, productExcelRequest);
+        }
+    }
+
+    private void saveFloorVariant(Product product, ExcelRequest.ProductExcelRequest productExcelRequest) {
+        FloorVariant floorVariant = floorVariantRepository.findByFloor_Product_productIdAndFloor_numberOfPiecesPerBoxAndVariant_sizeNameAndVariant_categoryName(
+                        product.getProductId(), productExcelRequest.getNumberPiecesPerBox(), productExcelRequest.getSizeName(), productExcelRequest.getCategoryName())
+                .orElse(null);
+
+        if (floorVariant != null) {
+            floorVariant.setQuantity(floorVariant.getQuantity() + productExcelRequest.getQuantity());
+            floorVariant.setPrice(productExcelRequest.getPrice());
+        } else if (floorRepository.findByProduct_ProductIdAndNumberOfPiecesPerBox(product.getProductId(), productExcelRequest.getNumberPiecesPerBox()).isPresent()) {
+            Floor floor = floorRepository.findByProduct_ProductIdAndNumberOfPiecesPerBox(product.getProductId(), productExcelRequest.getNumberPiecesPerBox())
+                    .orElseThrow(() -> new BusinessException("floor with product code: " + productExcelRequest.getCode() + " not found"));
+            Variant variant = getOrCreateVariant(productExcelRequest);
+            FloorVariant fVariant = FloorUtils.createNewFloorVariant(floor, variant, productExcelRequest.getQuantity(), productExcelRequest.getPrice());
+            floor.getFloorVariants().add(fVariant);
+            floorVariantRepository.save(fVariant);
+            floorRepository.save(floor);
+        } else {
+            createNewFloor(product, productExcelRequest);
+        }
+    }
+
+    private void saveWallpaperVariant(Product product, ExcelRequest.ProductExcelRequest productExcelRequest) {
+        WallpaperVariant wallpaperVariant = wallpaperVariantRepository.findByWallpaper_Product_productIdAndVariant_sizeNameAndVariant_categoryName(
+                        product.getProductId(), productExcelRequest.getSizeName(), productExcelRequest.getCategoryName())
+                .orElse(null);
+
+        if (wallpaperVariant != null) {
+            wallpaperVariant.setQuantity(wallpaperVariant.getQuantity() + productExcelRequest.getQuantity());
+            wallpaperVariant.setPrice(productExcelRequest.getPrice());
+        } else {
+            Variant variant = getOrCreateVariant(productExcelRequest);
+            WallpaperRequest wallpaperRequest = WallpaperUtils.createWallpaperRequest(product.getProductId(), variant.getVariantId(), productExcelRequest.getQuantity(), productExcelRequest.getPrice());
+            wallpaperServiceImpl.createWallpaper(product.getProductId(), wallpaperRequest);
+        }
+    }
+
+    private Variant getOrCreateVariant(ExcelRequest.ProductExcelRequest productExcelRequest) {
+        return variantRepository.findBySizeNameAndCategoryName(productExcelRequest.getSizeName(), productExcelRequest.getCategoryName())
+                .orElseGet(() -> variantService.createAVariantEntity(productExcelRequest.getSizeName(), productExcelRequest.getCategoryName(), productExcelRequest.getPackageType()));
+    }
+
+    private void createNewPaint(Product product, ExcelRequest.ProductExcelRequest productExcelRequest) {
+        Color color = colorRepository.findByHex(productExcelRequest.getColor().getHex())
+                .orElseGet(() -> createNewColorEntityFromExcel(productExcelRequest));
+        Variant variant = getOrCreateVariant(productExcelRequest);
+        colorRepository.save(color);
+        variantRepository.save(variant);
+        PaintRequest paintRequest = PaintUtils.createPaintRequest(product.getProductId(), color.getColorId(), variant.getVariantId(), productExcelRequest.getQuantity(), productExcelRequest.getPrice());
+        paintServiceImpl.createPaint(product.getProductId(), paintRequest);
+    }
+
+    private void createNewFloor(Product product, ExcelRequest.ProductExcelRequest productExcelRequest) {
+        Variant variant = getOrCreateVariant(productExcelRequest);
+        variantRepository.save(variant);
+        FloorRequest floorRequest = FloorUtils.createFloorRequest(product.getProductId(), productExcelRequest.getFoamThickness(), productExcelRequest.getNumberPiecesPerBox(), variant.getVariantId(), productExcelRequest.getQuantity(), productExcelRequest.getPrice());
+        floorServiceImpl.createFloor(product.getProductId(), floorRequest);
     }
 
     private Product createNewProduct(ProductRequest productRequest) {

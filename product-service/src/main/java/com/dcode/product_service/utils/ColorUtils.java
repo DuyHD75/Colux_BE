@@ -1,6 +1,7 @@
 package com.dcode.product_service.utils;
 
 import com.dcode.product_service.dtoRequest.ColorRequest;
+import com.dcode.product_service.dtoRequest.ExcelRequest;
 import com.dcode.product_service.dtoResponse.CollectionResponse;
 import com.dcode.product_service.dtoResponse.ColorFamilyResponse;
 import com.dcode.product_service.dtoResponse.ColorResponse;
@@ -29,6 +30,20 @@ public class ColorUtils {
                 .hex(colorRequest.getHex())
                 .description(colorRequest.getDescription())
                 .colorTypeId(colorRequest.getColorTypeId())
+                .build();
+    }
+    public static Color createNewColorEntityFromExcel(ExcelRequest.ProductExcelRequest productExcelRequest){
+        return  Color.builder()
+                .colorId(UUID.randomUUID().toString())
+                .name(productExcelRequest.getColor().getName())
+                .image(productExcelRequest.getColor().getImage())
+                .code(productExcelRequest.getColor().getCode())
+                .hex(productExcelRequest.getColor().getHex())
+                .LRV(productExcelRequest.getColor().getLRV())
+                .interior(productExcelRequest.getColor().isInterior())
+                .exterior(productExcelRequest.getColor().isExterior())
+                .description(productExcelRequest.getColor().getDescription())
+                .colorTypeId(productExcelRequest.getColor().getColorTypeId())
                 .build();
     }
 

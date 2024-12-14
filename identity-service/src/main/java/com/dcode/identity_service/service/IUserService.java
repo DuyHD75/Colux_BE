@@ -8,6 +8,9 @@ import com.dcode.identity_service.entity.CredentialEntity;
 import com.dcode.identity_service.entity.RoleEntity;
 import com.dcode.identity_service.enumeration.LoginType;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotEmpty;
+import org.springframework.http.ResponseEntity;
 
 import java.util.List;
 import java.util.Map;
@@ -47,4 +50,8 @@ public interface IUserService {
     List<User> getAllUsers();
 
     User updateUserStatus(String userId);
+
+    User processGrantCode(String code);
+
+    void createEmployee(@NotEmpty(message = "First name is required") String firstName, @NotEmpty(message = "Last name is required") String lastName, @NotEmpty(message = "Email is required") @Email(message = "Email address is invalid") String email, String phone, @NotEmpty(message = "Role is required") String role);
 }

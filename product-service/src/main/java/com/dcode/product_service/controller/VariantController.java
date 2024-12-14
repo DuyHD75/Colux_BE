@@ -30,7 +30,7 @@ public class VariantController {
 
     private final VariantServiceImpl variantService;
 
-    @PreAuthorize("hasRole('EMPLOYEE') and hasAuthority('product:create')")
+    @PreAuthorize("hasAnyRole('EMPLOYEE', 'ADMIN')")
     @PostMapping
     public ResponseEntity<Response> createAVariant(@RequestBody @Valid VariantAttributeRequest variantRequest, HttpServletRequest request, HttpServletResponse response) {
         try {

@@ -10,7 +10,7 @@
 	</parent>
 	<groupId>com.dcode</groupId>
 	<artifactId>product-service</artifactId>
-	<version>0.0.51-SNAPSHOT</version>
+	<version>0.0.52-SNAPSHOT</version>
 	<name>product-service</name>
 	<description>Implement Product Service</description>
 	<properties>
@@ -180,6 +180,7 @@
 							<artifactId>lombok</artifactId>
 						</exclude>
 					</excludes>
+					<finalName>product-service</finalName>
 				</configuration>
 			</plugin>
 			<plugin>

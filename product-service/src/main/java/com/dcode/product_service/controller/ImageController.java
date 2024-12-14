@@ -31,8 +31,8 @@ import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 public class ImageController {
 
     private final ImageServiceImpl imageService;
-    // TODO: add ADMIN
-    @PreAuthorize("hasRole('EMPLOYEE') and hasAuthority('product:create')")
+
+    @PreAuthorize("hasAnyRole('EMPLOYEE', 'ADMIN')")
     @PostMapping
     public ResponseEntity<Response> createAImage(@RequestBody @Valid ImageRequest imageRequest, HttpServletRequest request, HttpServletResponse response){
         try {

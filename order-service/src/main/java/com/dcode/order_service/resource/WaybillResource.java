@@ -8,6 +8,7 @@ import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -29,7 +30,7 @@ public class WaybillResource {
 
     @PreAuthorize("hasAnyRole('EMPLOYEE', 'ADMIN') and hasAuthority('order:create')")
     @PostMapping("/create")
-    public ResponseEntity<Response> createWaybill(@RequestBody WaybillRequest waybillRequest,
+    public ResponseEntity<Response> createWaybill(@RequestBody @Valid WaybillRequest waybillRequest,
                                                   HttpServletRequest request,
                                                   HttpServletResponse response) {
         var waybill = waybillService.createAWaybill(waybillRequest);

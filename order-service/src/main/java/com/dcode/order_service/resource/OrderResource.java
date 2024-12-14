@@ -149,6 +149,7 @@ public class OrderResource {
     }
 
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE', 'USER')")
     @PostMapping("/cancel")
     public ResponseEntity<Response> cancelOrder(@RequestBody OrderCancellationReasonRequest requestCancel, HttpServletRequest request, HttpServletResponse response) {
         try {

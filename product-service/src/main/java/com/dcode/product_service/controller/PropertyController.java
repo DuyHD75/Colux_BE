@@ -29,7 +29,7 @@ import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 public class PropertyController {
     private final PropertyServiceImpl propertyService;
 
-    @PreAuthorize("hasRole('EMPLOYEE') and hasAuthority('product:create')")
+    @PreAuthorize("hasAnyRole('EMPLOYEE', 'ADMIN')")
     @PostMapping()
     public ResponseEntity<Response> createProperty(@RequestBody @Valid Set<RequestProperty> requestProperty, HttpServletRequest request, HttpServletResponse response) {
         try {

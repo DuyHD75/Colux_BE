@@ -2,6 +2,7 @@ package com.dcode.product_service.controller;
 
 import com.dcode.product_service.domain.Response;
 import com.dcode.product_service.dtoRequest.ColorFamilyRequest;
+import com.dcode.product_service.dtoResponse.ColorFamilyResponse;
 import com.dcode.product_service.exception.ApiException;
 import com.dcode.product_service.service.impl.ColorFamilyServiceImpl;
 import jakarta.servlet.http.HttpServletRequest;
@@ -15,6 +16,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
+import java.util.List;
 import java.util.Map;
 
 import static com.dcode.product_service.utils.RequestUtils.getErrorResponse;
@@ -30,7 +32,7 @@ public class ColorFamilyController {
 
     private final ColorFamilyServiceImpl colorFamilyService;
 
-    @PreAuthorize("hasRole('EMPLOYEE') and hasAuthority('product:create')")
+    @PreAuthorize("hasAnyRole('EMPLOYEE', 'ADMIN')")
     @PostMapping
     public ResponseEntity<Response> createAColorFamily(@RequestBody @Valid ColorFamilyRequest cfRequest, HttpServletRequest request, HttpServletResponse response) {
         try {
@@ -44,6 +46,7 @@ public class ColorFamilyController {
                     .body(getErrorResponse(request, response, new ApiException("An unexpected error occurred."), INTERNAL_SERVER_ERROR));
         }
     }
+
 
     @GetMapping("/public/colorFamilyId/{colorFamilyId}")
     public ResponseEntity<Response> getAColorFamily(@PathVariable("colorFamilyId") String colorFamilyId, HttpServletRequest request, HttpServletResponse response) {

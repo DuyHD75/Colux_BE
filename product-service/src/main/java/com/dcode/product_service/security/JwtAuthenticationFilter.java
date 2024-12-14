@@ -2,6 +2,7 @@ package com.dcode.product_service.security;
 
 import com.dcode.product_service.domain.TokenData;
 import com.dcode.product_service.service.IJwtService;
+import com.dcode.product_service.domain.RequestContext;
 import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -62,6 +63,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
             authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
             SecurityContextHolder.getContext().setAuthentication(authentication);
+
+            RequestContext.setUserId(tokenData.getUserId());
 
             filterChain.doFilter(request, response);
         } catch (Exception ex) {

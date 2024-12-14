@@ -1,13 +1,11 @@
 package com.dcode.product_service.service;
 
 import com.dcode.product_service.dto.CartDtoBase;
-import com.dcode.product_service.dtoRequest.ProductExcelRequest;
-import com.dcode.product_service.dtoRequest.ProductOrderRequest;
-import com.dcode.product_service.dtoRequest.ProductRequest;
-import com.dcode.product_service.dtoRequest.ProductUpdateRequest;
+import com.dcode.product_service.dtoRequest.*;
 import com.dcode.product_service.dtoResponse.ProductOrderResponse;
 import com.dcode.product_service.dtoResponse.ProductResponse;
 import com.dcode.product_service.entity.PageResponse;
+import com.dcode.product_service.entity.StockImportHistory;
 import org.springframework.data.domain.Pageable;
 
 import java.util.List;
@@ -34,7 +32,9 @@ public interface IProductService {
 
     ProductResponse getProductByProductId(String productId);
 
-    void saveProductsFromExcel(Set<ProductExcelRequest> productRequest);
+    void saveProductsFromExcel(Set<ExcelRequest.ProductExcelRequest> productRequest, String images, String billCode);
+
+    List<StockImportHistoryResponse> getUpStockHistory();
 
 
 //    void createProduct(ProductRequest productRequest);

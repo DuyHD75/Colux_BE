@@ -31,7 +31,7 @@ public class WallpaperController {
 
     private final WallpaperServiceImpl wallpaperService;
 
-    @PreAuthorize("hasRole('EMPLOYEE') and hasAuthority('product:create')")
+    @PreAuthorize("hasAnyRole('EMPLOYEE', 'ADMIN')")
     @PostMapping("/productId/{productId}")
     public ResponseEntity<Response> createAWallpaper(@PathVariable("productId") String productId, @RequestBody @Valid WallpaperRequest wallpaperRequest, HttpServletRequest request, HttpServletResponse response) {
         try {
@@ -46,7 +46,7 @@ public class WallpaperController {
         }
     }
 
-    @PreAuthorize("hasRole('EMPLOYEE') and hasAuthority('product:create')")
+    @PreAuthorize("hasAnyRole('EMPLOYEE', 'ADMIN')")
     @PostMapping
     public ResponseEntity<Response> createWallpapers(@RequestBody @Valid Set<WallpaperRequest> wallpaperRequests, HttpServletRequest request, HttpServletResponse response) {
         try {
@@ -75,7 +75,7 @@ public class WallpaperController {
         }
     }
 
-    @PreAuthorize("hasRole('EMPLOYEE') and hasAuthority('product:update')")
+    @PreAuthorize("hasAnyRole('EMPLOYEE', 'ADMIN')")
     @PutMapping("/wallpaperId/{wallpaperId}")
     public ResponseEntity<Response> updateAWallpaper(@PathVariable("wallpaperId") String wallpaperId, @RequestBody WallpaperRequest wallpaperRequest, HttpServletRequest request, HttpServletResponse response) {
         try {
@@ -90,7 +90,7 @@ public class WallpaperController {
         }
     }
 
-    @PreAuthorize("hasRole('EMPLOYEE') and hasAuthority('product:delete')")
+    @PreAuthorize("hasAnyRole('EMPLOYEE', 'ADMIN')")
     @DeleteMapping("/wallpaperId/   {wallpaperId}")
     public ResponseEntity<Response> deleteAWallpaper(@PathVariable("wallpaperId") String wallpaperId, HttpServletRequest request, HttpServletResponse response) {
         try {

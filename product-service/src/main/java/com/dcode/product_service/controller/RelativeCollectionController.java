@@ -32,7 +32,7 @@ public class RelativeCollectionController {
 
     private final RelativeCollectionServiceImpl relativeCollectionService;
 
-    @PreAuthorize("hasRole('EMPLOYEE') and hasAuthority('product:create')")
+    @PreAuthorize("hasAnyRole('EMPLOYEE', 'ADMIN')")
     @PostMapping
     public ResponseEntity<Response> createARelativeCollection(@RequestBody @Valid RelativeCollectionRequest rcRequest, HttpServletRequest request, HttpServletResponse response){
         try {

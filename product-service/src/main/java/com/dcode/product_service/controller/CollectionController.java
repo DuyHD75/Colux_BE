@@ -31,12 +31,28 @@ public class CollectionController {
 
     private final CollectionServiceImpl collectionService;
 
-    @PreAuthorize("hasRole('EMPLOYEE') and hasAuthority('product:create')")
+    @PreAuthorize("hasAnyRole('EMPLOYEE', 'ADMIN')")
     @PostMapping
     public ResponseEntity<Response> createCollections(@RequestBody List<CollectionRequest> coRe, HttpServletRequest request, HttpServletResponse response) {
         try {
             collectionService.createCollections(coRe);
             return ResponseEntity.created(getUri()).body(getResponse(request, emptyMap(), "Collection created successfully!", HttpStatus.CREATED));
+        }catch (ApiException ex) {
+            return ResponseEntity.status(BAD_REQUEST)
+                    .body(getErrorResponse(request, response, ex, BAD_REQUEST));
+        } catch (Exception exception) {
+            return ResponseEntity.status(INTERNAL_SERVER_ERROR)
+                    .body(getErrorResponse(request, response, new ApiException("An unexpected error occurred."), INTERNAL_SERVER_ERROR));
+        }
+
+    }
+
+    @PreAuthorize("hasAnyRole('EMPLOYEE', 'ADMIN')")
+    @PutMapping
+    public ResponseEntity<Response> updateColorCollections(@RequestBody List<CollectionRequest> coRe, HttpServletRequest request, HttpServletResponse response) {
+        try {
+            collectionService.updateCollections(coRe);
+            return ResponseEntity.ok().body(getResponse(request, emptyMap(), "Collection updated successfully!", OK));
         }catch (ApiException ex) {
             return ResponseEntity.status(BAD_REQUEST)
                     .body(getErrorResponse(request, response, ex, BAD_REQUEST));

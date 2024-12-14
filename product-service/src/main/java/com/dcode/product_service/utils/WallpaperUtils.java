@@ -1,6 +1,8 @@
 package com.dcode.product_service.utils;
 
+import com.dcode.product_service.dtoRequest.FloorRequest;
 import com.dcode.product_service.dtoRequest.VariantRequest;
+import com.dcode.product_service.dtoRequest.WallpaperRequest;
 import com.dcode.product_service.dtoResponse.VariantResponse;
 import com.dcode.product_service.dtoResponse.WallpaperResponse;
 import com.dcode.product_service.entity.Product;
@@ -10,10 +12,7 @@ import com.dcode.product_service.entity.WallpaperVariant;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.BeanUtils;
 
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.dcode.product_service.utils.PaintUtils.convertVariantToVResponse;
@@ -87,4 +86,15 @@ public class WallpaperUtils {
         return wallpaper;
     }
 
+    public static WallpaperRequest createWallpaperRequest(String productId, String variantId, Integer quantity, Double price) {
+        VariantRequest variantRequest = VariantRequest.builder()
+                .variantId(variantId)
+                .quantity(quantity)
+                .price(price)
+                .build();
+        return WallpaperRequest.builder()
+                .productId(productId)
+                .variants(Collections.singleton(variantRequest))
+                .build();
+    }
 }

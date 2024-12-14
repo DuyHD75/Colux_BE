@@ -44,4 +44,14 @@ public class Collection extends Auditable{
     @JoinColumn(name = "relative_collection_id", referencedColumnName = "id")
     private RelativeCollection relativeCollection;
 
+    @PreRemove
+    public void removeColorAssociations() {
+        if (colors != null) {
+            for (Color color : colors) {
+                color.getCollections().remove(this);
+            }
+            colors.clear();
+        }
+    }
+
 }

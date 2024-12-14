@@ -35,8 +35,7 @@ public class ColorFamilyServiceImpl implements IColorFamilyService {
     @Autowired
     private EntityManager entityManager;
     private final ColorFamilyRepository colorFamilyRepository;
-    @Autowired
-    private ColorRepository colorRepository;
+    private final ColorRepository colorRepository;
 
     @Override
     public void createACF(String name, String title, String description, String hex, String image) {
@@ -66,6 +65,7 @@ public class ColorFamilyServiceImpl implements IColorFamilyService {
         Page<ColorResponse> colorResponsePage = colors.map(ColorUtils::fromColorEntityPartical);
         return PageResponseBuilder.buildPageResponse(colorResponsePage);
     }
+
 
     private ColorFamily createACFEntity(String name, String title, String description, String hex, String image) {
 //        Set<Collection> collectionSet = collectionIds.stream()

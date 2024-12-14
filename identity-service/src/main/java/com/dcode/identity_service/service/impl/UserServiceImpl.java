@@ -21,12 +21,22 @@ import com.dcode.identity_service.repository.RoleRepository;
 import com.dcode.identity_service.repository.UserRepository;
 import com.dcode.identity_service.service.IUserService;
 import com.dcode.identity_service.utils.UserUtils;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.http.*;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.RestTemplate;
+
 
 
 import java.time.LocalDateTime;
@@ -57,8 +67,100 @@ public class UserServiceImpl implements IUserService {
 
     private final CacheStore<String, String> resetPasswordCache;
 
+    @Value("${spring.google.client.id}")
+    private String clientId;
+    @Value("${spring.google.client.secret}")
+    private String clientSecret;
+    @Value("${spring.google.redirect-uri}")
+    private String redirectUri;
+
+    public User processGrantCode(String code) {
+        try {
+            // Lấy Access Token từ Google
+            String accessTokenResponse = getOauthAccessTokenGoogle(code);
+
+            // Parse JSON để lấy Access Token
+            ObjectMapper objectMapper = new ObjectMapper();
+            JsonNode jsonNode = objectMapper.readTree(accessTokenResponse);
+            String accessToken = jsonNode.get("access_token").asText();
+
+            // Lấy thông tin người dùng từ Google
+            JsonObject userInfo = getProfileDetailsGoogle(accessToken);
+
+            String email = userInfo.get("email").getAsString();
+            UserEntity userEntity = userRepository.findByEmailIgnoreCase(email).orElse(null);
+            if (userEntity != null) {
+                return fromUserEntity(userEntity, userEntity.getRole(), getUserCredentialById(userEntity.getId()));
+            }else
+            {
+                // Tạo mới người dùng
+                String firstName = userInfo.get("given_name").getAsString();
+                String lastName = userInfo.get("family_name").getAsString();
+                createUser(firstName, lastName, email, "", "USER");
+                userEntity = userRepository.findByEmailIgnoreCase(email).orElseThrow(() -> new ApiException("Error: User is not found."));
+                return fromUserEntity(userEntity, userEntity.getRole(), getUserCredentialById(userEntity.getId()));
+            }
+
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    @Override
+    public void createEmployee(String firstName, String lastName, String email, String phone, String role) {
+        var userEntity = createNewUser(firstName, lastName, email, role);
+        userRepository.save(userEntity);
+        String password = "coluxAlpha";
+        var credentialEntity = new CredentialEntity(userEntity, passwordEncoder.encode(password));
+        credentialRepository.save(credentialEntity);
+
+        var confirmationEntity = new ConfirmationEntity(userEntity);
+        confirmationRepository.save(confirmationEntity);
+        verifyAccountKey(confirmationEntity.getConfirmKey());
+
+    }
+
+
+    private String getOauthAccessTokenGoogle(String code) {
+        RestTemplate restTemplate = new RestTemplate();
+        HttpHeaders httpHeaders = new HttpHeaders();
+        httpHeaders.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+
+        MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
+        params.add("code", code);
+        // TODO: add redirect_uri to application.properties
+        params.add("redirect_uri", redirectUri);
+        params.add("client_id", clientId);
+        params.add("client_secret", clientSecret);
+        params.add("scope", "https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fuserinfo.profile");
+        params.add("scope", "https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fuserinfo.email");
+        params.add("scope", "openid");
+        params.add("grant_type", "authorization_code");
+
+        HttpEntity<MultiValueMap<String, String>> requestEntity = new HttpEntity<>(params, httpHeaders);
+
+        String url = "https://oauth2.googleapis.com/token";
+        return restTemplate.postForObject(url, requestEntity, String.class);
+    }
+
+    private JsonObject getProfileDetailsGoogle(String accessToken) {
+        RestTemplate restTemplate = new RestTemplate();
+        HttpHeaders httpHeaders = new HttpHeaders();
+        httpHeaders.setBearerAuth(accessToken);
+
+        HttpEntity<String> requestEntity = new HttpEntity<>(httpHeaders);
+
+        String url = "https://www.googleapis.com/oauth2/v2/userinfo";
+        ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, requestEntity, String.class);
+        return new Gson().fromJson(response.getBody(), JsonObject.class);
+    }
+
     @Override
     public void createUser(String firstName, String lastName, String email, String password, String role) {
+        var existingUser = userRepository.findByEmailIgnoreCase(email);
+        if (existingUser.isPresent()) {
+            throw new ApiException("Email is already in use.");
+        }
         var userEntity = userRepository.save(createNewUser(firstName, lastName, email, role));
         log.info("User created: {}", userEntity);
 
@@ -197,10 +299,19 @@ public class UserServiceImpl implements IUserService {
     @Override
     public User updateUserProfile(String email, UpdateProfileRequest data) {
         var userEntity = getUserEntityByEmail(email);
-        userEntity.setFirstName(data.getFirstName());
-        userEntity.setLastName(data.getLastName());
-        userEntity.setPhone(data.getPhone());
-        userEntity.setImageUrl(data.getImageUrl());
+        if (data.getFirstName() != null) {
+            userEntity.setFirstName(data.getFirstName());
+        }
+        if (data.getLastName() != null) {
+            userEntity.setLastName(data.getLastName());
+        }
+        if (data.getPhone() != null) {
+            userEntity.setPhone(data.getPhone());
+        }
+        if (data.getImageUrl() != null) {
+            userEntity.setImageUrl(data.getImageUrl());
+        }
+
         userRepository.save(userEntity);
         return fromUserEntity(userEntity, userEntity.getRole(), getUserCredentialById(userEntity.getId()));
     }
@@ -255,7 +366,7 @@ public class UserServiceImpl implements IUserService {
 
         var roleEntity = switch (role) {
             case "ADMIN" -> getRoleName(Authority.ADMIN.name());
-            case "MANAGER" -> getRoleName(Authority.MANAGER.name());
+            case "EMPLOYEE" -> getRoleName(Authority.EMPLOYEE.name());
             default -> getRoleName(Authority.USER.name());
         };
 

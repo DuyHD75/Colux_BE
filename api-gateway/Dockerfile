@@ -18,7 +18,7 @@ COPY src ./src
 RUN mvn clean package -DskipTests
 
 # Expose port
-EXPOSE 8888
+EXPOSE 8765
 
 # Run the application
-CMD ["java", "-jar", "target/config-service.jar"]
+CMD ["java", "-jar", "target/apigateway-service.jar"]

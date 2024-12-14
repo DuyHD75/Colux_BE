@@ -15,10 +15,10 @@ RUN mvn dependency:go-offline -B
 COPY src ./src
 
 # Build the project
-RUN mvn clean package -DskipTests
+RUN mvn clean package -Pprod -DskipTests
 
 # Expose port
-EXPOSE 8888
+EXPOSE 8082
 
 # Run the application
-CMD ["java", "-jar", "target/config-service.jar"]
+CMD ["java", "-jar", "target/order-service.jar"]

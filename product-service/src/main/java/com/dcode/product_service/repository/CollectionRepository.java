@@ -10,4 +10,5 @@ import java.util.Optional;
 public interface CollectionRepository extends JpaRepository<Collection, Long> {
     Optional<Collection> findByCollectionId(String collectionId);
     List<Collection> findByColorFamilyIdIsNullAndRoomIdIsNull();
+    List<Collection> findAllByColorFamilyIsNullAndRoomIsNull();
 }

@@ -19,7 +19,7 @@ import java.util.Optional;
         configuration = {AuthenticationRequestInterceptor.class}
 )
 public interface ICustomerClientProxy {
-    @GetMapping("/{customer-id}")
+    @GetMapping("/public/{customer-id}")
     Optional<Response> findUserByUserId(@PathVariable("customer-id") String customerId);
 
     @GetMapping("/getTotalUser")

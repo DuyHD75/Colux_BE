@@ -1,18 +1,27 @@
 package com.dcode.product_service.utils;
 
 import com.dcode.product_service.dtoRequest.FloorRequest;
+import com.dcode.product_service.dtoRequest.VariantRequest;
 import com.dcode.product_service.dtoResponse.FloorResponse;
 import com.dcode.product_service.entity.*;
 import org.apache.commons.lang3.tuple.Pair;
 
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 import static com.dcode.product_service.utils.PaintUtils.convertVariantToVResponse;
 
 public class FloorUtils {
+
+    public static FloorVariant createNewFloorVariant (Floor floor, Variant variant, Integer quantity, Double price){
+        return FloorVariant.builder()
+                .floorVariantId(UUID.randomUUID().toString())
+                .floor(floor)
+                .variant(variant)
+                .quantity(quantity)
+                .price(price)
+                .build();
+    }
+
     public static Floor createNewFloorEntity(Product product, FloorRequest floorRequest, Map<Variant, Pair<Integer, Double>> variantRequestSet){
         Set<FloorVariant> floorVariants = new HashSet<>();
         Floor floor = Floor.builder()
@@ -84,5 +93,19 @@ public class FloorUtils {
         existingFloorVariants.removeIf(fv -> !variantRequestSet.containsKey(fv.getVariant()));
         floor.setFloorVariants(updatedFloorVariants);
         return floor;
+    }
+
+    public static FloorRequest createFloorRequest(String productId, Double foamThickness, Integer numberPiecePerBox, String variantId, Integer quantity, Double price) {
+        VariantRequest variantRequest = VariantRequest.builder()
+                .variantId(variantId)
+                .quantity(quantity)
+                .price(price)
+                .build();
+        return FloorRequest.builder()
+                .productId(productId)
+                .foamThickness(foamThickness)
+                .variants(Collections.singleton(variantRequest))
+                .numberOfPiecesPerBox(numberPiecePerBox)
+                .build();
     }
 }

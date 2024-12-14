@@ -1,5 +1,6 @@
 package com.dcode.product_service.utils;
 
+import com.dcode.product_service.dtoRequest.PaintRequest;
 import com.dcode.product_service.dtoRequest.VariantRequest;
 import com.dcode.product_service.dtoResponse.PaintResponse;
 import com.dcode.product_service.dtoResponse.ProductResponse;
@@ -29,6 +30,28 @@ public class PaintUtils {
                 .variants(convertVariantToVResponse(paint.getPaintVariants()))
                 .status(paint.getStatus())
                 .product(fromProductEntitySimple(paint.getProduct()))
+                .build();
+    }
+
+    public static PaintRequest createPaintRequest(String productId, String color, String variantId, Integer quantity, Double price) {
+        VariantRequest variantRequest = VariantRequest.builder()
+                .variantId(variantId)
+                .quantity(quantity)
+                .price(price)
+                .build();
+        return PaintRequest.builder()
+                .productId(productId)
+                .color(color)
+                .variants(Collections.singleton(variantRequest))
+                .build();
+    }
+    public static PaintVariant createPaintVariant (Paint paint, Variant variant, Integer quantity, Double price){
+        return PaintVariant.builder()
+                .paintVariantId(UUID.randomUUID().toString())
+                .paint(paint)
+                .variant(variant)
+                .quantity(quantity)
+                .price(price)
                 .build();
     }
 

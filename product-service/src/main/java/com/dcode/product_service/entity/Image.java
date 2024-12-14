@@ -16,6 +16,7 @@ public class Image extends Auditable{
     @Column(nullable = false, updatable = false, unique = true)
     @NaturalId
     private String imageId;
+    @Column(columnDefinition = "TEXT")
     private String url;
 
     @ManyToOne

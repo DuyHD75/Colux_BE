@@ -17,7 +17,6 @@ public class Constants {
                 "/api/v1/orders/payment/**",
                 "/api/v1/orders/payment/success",
                 "/api/v1/orders/create",
-                "/api/v1/orders/topProducts",
                 "/api/v1/orders/shipping/calculateFee",
                 "/api/v1/orders/shipping/province",
                 "/api/v1/orders/shipping/district",
@@ -25,17 +24,15 @@ public class Constants {
                 "/api/v1/orders/shipping/services",
                 "/api/v1/orders/customerId/**",
                 "/api/v1/orders/order/**",
-                "/api/v1/orders/cancel/**",
                 "/api/v1/orders/public/**",
                 "/api/v1/waybills/public/**",
-                "/api/v1/orders/cancel",
                 "/api/v1/orders/update/**",
 
 
         };
         public static final String PAYPAL_BASE_URL = "https://api-m.sandbox.paypal.com";
         public static final double DEFAULT_TAX = 0.1;
-        public static final int VND_TO_USD = 23_000;
+        public static final int VND_TO_USD = 25_300;
         public static final String BRAND_NAME = "COLUX ALPHA";
 //        public static final String FRONTEND_HOST = "https://colux.vercel.app";
         public static final String SERVICE_NAME = "order-service";

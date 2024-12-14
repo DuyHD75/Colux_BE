@@ -30,7 +30,7 @@ import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 @Slf4j
 public class FloorController {
     private final FloorServiceImpl floorService;
-    @PreAuthorize("hasRole('EMPLOYEE') and hasAuthority('product:create')")
+    @PreAuthorize("hasAnyRole('EMPLOYEE', 'ADMIN')")
     @PostMapping("/productId/{productId}")
     public ResponseEntity<Response> createAFloor(@PathVariable("productId") String productId, @RequestBody FloorRequest fRequest, HttpServletRequest request, HttpServletResponse response) {
         try {
@@ -45,7 +45,7 @@ public class FloorController {
                     .body(getErrorResponse(request, response, new ApiException("An unexpected error occurred."), INTERNAL_SERVER_ERROR));
         }
     }
-    @PreAuthorize("hasRole('EMPLOYEE') and hasAuthority('product:create')")
+    @PreAuthorize("hasAnyRole('EMPLOYEE', 'ADMIN')")
     @PostMapping
     public ResponseEntity<Response> createFloors(@RequestBody Set<FloorRequest> floorRequests, HttpServletRequest request, HttpServletResponse response) {
         try {
@@ -73,7 +73,7 @@ public class FloorController {
                     .body(getErrorResponse(request, response, new ApiException("An unexpected error occurred."), INTERNAL_SERVER_ERROR));
         }
     }
-    @PreAuthorize("hasRole('EMPLOYEE') and hasAuthority('product:update')")
+    @PreAuthorize("hasAnyRole('EMPLOYEE', 'ADMIN')")
     @PutMapping("/floorId/{floorId}")
     public ResponseEntity<Response> updateAFloor(@PathVariable("floorId") String floorId, @RequestBody FloorRequest fRequest, HttpServletRequest request, HttpServletResponse response) {
         try {
@@ -87,7 +87,7 @@ public class FloorController {
                     .body(getErrorResponse(request, response, new ApiException("An unexpected error occurred."), INTERNAL_SERVER_ERROR));
         }
     }
-    @PreAuthorize("hasRole('EMPLOYEE') and hasAuthority('product:delete')")
+    @PreAuthorize("hasAnyRole('EMPLOYEE', 'ADMIN')")
     @DeleteMapping("/floorId/{floorId}")
     public ResponseEntity<Response> deleteAFloor(@PathVariable("floorId") String floorId, HttpServletRequest request, HttpServletResponse response) {
         try {

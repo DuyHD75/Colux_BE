@@ -44,9 +44,11 @@ import org.springframework.web.client.RestTemplate;
 import com.dcode.order_service.enumuration.EventType;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static com.dcode.order_service.constant.Constants.AppConstants.VND_TO_USD;
 import static com.dcode.order_service.enumuration.EventType.ORDER_COMPLETED;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
@@ -210,9 +212,9 @@ public class WaybillServiceImpl implements WaybillService {
                 Waybill waybillAfterSave = waybillRepository.save(waybill);
 
                 // (2) Sửa order
-                order.setShippingCost(BigDecimal.valueOf(ghnCreateOrderResponse.getData().getTotalFee()));
-                order.setTotalPay(BigDecimal.valueOf(
-                        order.getTotalPay().intValue() + ghnCreateOrderResponse.getData().getTotalFee()));
+                BigDecimal shippingCost = new BigDecimal(ghnCreateOrderResponse.getData().getTotalFee())
+                        .divide(BigDecimal.valueOf(VND_TO_USD), 0, RoundingMode.HALF_DOWN);
+                order.setShippingCost(shippingCost);
                 order.setStatus(OrderStatus.APPROVED.getValue());
 
                 orderRepository.save(order);

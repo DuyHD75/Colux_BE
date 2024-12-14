@@ -62,7 +62,7 @@ public class CartResource {
         }
     }
 
-    @DeleteMapping("/delete-cart-item")
+    @PostMapping("/delete-cart-item")
     public ResponseEntity<Response> deleteCartItem(@RequestBody CartVariantKeyRequest idRequests, HttpServletRequest request) {
         try {
             cartService.deleteCartItem(idRequests);

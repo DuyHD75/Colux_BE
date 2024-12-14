@@ -32,7 +32,7 @@ public class ColorController {
 
     private final ColorServiceImpl colorService;
 
-    @PreAuthorize("hasRole('EMPLOYEE') and hasAuthority('product:create')")
+    @PreAuthorize("hasAnyRole('EMPLOYEE', 'ADMIN')")
     @PostMapping()
     public ResponseEntity<Response> createAColor(@RequestBody @Valid List<ColorRequest> colorRequest, HttpServletRequest request, HttpServletResponse response) {
         try {
@@ -60,7 +60,7 @@ public class ColorController {
                     .body(getErrorResponse(request, response, new ApiException("An unexpected error occurred."), INTERNAL_SERVER_ERROR));
         }
     }
-    @PreAuthorize("hasRole('EMPLOYEE') and hasAuthority('product:update')")
+    @PreAuthorize("hasAnyRole('EMPLOYEE', 'ADMIN')")
     @PutMapping("/colorId/{colorId}")
     public ResponseEntity<Response> updateAColor(@PathVariable("colorId") String colorId, @RequestBody ColorRequest colorRequest, HttpServletRequest request, HttpServletResponse response) {
         try {
@@ -74,7 +74,7 @@ public class ColorController {
                     .body(getErrorResponse(request, response, new ApiException("An unexpected error occurred."), INTERNAL_SERVER_ERROR));
         }
     }
-    @PreAuthorize("hasRole('EMPLOYEE') and hasAuthority('product:delete')")
+    @PreAuthorize("hasAnyRole('EMPLOYEE', 'ADMIN')")
     @DeleteMapping("/colorId/{colorId}")
     public ResponseEntity<Response> deleteAColor(@PathVariable("colorId") String colorId, HttpServletRequest request, HttpServletResponse response) {
         try {

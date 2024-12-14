@@ -31,7 +31,7 @@ public class FeatureController {
 
     private final FeatureServiceImpl featureService;
 
-    @PreAuthorize("hasRole('EMPLOYEE') and hasAuthority('product:create')")
+    @PreAuthorize("hasAnyRole('EMPLOYEE', 'ADMIN')")
     @PostMapping
     public ResponseEntity<Response> createFeatures(@RequestBody @Valid Set<FeatureRequest> featureRequest, HttpServletRequest request, HttpServletResponse response) {
         try {
@@ -48,7 +48,7 @@ public class FeatureController {
                     .body(getErrorResponse(request, response, new ApiException("An unexpected error occurred."), INTERNAL_SERVER_ERROR));
         }
     }
-    @PreAuthorize("hasRole('EMPLOYEE') and hasAuthority('product:update')")
+    @PreAuthorize("hasAnyRole('EMPLOYEE', 'ADMIN')")
     @PutMapping("/featureId/{featureId}")
     public ResponseEntity<Response> updateFeature(@PathVariable("featureId") String featureId, @RequestBody @Valid FeatureRequest featureRequest, HttpServletRequest request, HttpServletResponse response) {
         try {
