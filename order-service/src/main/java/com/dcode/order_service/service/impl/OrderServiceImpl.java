@@ -198,7 +198,7 @@ public class OrderServiceImpl implements IOrderService {
         if (request.getCustomerId() != null) {
             cleanCart(request);
         }
-
+        orderEntity.setPaypalCheckoutLink(confirmedOrderResponse.getOrderPaypalCheckoutLink());
         return confirmedOrderResponse;
     }
 
@@ -315,12 +315,12 @@ public class OrderServiceImpl implements IOrderService {
 
 
     @Override
-    public void captureTransactionPaypal(String paypalOrderId, String payerId) throws ResourceNotFoundException {
+    public void captureTransactionPaypal(String paypalOrderId, String payerId, String token) throws ResourceNotFoundException {
         var order = orderRepository.findByPaypalOrderId(paypalOrderId).get();
 
         try {
             // (1) Capture
-            paypalHttpClient.capturePaypalTransaction(paypalOrderId, payerId);
+            paypalHttpClient.capturePaypalTransaction(token, payerId);
 
             // (2) Cập nhật order
             if (order.getPaymentMethod() == PaymentMethod.COD) {
@@ -593,6 +593,7 @@ public class OrderServiceImpl implements IOrderService {
                 .updatedAt(order.getUpdatedAt().atZone(ZoneOffset.UTC).toInstant())
                 .code(order.getCode())
                 .waybillId(waybill != null ? waybill.getWaybillId() : null)
+                .paypalCheckoutLink(order.getPaypalCheckoutLink() != null ? order.getPaypalCheckoutLink() : null)
                 .id(order.getId());
 
         // Map order lines to CartVariantRequests to send to product service

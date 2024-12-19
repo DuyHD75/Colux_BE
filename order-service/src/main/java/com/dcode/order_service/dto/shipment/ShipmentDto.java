@@ -14,5 +14,8 @@ public class ShipmentDto {
     private String toWardName;
     private String toDistrictName;
     private String toProvinceName;
+    private String toWardCode;
+    private String toDistrictId;
+    private String toProvinceId;
     private Integer status;
 }

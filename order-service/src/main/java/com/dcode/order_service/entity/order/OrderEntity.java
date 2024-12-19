@@ -111,4 +111,7 @@ public class OrderEntity extends Auditable {
 
     @Column(name= "payment_status") /* (1) Chưa thanh toán, (2) Đã thanh toán  (3) Đã đặt cọc*/
     private Integer paymentStatus;
+
+    @Column(name = "paypal_checkout_link")
+    private String paypalCheckoutLink;
 }

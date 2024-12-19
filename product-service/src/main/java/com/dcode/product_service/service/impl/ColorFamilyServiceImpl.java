@@ -51,7 +51,7 @@ public class ColorFamilyServiceImpl implements IColorFamilyService {
     @Override
     public List<ColorFamilyResponse> getAllColorFamily() {
         var colorFamilyAll = colorFamilyRepository.findAll();
-
+        if (colorFamilyAll.isEmpty()) throw new ApiException("Empty color family!");
         return colorFamilyAll.stream()
                 .map(ColorFamilyUtils::fromColorFamilyEntity)
                 .toList();

@@ -16,13 +16,14 @@ public class ShipmentUtils {
                 .customerName(shipmentDto.getCustomerName())
                 .customerPhone(shipmentDto.getCustomerPhone())
                 .shipmentId(UUID.randomUUID().toString())
-                .customerName(shipmentDto.getCustomerName())
-                .customerPhone(shipmentDto.getCustomerPhone())
                 .customerId(shipmentDto.getCustomerId())
                 .toAddress(shipmentDto.getToAddress())
                 .toWardName(shipmentDto.getToWardName())
                 .toDistrictName(shipmentDto.getToDistrictName())
                 .toProvinceName(shipmentDto.getToProvinceName())
+                .toWardCode(shipmentDto.getToWardCode())
+                .toDistrictId(shipmentDto.getToDistrictId())
+                .toProvinceId(shipmentDto.getToProvinceId())
                 .status(shipmentDto.getStatus())
                 .build();
     }
@@ -35,6 +36,9 @@ public class ShipmentUtils {
         existingEntity.setToWardName(shipmentDto.getToWardName());
         existingEntity.setToDistrictName(shipmentDto.getToDistrictName());
         existingEntity.setToProvinceName(shipmentDto.getToProvinceName());
+        existingEntity.setToWardCode(shipmentDto.getToWardCode());
+        existingEntity.setToDistrictId(shipmentDto.getToDistrictId());
+        existingEntity.setToProvinceId(shipmentDto.getToProvinceId());
         existingEntity.setStatus(shipmentDto.getStatus());
         return existingEntity;
     }
@@ -49,6 +53,9 @@ public class ShipmentUtils {
         shipmentDto.setToWardName(shipmentEntity.getToWardName());
         shipmentDto.setToDistrictName(shipmentEntity.getToDistrictName());
         shipmentDto.setToProvinceName(shipmentEntity.getToProvinceName());
+        shipmentDto.setToWardCode(shipmentEntity.getToWardCode());
+        shipmentDto.setToDistrictId(shipmentEntity.getToDistrictId());
+        shipmentDto.setToProvinceId(shipmentEntity.getToProvinceId());
         shipmentDto.setStatus(shipmentEntity.getStatus());
         return shipmentDto;
     }

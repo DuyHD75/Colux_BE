@@ -44,6 +44,15 @@ public class ShipmentEntity extends Auditable {
     @Column(name = "to_province_name", nullable = false)
     private String toProvinceName;
 
+    @Column(name = "to_ward_code", nullable = false)
+    private String toWardCode;
+
+    @Column(name = "to_district_id", nullable = false)
+    private String toDistrictId;
+
+    @Column(name = "to_province_id", nullable = false)
+    private String toProvinceId;
+
     @Column(name = "status", nullable = false, columnDefinition = "TINYINT")
     private Integer status; // (1) - default
 }

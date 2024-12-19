@@ -44,6 +44,7 @@ public class OrderResponse {
     private PaymentMethod paymentMethod;
     private Integer paymentStatus;
     private String waybillId;
+    private String paypalCheckoutLink;
 
     private List<CartVariantResponse.ClientVariantResponse> products;
 

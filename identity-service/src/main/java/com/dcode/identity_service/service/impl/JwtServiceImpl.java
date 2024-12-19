@@ -108,7 +108,7 @@ public class JwtServiceImpl extends JwtConfiguration implements IJwtService {
             case ACCESS_TOKEN -> {
                 token = createToken(user, Token::getAccessToken);
                 cookie = new Cookie(tokenType.getValue(), token);
-                cookie.setMaxAge(60 * 60); // 1 hour
+                cookie.setMaxAge(60); // 1 hour
             }
             case REFRESH_TOKEN -> {
                 token = createToken(user, Token::getRefreshToken);

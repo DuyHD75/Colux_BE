@@ -23,7 +23,7 @@ public interface IOrderService {
 
     ConfirmedOrderResponse createClientOrder(OrderRequest request);
 
-    void captureTransactionPaypal(String paymentId, String payerId) throws ResourceNotFoundException;
+    void captureTransactionPaypal(String paymentId, String payerId, String token) throws ResourceNotFoundException;
 
     List<OrderResponse> getAllOrders();
 

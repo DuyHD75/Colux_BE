@@ -111,8 +111,7 @@ public class UserResource {
         userService.verifyAccountKey(key);
         return ResponseEntity.ok().body(getResponse(request, emptyMap(), "Account verified.", OK));
     }
-
-    @GetMapping("/refresh-token")
+    @GetMapping("/public/refresh-token")
     public ResponseEntity<Response> refreshToken(HttpServletRequest request, HttpServletResponse response) {
         String token = jwtService.extractToken(request, "refresh-token").get();
 
@@ -237,7 +236,7 @@ public class UserResource {
         return ResponseEntity.ok().body(getResponse(request, Map.of("user", user), "User status updated successfully!", OK));
     }
 
-    @GetMapping("/public/{customer-id}")
+    @GetMapping("/{customer-id}")
     public ResponseEntity<Response> getUserInfoById(@PathVariable("customer-id") String userId, HttpServletRequest request) {
         var user = userService.getUserByUserId(userId);
         return ResponseEntity.ok().body(getResponse(request, Map.of("user", user), "User info retrieved.", OK));

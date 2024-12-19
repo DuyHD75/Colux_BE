@@ -54,6 +54,7 @@ public class CollectionServiceImpl implements ICollectionService {
     @Override
     public List<CollectionResponse> getAllCollection() {
         var collections = collectionRepository.findAll();
+        if (collections.isEmpty()) throw new ApiException("Empty collection!");
         return collections.stream()
                 .map(CollectionUtils::fromCollectionBasicEntity)
                 .toList();

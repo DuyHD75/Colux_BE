@@ -199,9 +199,10 @@ public class OrderResource {
     }
 
     @GetMapping("/payment/success")
-    public ResponseEntity<Void> captureTransactionPaypal(@RequestParam("paymentId") String paymentId, @RequestParam("PayerID") String payerId, HttpServletRequest request) {
+    public ResponseEntity<Void> captureTransactionPaypal(@RequestParam("token") String token, @RequestParam("PayerID") String payerId,
+                                                         @RequestParam("paymentId") String  paymentId, HttpServletRequest request) {
         try {
-            orderService.captureTransactionPaypal(paymentId, payerId);
+            orderService.captureTransactionPaypal(paymentId, payerId, token);
             return ResponseEntity.status(HttpStatus.FOUND).location(
                     URI.create(FRONTEND_HOST + "/resultPayment?status=success")).build();
         } catch (ResourceNotFoundException ex) {
